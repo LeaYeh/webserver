@@ -60,6 +60,26 @@ Something like "EAI_AGAIN", "EAI_BADFLAGS", "EAI_FAIL", "EAI_FAMILY", "EAI_MEMOR
 const char *gai_strerror(int errcode);
 ```
 
+### getprotobyname
+
+Use to get the protocol information by the protocol name.
+
+```c++
+struct protoent {
+    char *p_name;     // protocol name
+    char **p_aliases; // protocol aliases
+    int p_proto;      // protocol number
+};
+```
+
+```c++
+struct protoent *getprotobyname(const char *name);
+
+// Example
+struct protoent *proto = getprotobyname("tcp");
+int protocol = proto->p_proto;
+```
+
 ## Connection
 
 ### socket

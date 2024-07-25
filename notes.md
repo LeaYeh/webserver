@@ -58,3 +58,73 @@ Something like "EAI_AGAIN", "EAI_BADFLAGS", "EAI_FAIL", "EAI_FAMILY", "EAI_MEMOR
 
 ```c++
 const char *gai_strerror(int errcode);
+```
+
+## Connection
+
+### socket
+
+Use to create a socket for network communication.
+
+```c++
+int socket(int domain, int type, int protocol);
+```
+
+* `domain`: The address family of the socket. It can be `AF_INET` for IPv4, `AF_INET6` for IPv6, `AF_UNIX` for Unix domain sockets, `AF_UNSPEC` for unspecified.
+* `type`: The type of the socket. It can be `SOCK_STREAM` for TCP, `SOCK_DGRAM` for UDP, `SOCK_RAW` for raw socket.
+* `protocol`: The protocol of the socket. It can be `0` for unspecified and it will auto detect, `IPPROTO_TCP` for TCP, `IPPROTO_UDP` for UDP.
+* Return: The file descriptor of the socket. If the function fails, it returns `-1` and sets `errno`.
+
+### socketpair
+
+Use to create a pair of connected sockets for inter-process communication (IPC).
+
+```c++
+int socketpair(int domain, int type, int protocol, int sv[2]);
+```
+
+* `domain`: The address family of the socket. Usually, it is `AF_UNIX` for Unix domain sockets.
+* `type`: Same as the `socket` function.
+* `protocol`: Same as the `socket` function.
+* `sv`: The file descriptors of the two sockets. The first one is for reading and the second one is for writing.
+* Return: If the function fails, it returns `-1` and sets `errno`.
+
+### setsockopt
+
+Use to control the behavior of the socket. Like setting the timeout, reusing the address, etc.
+
+```c++
+int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
+```
+
+* `sockfd`: The file descriptor of the socket.
+* `level`: The protocol level at which the option resides. It can be `SOL_SOCKET` for socket-level options, `IPPROTO_TCP` for TCP-level options, `IPPROTO_IP` for IP-level options.
+* `optname`: The option to set. It can be `SO_REUSEADDR` to reuse the address, `SO_REUSEPORT` to reuse the port, `SO_RCVBUF` to set the receive buffer size, `SO_SNDBUF` to set the send buffer size, `SO_RCVTIMEO` to set the receive timeout, `SO_SNDTIMEO` to set the send timeout, `SO_KEEPALIVE` to keep the connection alive, `SO_LINGER` to set the linger time, `SO_BROADCAST` to allow broadcasting, `SO_OOBINLINE` to receive out-of-band data inline, `SO_NO_CHECK` to disable checksum, `SO_PRIORITY` to set the priority, `SO_RCVLOWAT` to set the receive low water mark, `SO_SNDLOWAT` to set the send low water mark.
+* `optval`: The value of the option.
+* `optlen`: The length of the option value.
+
+```c++
+// Example: Set the timeout of the socket
+struct timeval timeout;
+timeout.tv_sec = 5;
+timeout.tv_usec = 0;
+setsockopt(
+    sockfd,         // The file descriptor of the socket
+    SOL_SOCKET,     // The protocol level
+    SO_RCVTIMEO,    // The option to set, receive timeout
+    &timeout,       // The value of the option
+    sizeof(timeout) // The length of the option value
+);
+```
+
+### getsockname
+
+Use to get the local address of the socket.
+
+```c++
+int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+```
+
+* `sockfd`: The file descriptor of the socket.
+* `addr`: The address of the socket.
+* `addrlen`: The length of the address.

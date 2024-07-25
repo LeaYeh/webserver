@@ -128,3 +128,83 @@ int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 * `sockfd`: The file descriptor of the socket.
 * `addr`: The address of the socket.
 * `addrlen`: The length of the address.
+### fcntl
+
+For the webserver to be able to handle multiple connections, loggers and make sure the fd would not be inherited by the child process, we need to use `fcntl` to control the file descriptor.
+
+#### 1. For setting the file descriptor to non-blocking mode.
+
+Non-blocking means that the read and write operations on the file descriptor will return immediately if there is no data available.
+
+```c++
+int set_nonblocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0); // get the current flags
+    if (flags == -1) {
+        perror("fcntl(F_GETFL)");
+        return -1;
+    }
+
+    flags |= O_NONBLOCK;                // set the non-blocking flag
+    if (fcntl(fd, F_SETFL, flags) == -1) {
+        perror("fcntl(F_SETFL)");
+        return -1;
+    }
+    return 0;
+}
+```
+
+#### 2. Lock the file descriptor to avoid multiple processes writing to the same file.
+
+```c++
+int lock_file(int fd) {
+    struct flock fl;
+    fl.l_type = F_WRLCK;        // write lock
+    fl.l_whence = SEEK_SET;     // relative to beginning of file
+    fl.l_start = 0;             // start from 0
+    fl.l_len = 0;               // lock the whole file
+
+    if (fcntl(fd, F_SETLKW, &fl) == -1)
+    {
+        perror("fcntl(F_SETLKW)");
+        return -1;
+    }
+    return 0;
+}
+
+int unlock_file(int fd) {
+    struct flock fl;
+    fl.l_type = F_UNLCK;        // unlock
+    fl.l_whence = SEEK_SET;     // relative to beginning of file
+    fl.l_start = 0;             // start from 0
+    fl.l_len = 0;               // unlock the whole file
+
+    if (fcntl(fd, F_SETLK, &fl) == -1)
+    {
+        perror("fcntl(F_SETLK)");
+        return -1;
+    }
+    return 0;
+}
+```
+
+#### 3. Handle the inherited in the child process.
+
+```c++
+int close_on_exec(int fd)
+{
+    int flags = fcntl(fd, F_GETFD, 0);      // get the current flags
+    if (flags == -1) {
+        perror("fcntl(F_GETFD)");
+        return -1;
+    }
+
+    // set the close-on-exec flag, the file descriptor will be closed when the process is replaced by another process
+    flags |= FD_CLOEXEC;
+    if (fcntl(fd, F_SETFD, flags) == -1)
+    {
+        perror("fcntl(F_SETFD)");
+        return -1;
+    }
+    return 0;
+}
+```

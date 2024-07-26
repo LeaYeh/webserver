@@ -265,3 +265,57 @@ int close_on_exec(int fd)
     return 0;
 }
 ```
+## Network Byte Order and Host Byte Order Conversion
+
+* Host byte order: The byte order used by the host. It can be big-endian or little-endian.
+* Network byte order: The byte order used by the network. It is big-endian.
+
+When sending data over the network, it is important to convert the data to network byte order. The network byte order is big-endian, while the host byte order can be big-endian or little-endian. The following functions can be used to convert between network byte order and host byte order.
+
+### htons
+
+Host TO Network Short, convert a short integer from host byte order to network byte order.
+
+```c++
+uint16_t htons(uint16_t hostshort);
+
+// Example
+uint16_t port = 8080;
+uint16_t network_port = htons(port);
+```
+
+### htonl
+
+Host TO Network Long, convert a long integer from host byte order to network byte order.
+
+```c++
+uint32_t htonl(uint32_t hostlong);
+
+// Example
+uint32_t ip = 0x7f000001;
+uint32_t network_ip = htonl(ip);
+```
+
+### ntohs
+
+Network TO Host Short, convert a short integer from network byte order to host byte order.
+
+```c++
+uint16_t ntohs(uint16_t netshort);
+
+// Example
+uint16_t network_port = 8080;
+uint16_t port = ntohs(network_port);
+```
+
+### ntohl
+
+Network TO Host Long, convert a long integer from network byte order to host byte order.
+
+```c++
+uint32_t ntohl(uint32_t netlong);
+
+// Example
+uint32_t network_ip = 0x7f000001;
+uint32_t ip = ntohl(network_ip);
+```

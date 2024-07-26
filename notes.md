@@ -149,6 +149,40 @@ int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 * `addr`: The address of the socket.
 * `addrlen`: The length of the address.
 
+### Other Macros
+
+Using `SOMAXCONN` to get the maximum number of connections that can be queued by `listen`.
+
+Using `SOL_SOCKET` to set socket-level options.
+
+Using `SO_REUSEADDR` to reuse the address.
+
+Using `SO_REUSEPORT` to reuse the port.
+
+Using `SO_RCVBUF` to set the receive buffer size.
+
+Using `SO_SNDBUF` to set the send buffer size.
+
+Using `SO_RCVTIMEO` to set the receive timeout.
+
+Using `SO_SNDTIMEO` to set the send timeout.
+
+Using `SO_ERROR` to get the error status of the socket.
+
+Using `SO_KEEPALIVE` to keep the connection alive.
+
+Using `SO_LINGER` to set the linger time.
+
+Using `SO_BROADCAST` to allow broadcasting.
+
+Using `SO_OOBINLINE` to receive out-of-band data inline.
+
+Using `SO_NO_CHECK` to disable checksum.
+
+Using `SO_PRIORITY` to set the priority.
+
+Using `SO_RCVLOWAT` to set the receive low water mark.
+
 ## I/O Multiplexing
 
 ### fcntl

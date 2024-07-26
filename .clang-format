@@ -1,10 +1,11 @@
-BasedOnStyle: Google                        # Starting with a conservative style base
+BasedOnStyle: LLVM                          # Use the LLVM style as a base
 IndentWidth: 4                              # Commonly used indent width
 UseTab: Never                               # Prefer spaces, as is typical in older C++ code styles
-BreakBeforeBraces: Allman                   # Opening braces on the same line to save space, common in older styles
+BreakBeforeBraces: Allman                   # Use the Allman style for braces
 AllowShortIfStatementsOnASingleLine: false  # Keep even short if statements on separate lines
 ColumnLimit: 80                             # Keeping with the traditional 80 characters per line limit
 PointerAlignment: Left                      # Place the asterisk close to the variable type e.g., int* x;
 AllowShortFunctionsOnASingleLine: false     # Force functions to be on multiple lines
 AllowShortBlocksOnASingleLine: false        # Force blocks to be on multiple lines
 SortIncludes: true                          # Sort includes alphabetically
+InsertNewlineAtEOF: true                    # Ensure a newline at the end of the file

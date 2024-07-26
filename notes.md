@@ -148,6 +148,9 @@ int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 * `sockfd`: The file descriptor of the socket.
 * `addr`: The address of the socket.
 * `addrlen`: The length of the address.
+
+## I/O Multiplexing
+
 ### fcntl
 
 For the webserver to be able to handle multiple connections, loggers and make sure the fd would not be inherited by the child process, we need to use `fcntl` to control the file descriptor.

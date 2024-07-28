@@ -79,6 +79,20 @@ struct protoent *getprotobyname(const char *name);
 struct protoent *proto = getprotobyname("tcp");
 int protocol = proto->p_proto;
 ```
+## Network Builtin
+
+### poll
+Use to monitors an array of file descriptors.
+
+Enabling a single-threaded program to manage multiple I/O streams concurrently without resorting to blocking operations or spinning in a busy-wait loop.
+
+```c++
+int poll(struct pollfd fds[], nfds_t nfds, int timeout);
+```
+* `fds`: Array of pollfd structures.
+* `nfds`: Number of file descriptors.
+* `timeout`: Maximum time to wait (in milliseconds). A value of -1 means an infinite timeout, 0 means non-blocking.
+* Return: returns the number of file descriptors that have events or -1 on error. The revents field of the pollfd structures is updated to reflect the events that occurred.
 
 ## Connection
 

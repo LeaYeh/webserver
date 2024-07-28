@@ -79,22 +79,23 @@ struct protoent *getprotobyname(const char *name);
 struct protoent *proto = getprotobyname("tcp");
 int protocol = proto->p_proto;
 ```
-## Network Builtin
-
-### poll
-Use to monitors an array of file descriptors.
-
-Enabling a single-threaded program to manage multiple I/O streams concurrently without resorting to blocking operations or spinning in a busy-wait loop.
-
-```c++
-int poll(struct pollfd fds[], nfds_t nfds, int timeout);
-```
-* `fds`: Array of pollfd structures.
-* `nfds`: Number of file descriptors.
-* `timeout`: Maximum time to wait (in milliseconds). A value of -1 means an infinite timeout, 0 means non-blocking.
-* Return: returns the number of file descriptors that have events or -1 on error. The revents field of the pollfd structures is updated to reflect the events that occurred.
 
 ## Connection
+
+### accept
+
+### listen
+
+### send
+
+### recv
+
+### bind
+
+### connect
+
+
+## Socket
 
 ### socket
 
@@ -279,6 +280,40 @@ int close_on_exec(int fd)
     return 0;
 }
 ```
+
+## Async
+
+### select
+
+### poll
+
+Use to monitors an array of file descriptors.
+
+Enabling a single-threaded program to manage multiple I/O streams concurrently without resorting to blocking operations or spinning in a busy-wait loop.
+
+```c++
+int poll(struct pollfd fds[], nfds_t nfds, int timeout);
+```
+* `fds`: Array of pollfd structures.
+* `nfds`: Number of file descriptors.
+* `timeout`: Maximum time to wait (in milliseconds). A value of -1 means an infinite timeout, 0 means non-blocking.
+* Return: returns the number of file descriptors that have events or -1 on error. The revents field of the pollfd structures is updated to reflect the events that occurred.
+
+## epoll
+
+### epoll_create
+
+### epoll_ctl
+
+### epoll_wait
+
+## kqueue
+
+### kqueue
+
+### kevent
+
+
 ## Network Byte Order and Host Byte Order Conversion
 
 * Host byte order: The byte order used by the host. It can be big-endian or little-endian.
@@ -333,3 +368,90 @@ uint32_t ntohl(uint32_t netlong);
 uint32_t network_ip = 0x7f000001;
 uint32_t ip = ntohl(network_ip);
 ```
+
+## Macros
+
+### FD_CLR
+
+Using `FD_CLR` to clear a file descriptor from a set.
+
+```c++
+void FD_CLR(int fd, fd_set *set);
+```
+
+### FD_ISSET
+
+Using `FD_ISSET` to check if a file descriptor is in a set.
+
+```c++
+int FD_ISSET(int fd, fd_set *set);
+```
+
+### FD_SET
+
+Using `FD_SET` to add a file descriptor to a set.
+
+```c++
+void FD_SET(int fd, fd_set *set);
+```
+
+### FD_ZERO
+
+Using `FD_ZERO` to clear all file descriptors from a set.
+
+```c++
+void FD_ZERO(fd_set *set);
+```
+
+### INADDR_ANY
+
+Using `INADDR_ANY` to bind to all interfaces.
+
+```c++
+#define INADDR_ANY ((in_addr_t) 0x00000000)
+```
+
+### INADDR_LOOPBACK
+
+Using `INADDR_LOOPBACK` to bind to the loopback interface.
+
+```c++
+#define INADDR_LOOPBACK ((in_addr_t) 0x7f000001)
+```
+
+### INADDR_NONE
+
+Using `INADDR_NONE` to indicate an invalid address.
+
+```c++
+#define INADDR_NONE ((in_addr_t) 0xffffffff)
+```
+
+### INET_ADDRSTRLEN
+
+Using `INET_ADDRSTRLEN` to get the maximum length of an IPv4 address string.
+
+### INET6_ADDRSTRLEN
+
+Using `INET6_ADDRSTRLEN` to get the maximum length of an IPv6 address string.
+
+### select
+
+### poll
+
+## epoll
+
+### epoll_create
+
+### epoll_ctl
+
+### epoll_wait
+
+## kqueue
+
+### kqueue
+
+### kevent
+
+### SO_SNDLOWAT
+

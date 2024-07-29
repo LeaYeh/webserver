@@ -13,6 +13,7 @@ struct addrinfo
     int ai_protocol;            // protocol (e.g. TCP, UDP)
     size_t ai_addrlen;          // length of ai_addr
     struct sockaddr *ai_addr;   // address of the socket
+    struct sockaddr_in ip_addr; // address of IP networking
     char *ai_canonname;         // canonical name of the host
     struct addrinfo *ai_next;   // next addrinfo struct
 };
@@ -156,11 +157,12 @@ int close(int sockfd);
 
 ### socket
 
-Use to create a socket for network communication.
-
 * Should create a socket from `getaddrinfo`
 * Should make the socket sutiable for the IPv4 or IPv6 address
 
+It allows messages to be sent and received betweem applications on different networked machines.
+
+### STEP 1. Create the socket
 ```c++
 int socket(int domain, int type, int protocol);
 ```
@@ -169,6 +171,98 @@ int socket(int domain, int type, int protocol);
 * `type`: The type of the socket. It can be `SOCK_STREAM` for TCP, `SOCK_DGRAM` for UDP, `SOCK_RAW` for raw socket.
 * `protocol`: The protocol of the socket. It can be `0` for unspecified and it will auto detect, `IPPROTO_TCP` for TCP, `IPPROTO_UDP` for UDP.
 * Return: The file descriptor of the socket. If the function fails, it returns `-1` and sets `errno`.
+
+####  Our code for creating a TCP socket looks like this:
+```c++
+#include <sys/socket.h>
+...
+...
+if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+{
+    perror(“cannot create socket”); 
+    return 0; 
+}
+```
+### STEP 2. Indentify (name) a socket
+Assigning a transport address to the socket. The transport address is defined in a socket address struct.
+
+Instead of accepting, a port number as a parameter, it takes a sockaddr structure, is determined on the address family (type of network).
+
+bind()creates a file in the file system:
+```c++
+int bind(int socket, const struct sockaddr *address, socklen_t address_len);
+```
+* `socket`: that was created with the socket system call.
+* `struct sockaddr`:  read the first couple of bytes that identify the address family.
+
+Before calling bind, we need to fill out *struct sockaddr_in*:
+```c++
+struct sockaddr_in 
+{ 
+    __uint8_t         sin_len; 
+    sa_family_t       sin_family; 
+    in_port_t         sin_port; 
+    struct in_addr    sin_addr; 
+    char              sin_zero[8]; 
+};
+```
+
+### STEP 3. On the server, wait for an incoming connection
+Before a client can connect to a server, the server should have a socket that is prepared to accept the connections. 
+
+The listen system call tells a socket that it can accept incoming connections:
+
+Also Gabriel said that we dont close listen() during the connection and transformance, only when we close the program.
+```c++
+#include <sys/socket.h> 
+int listen(int socket, int backlog);
+```
+* `backlog`: the max nbr of pending connections before connections are refused.
+
+*The original socket that was set up for listening is used only for accepting connections, not for exchanging data.*
+
+The accept system call grabs the first connection request on the queue of pending connections (set up in listen) and creates a new socket for that connection.
+
+```c++
+#include <sys/socket.h> 
+int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len);
+```
+* `socket`: the socket that was set for accepting connections with `listen()`
+* `address`: the address structure that gets filed in with the address of the client that is doing the connect.
+* `address_len`: length of the address struct.
+
+The code to listen and accept look like:
+```c++
+if (listen(server_fd, 3) < 0) 
+{ 
+    perror(“In listen”); 
+    exit(EXIT_FAILURE); 
+}
+if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
+{
+    perror("In accept");            
+    exit(EXIT_FAILURE);        
+}
+```
+
+### STEP 4. Send and receive messages
+The same read and write system calls that work on files also work on sockets.
+```c++
+char buffer[1024] = {0};
+int valread = read( new_socket , buffer, 1024); 
+printf(“%s\n”,buffer );
+if(valread < 0)
+{ 
+    printf("No bytes are there to read");
+}
+char *hello = "Hello from the server";//IMPORTANT! WE WILL GET TO IT
+write(new_socket , hello , strlen(hello));
+```
+### STEP 5. Close the socket
+```c++
+close(new_socket);
+```
+## Other socket functions:
 
 ### socketpair
 

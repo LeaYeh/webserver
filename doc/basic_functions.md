@@ -82,18 +82,75 @@ int protocol = proto->p_proto;
 
 ## Connection
 
-### accept
+1. Create a socket with `socket`.
+2. Bind the socket to an address and port with `bind`.
+3. Listen for incoming connections with `listen`.
+4. Connect to the server with `connect`.
+5. Accept a connection from the client with `accept`.
+6. Send and receive data with `send` and `recv`.
+7. Close the connection with `close`.
+
+
+### bind
+
+Use to bind a socket to an address and port.
+
+```c++
+int bind(
+    int sockfd,                     // The file descriptor of the socket
+    const struct sockaddr *addr,    // The address and port to bind
+    socklen_t addrlen               // The length of the address
+);
+```
 
 ### listen
+
+Use to `listen` for incoming connections. When a `listen` is called, the socket is converted into a listening socket and then the OS will add the socket to the queue for `accept` to accept the connection.
+
+```c++
+int listen(
+    int sockfd,
+    int backlog // The maximum number of connections that can be queued
+);
+```
+
+### connect
+
+Use to let the client connect to the server. After the connection is established, the client can send and receive data.
+
+```c++
+int connect(
+    int sockfd,                     // The file descriptor of the socket
+    const struct sockaddr *addr,    // The address and port to connect
+    socklen_t addrlen               // The length of the address
+);
+```
+
+### accept
+
+Use to accept a connection from the client. The function returns a new file descriptor for the connection.
+
+```c++
+int accept(
+    int sockfd,                     // The file descriptor of the socket
+    struct sockaddr *addr,          // The address of the client
+    socklen_t *addrlen              // The length of the address
+);
+```
+
+### close
+
+Use to close the connection.
+
+```c++
+int close(int sockfd);
+```
+
+## Transfer
 
 ### send
 
 ### recv
-
-### bind
-
-### connect
-
 
 ## Socket
 

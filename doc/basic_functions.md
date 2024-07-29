@@ -158,6 +158,9 @@ int close(int sockfd);
 
 Use to create a socket for network communication.
 
+* Should create a socket from `getaddrinfo`
+* Should make the socket sutiable for the IPv4 or IPv6 address
+
 ```c++
 int socket(int domain, int type, int protocol);
 ```

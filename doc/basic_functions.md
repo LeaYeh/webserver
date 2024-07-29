@@ -25,10 +25,10 @@ Use to analyze the host and service arguments and to fill in the addrinfo struct
 Use `getaddrinfo` to get the address information of a host. The function returns a linked list of `addrinfo` structures. The function takes the following arguments:
 
 ```c++
-int getaddrinfo(const char *node,
-    const char *service,
+int getaddrinfo(const char *node,   // host or IP address
+    const char *service,            // port or service name
     const struct addrinfo *hints,
-    struct addrinfo **res);
+    struct addrinfo **res);         // result
 
 // Example
 struct addrinfo hints;

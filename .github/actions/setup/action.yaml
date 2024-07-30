@@ -1,0 +1,32 @@
+# .github/actions/setup/action.yaml
+name: Set Up Test Environment Action
+description: Setup action
+runs:
+  using: composite
+  steps:
+    - run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential clang-12 valgrind
+      shell: bash
+    - run: |
+        echo "Iy" | bash -c 'bash <(curl -s https://raw.githubusercontent.com/tmatis/funcheck/main/scripts/install.sh)'
+        sudo cp /home/runner/.local/funcheck/host/funcheck /usr/bin/
+      shell: bash
+    - run: |
+        wget http://ftp.gnu.org/gnu/make/make-4.3.tar.gz && \
+        tar -xvzf make-4.3.tar.gz && \
+        cd make-4.3 && \
+        ./configure && \
+        make && \
+        sudo make install
+      shell: bash
+    - run: make --version
+      shell: bash
+    # - run: g++ --version
+    #   shell: bash
+    # - run: clang --version
+    #   shell: bash
+    - run: valgrind --version
+      shell: bash
+    - run: funcheck --version
+      shell: bash

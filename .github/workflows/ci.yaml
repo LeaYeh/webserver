@@ -1,0 +1,38 @@
+# .github/workflows/ci_workflow.yaml
+name: CI Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  HOME: /home/runner
+
+jobs:
+  compilation_test:
+    name: Compilation Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++, clang, clang-12]
+    steps:
+      - name: Checkout source branch of pull request
+        uses: actions/checkout@v4
+      - name: Set up test environment
+        uses: ./.github/actions/setup
+      - name: 🔨 Compile with Makefile
+        run: make CXX="${{ matrix.compiler }}"
+  combine_compilation_test_results:
+    name: Combine Compilation Test Results
+    needs: compilation_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Combine compilation test results
+        run: echo "All compilation tests finished"

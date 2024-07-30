@@ -1,6 +1,7 @@
 NAME		= webserver
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -fsanitize=address -gdwarf-4
+LDFLAGS 	= -fsanitize=address -lstdc++  # Add the C++ standard library
 SRC_DIR		= source
 INC_DIR		= include
 BUILD_DIR	= build
@@ -15,7 +16,7 @@ INCFLAGS	= -I $(INC_DIR)
 all: $(NAME)
 
 $(NAME): $(OBJS) $(DEPS)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(SRCS) -o $(NAME)
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(LDFLAGS) $(OBJS) -o $(NAME)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)

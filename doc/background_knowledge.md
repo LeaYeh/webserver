@@ -113,4 +113,80 @@ Accept-Encoding: gzip, deflate
 // Server can choose to send the response in gzip encoding
 Content-Encoding: gzip
 ```
+### How HTTP response
 
+![Diagram](images/HTTPResponse.png)
+If we want to send Hello from server, first we need to construct the Header. Then insert a blank line, then we can send our message/data.
+
+The headers shown above are just an example. In fact there are many Headers present in HTTP. You can take a look at the HTTP RFCs → RFC 7230, RFC 7231, RFC 7232, RFC 7233, RFC 7234, RFC 7235.
+
+Now, we will construct a minimal HTTP Header to make our server work.
+```c++
+char *hello = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello world!";
+```
+These 3 Headers are minimum required.
+
+1. `HTTP/1.1 200 OK` → This mentions what version of HTTP we are using, Status code and Status message.
+2. `Content-Type: text/plain` → This says that I’m (server) sending a plain text. There are many Content-Types. For example, for images we use this.
+3. `Content-Length: 12` → It mentions how many bytes the server is sending to the client. The web-browser only reads how much we mention here.
+
+The next part is the `Body` part. Here, we send our data.
+
+First we need to calculate how many bytes we are sending in Body. Then we mention that in Content-Length. Also, we set the Content-Type appropriately according to the data we are sending.
+
+### Status Code and Status Messages:
+Status codes are issued by a server in response to a client’s request made to the server. It includes codes from IETF Request for Comments (RFCs), other specifications, and some additional codes used in some common applications of the Hypertext Transfer Protocol (HTTP).
+
+The first digit of the status code specifies one of five standard classes of responses. The message phrases shown are typical, but any human-readable alternative may be provided. Unless otherwise stated, the status code is part of the HTTP/1.1 standard (RFC 7231).
+
+So, if we can’t find the file that client is asking, then we send appropriate status code.
+
+If the client has no permission to see the file, then we send appropriate status code.
+
+Now, run the below code in the Terminal and go to `localhost:8080` in our browser.
+
+## How do we send a requested web page to the client?
+
+Suppose, we have entered localhost:8080/info.html in the address bar.
+
+In the server Terminal we get the following Request Headers:
+```c++
+GET /info.html HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+DNT: 1
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9
+```
+
+We only consider the **1st line** in the Request Headers.
+```c++
+GET /info.html HTTP/1.1
+So, we just have to search for the info.html file in current directory(as / specifies that it is looking in the root directory of the server. If it is like /messages/info.html then we have to look inside messages folder for info.html file).
+```
+
+There are many cases here to consider:
+
+Some of them are:
+
+1. The file(web page) is present
+2. The file(web page) is absent
+3. The client doesn’t have permissions to access the file (web page).
+
+And many more…..
+
+If the file is present and the client has permissions to access it, then select appropriate Content-Type from status code.
+
+Then open the file, read the data into a variable. Count the number of bytes read from the file. When you read a simple text file, we can count while reading the file or from the return value of the read() function or `strlen(variable)`. Set the `Content-Length`.
+
+Then construct the **Response Header**.
+
+Now add a `newline` at the end of Response Header and append the data to it which we have read from the file (If and only if the file is present and the client has permissions to access it).
+
+SEND THE RESPONSE HEADER TO THE CLIENT!
+
+That should be a basic for HTTP **SERVER** from scratch.

@@ -18,6 +18,15 @@ jobs:
     name: Check Commit Message
     runs-on: ubuntu-latest
     steps:
+      - name: Check Title Format
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '\[(DOCS|FEAT|FIX|STYLE|DEVOPS|REFACTOR|PERF|TEST|CHORE)\] .+$'
+          error: 'Your PR title must contain a commit type like "[FIX]".'
+          excludeDescription: 'false'  # Check the entire commit message
+          excludeTitle: 'false'  # Do not exclude the title
+          checkAllCommitMessages: 'false'  # Check only the PR title, assuming it's the first commit
+        if: github.event_name == 'pull_request'
       - name: Check Commit Type and Verb
         uses: gsactions/commit-message-checker@v2
         with:

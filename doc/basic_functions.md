@@ -151,7 +151,38 @@ int close(int sockfd);
 
 ### send
 
+Use to send data over the connection.
+
+```c++
+ssize_t send(
+    int sockfd,         // The file descriptor of the socket
+    const void *buf,    // The data to send
+    size_t len,         // The length of the data
+    int flags           // The flags
+);
+
+// Example
+char *message = "Hello from the client";
+send(sockfd, message, strlen(message), 0);
+```
+
 ### recv
+
+Use to receive data from the connection.
+
+```c++
+ssize_t recv(
+    int sockfd,         // The file descriptor of the socket
+    void *buf,          // The buffer to store the data
+    size_t len,         // The length of the buffer
+    int flags           // The flags
+);
+
+// Example
+char buffer[1024] = {0};
+int valread = recv(sockfd, buffer, 1024, 0);
+printf("%s\n", buffer);
+```
 
 ## Socket
 

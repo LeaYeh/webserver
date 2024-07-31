@@ -14,6 +14,28 @@ env:
   HOME: /home/runner
 
 jobs:
+  check-commit-message:
+    name: Check Commit Message
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Commit Type and Verb
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): (Add|Remove|Update|Fix|Refactor|Improve).*'
+          error: 'Commit message must follow the format "<type>: <verb>. <description>". Valid types: feat, fix, docs, style, refactor, perf, test, chore. Valid verbs: Add, Remove, Update, Fix, Refactor, Improve, Test.'
+          excludeDescription: 'true' # optional: this excludes the description body of a pull request
+          excludeTitle: 'true' # optional: this excludes the title of a pull request
+          checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
+          accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
+      - name: Check Line Length
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^.{0,80}$'
+          error: 'The maximum line length of 80 characters is exceeded.'
+          excludeDescription: 'true' # optional: this excludes the description body of a pull request
+          excludeTitle: 'true' # optional: this excludes the title of a pull request
+          checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
+          accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
   compilation_test:
     name: Compilation Test
     runs-on: ubuntu-latest

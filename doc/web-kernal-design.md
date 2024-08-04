@@ -39,7 +39,7 @@ Here is a simple flow of a web server:
 * The single reactor single worker is not scalable. The server can only use 1 CPU to handle the events.
 * When the **Handler** is blocked, the **acceptor** will be blocked too.
 
-> [!INFO]
+> [!NOTE]
 > Redis <= v6.0 uses the single reactor single worker pattern.
 
 ![Single Reactor Single Worker Flow](images/SRSW.png)
@@ -88,10 +88,10 @@ Now the difference is the **Handler**,
 
 * The **Main Reactor** will dispatch the events to the **Sub Reactor**. So the **Main Reactor** won't be the bottleneck of the server performance.
 
-> [!INFO]
+> [!NOTE]
 > Nginx uses the multiple reactor multiple process pattern.
 
-> [!INFO]
+> [!NOTE]
 > Netty and Memcache uses the multiple reactor multiple theards pattern.
 
 ![Multiple Reactor Multiple Worker Flow](images/MRMW.png)

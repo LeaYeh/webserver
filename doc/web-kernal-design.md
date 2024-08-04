@@ -104,3 +104,7 @@ Compare to the Reactor Pattern, the Proactor Pattern is more complex. It's a asy
 * **Proactor** is a asynchronous IO pattern.
 
 The **Proactor** has more efficient than the **Reactor**. But in Linux, the **Proactor** is not well supported Async IO. The **Proactor** is supported in Windows.
+
+# References
+
+- [Reactor and Proactor](https://www.xiaolincoding.com/os/8_network_system/reactor.html)

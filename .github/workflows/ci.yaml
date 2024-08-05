@@ -30,13 +30,12 @@ jobs:
       - name: Check Commit Type and Verb
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): (Add|Remove|Update|Fix|Refactor|Improve).*'
+          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): (Add|Remove|Update|Fix|Refactor|Improve).*|^Merge pull request #[0-9]+ from [\w\-]+\/[\w\-]+$'
           error: 'Commit message must follow the format "<type>: <verb>. <description>". Valid types: feat, fix, docs, style, refactor, perf, test, chore. Valid verbs: Add, Remove, Update, Fix, Refactor, Improve, Test.'
           excludeDescription: 'true' # optional: this excludes the description body of a pull request
           excludeTitle: 'true' # optional: this excludes the title of a pull request
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
           accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
-        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch'))
       - name: Check Line Length
         uses: gsactions/commit-message-checker@v2
         with:

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace webserver
+namespace webshell
 {
 
 /**
@@ -19,11 +19,11 @@ enum ParserState
 
 /**
  * @brief Abstract class for parsing HTTP requests.
-  *
-  * The ARequestParser class provides an interface for parsing HTTP requests.
-  * It defines the parse function that must be implemented by derived classes.
-  * Use state machine to parse the raw request.
-  */
+ *
+ * The ARequestParser class provides an interface for parsing HTTP requests.
+ * It defines the parse function that must be implemented by derived classes.
+ * Use state machine to parse the raw request.
+ */
 class ARequestParser
 {
   public:
@@ -54,4 +54,4 @@ class ARequestParser
     std::string _body;
 };
 
-} // namespace webserver
+} // namespace webshell

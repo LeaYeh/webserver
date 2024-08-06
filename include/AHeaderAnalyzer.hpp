@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <string>
 
-namespace webserver
+namespace webshell
 {
 
 /**
@@ -93,8 +93,8 @@ class AHedaerAnalyzer
      * @brief Analyze the HTTP headers.
      *
      * This function analyzes the HTTP headers and extracts information such as
-     * the version, method, host, content length, content type, connection, encoding,
-     * cookie, and cache control.
+     * the version, method, host, content length, content type, connection,
+     * encoding, cookie, and cache control.
      */
     virtual void analyze(void) = 0;
 
@@ -110,4 +110,4 @@ class AHedaerAnalyzer
     std::string _cache_control;
 };
 
-} // namespace webserver
+} // namespace webshell

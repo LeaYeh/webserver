@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/07/29 22:49:35 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/06 20:01:08 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ class Logger
      *
      * @param level The minimum log level.
      */
-    void setLevel(LogLevel level);
+    void set_level(LogLevel level);
 
   protected:
   private:
@@ -91,8 +91,8 @@ class Logger
     Logger&
     operator=(const Logger& other); ///< Copy assignment operator (deleted).
 
-    std::ofstream _fileStream; ///< File stream for logging to a file.
-    bool _isFileMode; ///< Flag indicating if the Logger is in file mode.
+    std::ofstream _file_stream; ///< File stream for logging to a file.
+    bool _is_file_mode; ///< Flag indicating if the Logger is in file mode.
     LogLevel _level;  ///< Minimum log level for messages.
 
     /**
@@ -104,7 +104,7 @@ class Logger
      * @param level The log level to convert.
      * @return The string representation of the log level.
      */
-    std::string _getLevelStr(LogLevel level);
+    std::string _get_level_str(LogLevel level);
 
     /**
      * @brief Get the current time as a string.
@@ -113,7 +113,7 @@ class Logger
      *
      * @return The current time as a string.
      */
-    std::string _getCurrentTime();
+    std::string _get_current_time();
 };
 
 } // namespace weblog

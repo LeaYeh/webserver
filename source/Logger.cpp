@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2024/07/29 22:50:25 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/06 20:03:23 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,18 @@
 namespace weblog
 {
 
-Logger::Logger() : _isFileMode(false), _level(INFO)
+Logger::Logger() : _is_file_mode(false), _level(INFO)
 {
     std::cout << "Logger created: console mode" << std::endl;
 }
 
-Logger::Logger(const std::string& filename) : _isFileMode(true), _level(INFO)
+Logger::Logger(const std::string& filename) : _is_file_mode(true), _level(INFO)
 {
-    _fileStream.open(filename.c_str(), std::ios::out | std::ios::app);
-    if (!_fileStream.is_open())
+    _file_stream.open(filename.c_str(), std::ios::out | std::ios::app);
+    if (!_file_stream.is_open())
     {
         std::cerr << "Error opening file: " << filename << std::endl;
-        _isFileMode = false;
+        _is_file_mode = false;
     }
     else
         std::cout << "Logger created: file mode" << std::endl;
@@ -34,8 +34,8 @@ Logger::Logger(const std::string& filename) : _isFileMode(true), _level(INFO)
 
 Logger::~Logger()
 {
-    if (_isFileMode)
-        _fileStream.close();
+    if (_is_file_mode)
+        _file_stream.close();
 }
 
 void Logger::log(LogLevel level, const std::string& message)
@@ -43,22 +43,22 @@ void Logger::log(LogLevel level, const std::string& message)
     if (level < _level)
         return;
 
-    std::string logMessage =
-        _getCurrentTime() + " [" + _getLevelStr(level) + "] " + message + "\n";
+    std::string logMessage = _get_current_time() + " [" +
+                             _get_level_str(level) + "] " + message + "\n";
 
-    if (_isFileMode)
-        _fileStream << logMessage;
+    if (_is_file_mode)
+        _file_stream << logMessage;
     else
         std::cout << logMessage;
 }
 
-void Logger::setLevel(LogLevel level)
+void Logger::set_level(LogLevel level)
 {
-    std::cout << "Log level set to: " << _getLevelStr(level) << std::endl;
+    std::cout << "Log level set to: " << _get_level_str(level) << std::endl;
     _level = level;
 }
 
-std::string Logger::_getLevelStr(LogLevel level)
+std::string Logger::_get_level_str(LogLevel level)
 {
     switch (level)
     {
@@ -77,7 +77,7 @@ std::string Logger::_getLevelStr(LogLevel level)
     }
 }
 
-std::string Logger::_getCurrentTime()
+std::string Logger::_get_current_time()
 {
     time_t rawtime;
     struct tm* timeinfo;

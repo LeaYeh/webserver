@@ -6,14 +6,20 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/06 20:01:08 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/07 20:55:58 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+#include "defines.hpp"
 #include <ctime>
+#include <errno.h> // errno, strerror
+#include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <unistd.h> // pipe
+// #include <sys/stat.h>
+// #include <sys/types.h>
 
 namespace weblog
 {
@@ -41,22 +47,8 @@ enum LogLevel
 class Logger
 {
   public:
-    /**
-     * @brief Construct a new Logger object.
-     *
-     * Initializes the Logger to log messages to the console.
-     * The log level is set to INFO by default.
-     */
-    Logger();
-
-    /**
-     * @brief Construct a new Logger object with a file.
-     *
-     * Initializes the Logger to log messages to the specified file.
-     *
-     * @param filename The name of the file to log messages to.
-     */
-    Logger(const std::string& filename);
+    static Logger& get_instance(void);
+    static Logger& get_instance(const std::string& filename);
 
     /**
      * @brief Destroy the Logger object.
@@ -87,13 +79,19 @@ class Logger
 
   protected:
   private:
-    Logger(const Logger& other); ///< Copy constructor (deleted).
-    Logger&
-    operator=(const Logger& other); ///< Copy assignment operator (deleted).
+    std::string _log_file;
+    bool _is_file_mode;
+    LogLevel _level;
+    int _pipe_fd[2];
 
-    std::ofstream _file_stream; ///< File stream for logging to a file.
-    bool _is_file_mode; ///< Flag indicating if the Logger is in file mode.
-    LogLevel _level;  ///< Minimum log level for messages.
+    Logger();
+    Logger(const std::string& filename);
+    Logger(const Logger& other);
+    Logger& operator=(const Logger& other);
+
+    void _start_log_process(void);
+    void _log_writer(void);
+    static void _self_cleanup(void);
 
     /**
      * @brief Get the string representation of a log level.

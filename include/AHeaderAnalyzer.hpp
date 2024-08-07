@@ -56,11 +56,11 @@ enum Encoding
  */
 enum Method
 {
-    GET,
+    GET, //Retrieve data.
     HEAD,
-    POST,
-    PUT,
-    DELETE
+    POST, //Submit data to be processed.
+    PUT, //Replace data at the target.
+    DELETE //Remove data.
 };
 
 /**

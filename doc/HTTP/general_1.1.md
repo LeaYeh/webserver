@@ -140,6 +140,7 @@ It is essential to consider HTTPS for secure data transmission, authentication m
 ### 2. Authentication and Authorization:
 - Mechanisms: Implement authentication schemes like Basic, Digest, or OAuth to verify client identity.
 - Case Focus: Ensure secure storage and transmission of credentials, and implement proper access control measures.
+
 ### 3. Input Validation:
 - Sanitization: Validate and sanitize all inputs to prevent injection attacks and buffer overflows.
 - Case Focus: Pay particular attention to request headers, query parameters, and body data to eliminate security vulnerabilities.

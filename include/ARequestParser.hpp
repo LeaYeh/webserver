@@ -12,8 +12,8 @@ namespace webshell
 enum ParserState
 {
     REQUEST_LINE,
-    HEADER,
     BODY,
+    HEADERS,
     FINISHED
 };
 

@@ -1,80 +1,10 @@
 #pragma once
+#include "defines.hpp"
 #include <cstddef>
 #include <string>
 
 namespace webshell
 {
-
-/**
- * @brief Content types for the HTTP headers.
- *
- * Defines the different content types for the HTTP headers.
- */
-enum ContentType
-{
-    TEXT,
-    IMAGE,
-    AUDIO,
-    VIDEO,
-    APPLICATION,
-    MULTIPART,
-    MESSAGE,
-    MODEL,
-    OTHER
-};
-
-/**
- * @brief Connection types for the HTTP headers.
- *
- * Defines the different connection types for the HTTP headers.
- */
-enum Connection
-{
-    KEEP_ALIVE,
-    CLOSE
-};
-
-/**
- * @brief Encoding types for the HTTP headers.
- *
- * Defines the different encoding types for the HTTP headers.
- */
-enum Encoding
-{
-    GZIP,
-    DEFLATE,
-    BR,
-    IDENTITY,
-    CHUNKED,
-    COMPRESS
-};
-
-/**
- * @brief HTTP methods for the HTTP headers.
- *
- * Defines the different HTTP methods for the HTTP headers.
- */
-enum Method
-{
-    GET, //Retrieve data.
-    HEAD,
-    POST, //Submit data to be processed.
-    PUT, //Replace data at the target.
-    DELETE //Remove data.
-};
-
-/**
- * @brief HTTP versions for the HTTP headers.
- *
- * Defines the different HTTP versions for the HTTP headers.
- */
-enum Version
-{
-    HTTP_1_0,
-    HTTP_1_1,
-    HTTP_2_0,
-    HTTP_3_0
-};
 
 /**
  * @brief Abstract class for analyzing HTTP headers and extracting information.
@@ -99,12 +29,12 @@ class AHedaerAnalyzer
     virtual void analyze(void) = 0;
 
   protected:
-    Version _version;
-    Method _method;
+    HttpVersion _version;
+    RequestMethod _method;
     std::string _host;
     size_t _content_length;
     ContentType _content_type;
-    Connection _connection;
+    ConnectionType _connection;
     Encoding _encoding;
     std::string _cookie;
     std::string _cache_control;

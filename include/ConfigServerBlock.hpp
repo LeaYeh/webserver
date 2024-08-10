@@ -2,6 +2,8 @@
 
 #include "AConfigParser.hpp"
 #include "ConfigLocationBlock.hpp"
+#include <fcntl.h>
+#include <set>
 #include <vector>
 
 namespace webconfig
@@ -9,11 +11,12 @@ namespace webconfig
 
 class ConfigServerBlock : public AConfigParser
 {
+  const static std::set<std::string> VALID_DIRECTIVES;
   public:
     ConfigServerBlock();
     ~ConfigServerBlock();
 
-    void parse(std::ifstream& file_stream);
+    std::string parse(std::ifstream& file_stream);
 
   private:
     ConfigServerBlock(const ConfigServerBlock& other);

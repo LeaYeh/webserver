@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #define PROGRAM_NAME "webserver"
 #define SUCCESS 0
 #define FAILURE 1
@@ -27,18 +29,6 @@
 #define STY_WHI_BG "\e[47m"
 #define STY_GRA_BG "\e[100m"
 #define STY_WHI_BRI_BG "\e[107m"
-
-namespace webconfig
-{
-enum ConfigBlockLevel
-{
-    GLOBAL = 0,
-    HTTP,
-    SERVER,
-    LOCATION
-};
-
-} // namespace webconfig
 
 namespace weblog
 {
@@ -123,3 +113,28 @@ enum Encoding
 };
 
 } // namespace webshell
+
+namespace webconfig
+{
+enum ConfigBlockLevel
+{
+    END = -1,
+    GLOBAL = 0,
+    HTTP,
+    SERVER,
+    LOCATION
+};
+
+struct ErrorPage
+{
+    ErrorPage(webshell::StatusCode status_code, const std::string& uri)
+        : status_code(status_code), uri(uri)
+    {
+    }
+    ~ErrorPage();
+
+    webshell::StatusCode status_code;
+    std::string uri;
+};
+
+} // namespace webconfig

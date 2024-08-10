@@ -1,9 +1,10 @@
 #pragma once
+#include "config_utils.hpp"
+#include "defines.hpp"
 #include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
-#include "defines.hpp"
 
 namespace webconfig
 {
@@ -14,11 +15,16 @@ class AConfigParser
     AConfigParser(ConfigBlockLevel block_level);
     virtual ~AConfigParser();
 
-    virtual void parse(std::ifstream &file_stream) = 0;
+    virtual std::string parse(std::ifstream& file_stream) = 0;
 
   protected:
     ConfigBlockLevel _block_level;
-    bool _is_comment(const std::string& line);
+    bool _need_to_skip(const std::string& line) const;
+    bool _is_valid_scentence(const std::string& line) const;
+    std::set<std::string> _valid_directives;
+    std::string _get_directive_name(const std::string& line) const;
+    virtual bool _is_valid_directive(const std::string& directive) const;
+    virtual void _parse_config_directive(const std::string& line) = 0;
 
   private:
     AConfigParser();

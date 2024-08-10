@@ -2,7 +2,7 @@
 
 #include "AConfigParser.hpp"
 #include "defines.hpp"
-#include <utility>
+#include <set>
 #include <vector>
 
 namespace webconfig
@@ -11,10 +11,11 @@ namespace webconfig
 class ConfigHttpBlock : public AConfigParser
 {
   public:
+    const static std::set<std::string> VALID_DIRECTIVES;
     ConfigHttpBlock();
     ~ConfigHttpBlock();
 
-    void parse(std::ifstream& file_stream);
+    std::string parse(std::ifstream& file_stream);
 
   private:
     ConfigHttpBlock(const ConfigHttpBlock& other);
@@ -23,6 +24,11 @@ class ConfigHttpBlock : public AConfigParser
     unsigned int _client_max_body_size;
     webshell::ContentType _default_type;
     std::vector<std::pair<webshell::StatusCode, std::string> > _error_page_list;
+
+    void _parse_config_directive(const std::string& line);
+    unsigned int _parse_client_max_body_size(const std::string& line);
+    webshell::ContentType _parse_default_type(const std::string& line);
+    ErrorPage _parse_error_page(const std::string& line);
 };
 
 } // namespace webconfig

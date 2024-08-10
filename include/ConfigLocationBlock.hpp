@@ -13,7 +13,7 @@ class ConfigLocationBlock : public AConfigParser
     ConfigLocationBlock();
     ~ConfigLocationBlock();
 
-    void parse(std::ifstream& file_stream);
+    std::string parse(std::ifstream& file_stream);
 
   private:
     ConfigLocationBlock(const ConfigLocationBlock& other);

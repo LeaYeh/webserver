@@ -37,4 +37,43 @@ bool setup_nonblocking(int fd)
     }
     return (true);
 }
+
+std::string trim(const std::string& str)
+{
+    std::string::size_type start = 0;
+    while (start < str.size() && std::isspace(str[start]))
+        ++start;
+    std::string::size_type end = str.size();
+    while (end > start && std::isspace(str[end - 1]))
+        --end;
+
+    return (str.substr(start, end - start));
+}
+
+int stoi(const std::string& str)
+{
+    std::istringstream iss(str);
+    int result;
+
+    iss >> result;
+    if (iss.fail())
+        throw std::invalid_argument("stoi: invalid argument");
+    return (result);
+}
+
+unsigned int convert_to_size(const std::string& str)
+{
+    std::string::size_type pos = str.find_last_not_of("0123456789");
+    std::string size_str = str.substr(0, pos + 1);
+    unsigned int size = stoi(size_str);
+
+    if (str[pos] == 'k' || str[pos] == 'K')
+        size *= 1024;
+    else if (str[pos] == 'm' || str[pos] == 'M')
+        size *= 1024 * 1024;
+    else if (str[pos] == 'g' || str[pos] == 'G')
+        size *= 1024 * 1024 * 1024;
+    return (size);
+}
+
 } // namespace utils

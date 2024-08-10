@@ -30,7 +30,8 @@ File access can be inferred from **`GET`** requests where clients request to ret
 ## 4. CGI
 CGI scripts are used to execute programs on the server and dynamically generate web content. To determine if CGI is being used:
 
-- **Script Execution**: Look for URLs ending with `.cgi` .pl, .py, etc., which indicate CGI scripts.
+- **Script Execution**: Look for URLs ending with `.cgi`, `.pl`, `.py`, `.sh`, `.php`, which indicate CGI scripts.
+
 - **POST/GET Requests to CGI Directories**: Requests targeting directories typically used for CGI, such as /cgi-bin/.
 - **Execution Logs**: Server logs might indicate script execution, showing request methods and script paths.
 - **Configuration Files**: Check web server configuration files (like `httpd.conf` for Apache) for CGI settings and handlers.

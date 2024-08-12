@@ -4,23 +4,56 @@
                    ↳ [Header Field] ↘ [End]
 ```
 ### 1. Start State 
-Parse the request line to extract the HTTP method, Request-URI, and HTTP version.
+The initial state, waiting for the beginning of a request.
 
-### 2. Header Field Parsing:
-- Read each line until an empty line is encountered.
+### 2. Request Line Parsing:
+- This is where the 1st **recursion** occurs, because it reads each letter and accepts a digit or letter.
+- In our case `Request line` contains the HTTP method, the request target/path (Request-URI), and the HTTP version:
+
+    ```c++
+    GET /index.html HTTP/1.1
+    ```
+
+### 3. Header Field Parsing:
+- This is where the 2nd **recursion** occurs.
 - Split each header line into a key-value pair and store it in a dictionary.
+- Read each line until an empty line is encountered. (Blank line).
 
-### 3. Body Parsing:
-- Determine the presence and length of the body using Content-Length or Transfer-Encoding.
+    ```c++
+    Host: example.com
+    User-Agent: Mozilla/5.0
+    ```
+
+### 4. Body Parsing:
+- Before Body part is a `Blank line`: a line separating headers from the body.
+- Optional content, typically present in POST requests.
+- Determine the presence and length of the body using [Content-Length](/doc/background_knowledge.md#definitions) or [Transfer-Encoding](/doc/HTTP/general_1.1.md#2-transfer-encoding).
 - Read the body based on the determined length or chunk encoding
 
-### 4. Error Handling:
+### 5. Complete: 
+The final state, indicating that the entire request has been parsed successfully.
+
+### 6. Error: 
 - Implement error handling for each state to manage invalid inputs and malformed requests.
 - Ensure proper logging and error response generation for client and server errors.
 
-### 5. State Transitions:
-- Use a loop to manage state transitions and parsing flow.
-- Ensure that each state performs its function and transitions appropriately based on the input data.
+## Transitions:
+Use a loop to manage state transitions and parsing flow.
+
+Ensure that each state performs its function and transitions appropriately based on the input data.
+
+- **Start -> Request Line Parsing**: When the first line of the request is received.
+- **Request Line Parsing -> Header Parsing**: When the request line is successfully parsed.
+- **Header Parsing -> Header Parsing**: For each subsequent header line.
+- **Header Parsing -> Body Parsing**: When a blank line is encountered (indicating the end of headers).
+- **Body Parsing -> Complete**: When the body is fully read (based on Content-Length or Transfer-Encoding headers).
+- **Any State -> Error**: On encountering a malformed line or unexpected input.
+
+## Key Considerations
+- **Line Endings**: HTTP uses CRLF (\r\n) as the line separator. Ensure your parser handles this correctly.
+- **Headers**: Headers are case-insensitive. Consider normalizing them.
+- **Chunked Transfer Encoding**: If using HTTP/1.1, be prepared to handle chunked transfer encoding.
+- **Error Handling**: Robust error handling is crucial for security and stability.
 
 ## Implementation Details
 

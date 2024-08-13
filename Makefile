@@ -1,7 +1,7 @@
-NAME		= webserver
+NAME		= webserv
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -fsanitize=address -gdwarf-4
-LDFLAGS 	= -fsanitize=address -lstdc++  # Add the C++ standard library
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -gdwarf-4
+LDFLAGS 	= -lstdc++  # Add the C++ standard library
 SRC_DIR		= source
 INC_DIR		= include
 BUILD_DIR	= build
@@ -11,7 +11,7 @@ DEP_DIR		= $(BUILD_DIR)/dependencies
 OBJS		= $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 DEPS		= $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(SRCS))
 
-INCFLAGS	= -I $(INC_DIR)
+INCFLAGS	= $(shell find $(INC_DIR) -type d -exec echo -I{} \;)
 
 all: $(NAME)
 

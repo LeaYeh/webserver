@@ -6,36 +6,54 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/06 20:03:23 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/07 22:05:02 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Logger.hpp"
+#include "utils.hpp"
+#include <cstdlib>
+#include <stdexcept>
+#include <unistd.h>
 
 namespace weblog
 {
 
+Logger& Logger::get_instance(void)
+{
+    static Logger instance;
+
+    return instance;
+}
+
+Logger& Logger::get_instance(const std::string& filename)
+{
+    static Logger instance(filename);
+
+    return instance;
+}
+
 Logger::Logger() : _is_file_mode(false), _level(INFO)
 {
     std::cout << "Logger created: console mode" << std::endl;
+    if (pipe(_pipe_fd) == -1)
+        throw std::runtime_error("Error creating pipe");
+    _start_log_process();
 }
 
-Logger::Logger(const std::string& filename) : _is_file_mode(true), _level(INFO)
+Logger::Logger(const std::string& filename)
+    : _log_file(filename), _is_file_mode(true), _level(INFO)
 {
-    _file_stream.open(filename.c_str(), std::ios::out | std::ios::app);
-    if (!_file_stream.is_open())
-    {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        _is_file_mode = false;
-    }
-    else
-        std::cout << "Logger created: file mode" << std::endl;
+    std::cout << "Logger created: file mode" << std::endl;
+    if (pipe(_pipe_fd) == -1)
+        throw std::runtime_error("Error creating pipe");
+    _start_log_process();
 }
 
 Logger::~Logger()
 {
-    if (_is_file_mode)
-        _file_stream.close();
+    std::cout << "haha2\n";
+    utils::safe_close_pipe(_pipe_fd);
 }
 
 void Logger::log(LogLevel level, const std::string& message)
@@ -45,17 +63,52 @@ void Logger::log(LogLevel level, const std::string& message)
 
     std::string logMessage = _get_current_time() + " [" +
                              _get_level_str(level) + "] " + message + "\n";
-
-    if (_is_file_mode)
-        _file_stream << logMessage;
-    else
-        std::cout << logMessage;
+    write(_pipe_fd[1], logMessage.c_str(), logMessage.size());
 }
 
 void Logger::set_level(LogLevel level)
 {
-    std::cout << "Log level set to: " << _get_level_str(level) << std::endl;
     _level = level;
+}
+
+void Logger::_log_writer(void)
+{
+    char buffer[1024];
+    ssize_t bytes_read;
+
+    while ((bytes_read = read(_pipe_fd[0], buffer, sizeof(buffer))) > 0)
+    {
+        if (!_is_file_mode)
+            write(STDOUT_FILENO, buffer, bytes_read);
+        else
+        {
+            int fd = open(_log_file.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+            write(fd, buffer, bytes_read);
+            close(fd);
+        }
+    }
+    std::atexit(_self_cleanup);
+}
+
+void Logger::_self_cleanup(void)
+{
+    std::cout << "haha1\n";
+    Logger& logger = Logger::get_instance();
+    utils::safe_close_pipe(logger._pipe_fd);
+}
+
+void Logger::_start_log_process(void)
+{
+    pid_t pid = fork();
+    if (pid == -1)
+        throw std::runtime_error("Error forking process");
+    else if (pid == 0)
+    {
+        close(_pipe_fd[1]);
+        _log_writer();
+    }
+    else
+        close(_pipe_fd[0]);
 }
 
 std::string Logger::_get_level_str(LogLevel level)
@@ -63,17 +116,17 @@ std::string Logger::_get_level_str(LogLevel level)
     switch (level)
     {
     case DEBUG:
-        return "\033[34mDEBUG\033[0m";
+        return (STY_BLU"DEBUG"STY_RES);
     case INFO:
-        return "\033[32mINFO\033[0m";
+        return (STY_GRE"INFO"STY_RES);
     case WARNING:
-        return "\033[33mWARNING\033[0m";
+        return (STY_YEL"WARNING"STY_RES);
     case ERROR:
-        return "\033[31mERROR\033[0m";
+        return (STY_RED"ERROR"STY_RES);
     case CRITICAL:
-        return "\033[41mCRITICAL\033[0m";
+        return (STY_RED"CRITICAL"STY_RES);
     default:
-        return "\033[37mUNKNOWN\033[0m";
+        return (STY_GRA_BG"UNKNOWN"STY_RES);
     }
 }
 

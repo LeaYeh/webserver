@@ -1,11 +1,13 @@
 #include "ServerConfig.hpp"
 #include "defines.hpp"
+#include <iostream>
 
 namespace webconfig
 {
 
 ServerConfig::ServerConfig(const std::string& filename)
-    : _filename(filename), _current_block_level(GLOBAL)
+    : _current_block_level(GLOBAL), _filename(filename), _global_block(),
+      _http_block(), _server_block_list()
 {
     _file_stream.open(filename.c_str(), std::ifstream::in);
     if (!_file_stream.good() || !_file_stream.is_open())
@@ -17,41 +19,58 @@ ServerConfig::~ServerConfig()
     _file_stream.close();
 }
 
+std::string ServerConfig::filename(void) const
+{
+    return (_filename);
+}
+
+ConfigGlobalBlock& ServerConfig::global_block(void)
+{
+    return (_global_block);
+}
+
+ConfigHttpBlock& ServerConfig::http_block(void)
+{
+    return (_http_block);
+}
+
+std::vector<ConfigServerBlock>& ServerConfig::server_block_list(void)
+{
+    return (_server_block_list);
+}
+
+void ServerConfig::print_config(void) const
+{
+    _global_block.print_config();
+    _http_block.print_config();
+    for (size_t i = 0; i < _server_block_list.size(); ++i)
+    {
+        std::cout << "Server block [" << i << "]:" << std::endl;
+        _server_block_list[i].print_config();
+    }
+}
+
 void ServerConfig::parse(void)
 {
     std::string line;
 
-    while (std::getline(_file_stream, line) && _current_block_level != END)
+    while (!_file_stream.eof())
     {
-        std::cout << "line: |" << line << "|" << std::endl;
-
         if (_current_block_level == GLOBAL)
             line = _global_block.parse(_file_stream);
         else if (_current_block_level == HTTP)
-            _http_block.parse(_file_stream);
-        // else if (_current_block_level == SERVER)
-        // {
-        //     ConfigServerBlock server_block;
-        //     server_block.parse(_file_stream);
-        //     _server_block_list.push_back(server_block);
-        // }
-        if (line.empty() || _set_block_level(line))
+            line = _http_block.parse(_file_stream);
+        else if (_current_block_level == SERVER)
+            line = _server_block_list.back().parse(_file_stream);
+        else if (_current_block_level == LOCATION)
+            line = _server_block_list.back().location_block_list().back().parse(
+                _file_stream);
+        if (_set_block_level(line))
             continue;
     }
-
-    std::cout << "current block level: " << _current_block_level << std::endl;
-    // if (_current_block_level != END)
-    //     throw std::invalid_argument("Invalid block level: Make sure to close all blocks");
-}
-
-unsigned int ServerConfig::worker_processes(void) const
-{
-    return (_global_block.worker_processes);
-}
-
-unsigned int ServerConfig::worker_connections(void) const
-{
-    return (_global_block.worker_connections);
+    if (_current_block_level != GLOBAL)
+        throw std::invalid_argument(
+            "Invalid block level: Make sure to close all blocks");
 }
 
 bool ServerConfig::_set_block_level(const std::string& line)
@@ -61,10 +80,16 @@ bool ServerConfig::_set_block_level(const std::string& line)
     else if (line.find("http {") != std::string::npos)
         _current_block_level = HTTP;
     else if (line.find("server {") != std::string::npos)
+    {
         _current_block_level = SERVER;
-    else if (line.find("location") != std::string::npos &&
-             line.find("{") != std::string::npos)
+        _server_block_list.push_back(ConfigServerBlock());
+    }
+    else if (line.find("location {") != std::string::npos)
+    {
         _current_block_level = LOCATION;
+        _server_block_list.back().location_block_list().push_back(
+            ConfigLocationBlock());
+    }
     else if (line.find("}") != std::string::npos)
     {
         int level = static_cast<int>(_current_block_level);

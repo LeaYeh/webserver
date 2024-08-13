@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-
-#define PROGRAM_NAME "webserver"
+#define PROGRAM_NAME "webserv"
 #define SUCCESS 0
 #define FAILURE 1
 
@@ -32,6 +30,7 @@
 
 namespace weblog
 {
+
 enum LogLevel
 {
     DEBUG = 0,
@@ -40,6 +39,7 @@ enum LogLevel
     ERROR,
     CRITICAL
 };
+
 }
 
 namespace webshell
@@ -118,23 +118,10 @@ namespace webconfig
 {
 enum ConfigBlockLevel
 {
-    END = -1,
     GLOBAL = 0,
     HTTP,
     SERVER,
     LOCATION
-};
-
-struct ErrorPage
-{
-    ErrorPage(webshell::StatusCode status_code, const std::string& uri)
-        : status_code(status_code), uri(uri)
-    {
-    }
-    ~ErrorPage();
-
-    webshell::StatusCode status_code;
-    std::string uri;
 };
 
 } // namespace webconfig

@@ -25,7 +25,6 @@ class ServerConfig
     ConfigHttpBlock& http_block(void);
     std::vector<ConfigServerBlock>& server_block_list(void);
 
-
   private:
     ServerConfig();
     ServerConfig(const ServerConfig& other);

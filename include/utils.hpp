@@ -10,6 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
 
 namespace utils
 {
@@ -20,5 +21,6 @@ bool setup_nonblocking(int fd);
 std::string trim(const std::string& str);
 int stoi(const std::string& str);
 unsigned int convert_to_size(const std::string& str);
+std::vector<std::string> split(const std::string& str, char delim);
 
 } // namespace utils

@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/11 19:28:35 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/12 18:04:23 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,9 @@ int main(int argc, char **argv)
     }
     try
     {
-        webconfig::ServerConfig server_config(argv[1]);
-        server_config.parse();
-        std::cout << "worker_processes: " << server_config.worker_processes() << std::endl;
-        std::cout << "worker_connections: " << server_config.worker_connections() << std::endl;
+        webconfig::ServerConfig config(argv[1]);
+        config.parse();
+        config.print_config();
     }
     catch (const std::exception& e)
     {

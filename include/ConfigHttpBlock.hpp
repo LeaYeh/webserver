@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AConfigParser.hpp"
+#include "ErrorPage.hpp"
 #include "defines.hpp"
 #include <set>
 #include <vector>
@@ -16,6 +17,7 @@ class ConfigHttpBlock : public AConfigParser
     ~ConfigHttpBlock();
 
     std::string parse(std::ifstream& file_stream);
+    void print_config(void) const;
 
   private:
     ConfigHttpBlock(const ConfigHttpBlock& other);
@@ -23,7 +25,7 @@ class ConfigHttpBlock : public AConfigParser
 
     unsigned int _client_max_body_size;
     webshell::ContentType _default_type;
-    std::vector<std::pair<webshell::StatusCode, std::string> > _error_page_list;
+    std::vector<ErrorPage> _error_page_list;
 
     void _parse_config_directive(const std::string& line);
     unsigned int _parse_client_max_body_size(const std::string& line);

@@ -1,21 +1,23 @@
-## State Machine Diagram
+# State Machine Diagram
 ```c++
 [Start] → [Request Line] → [Header Field] → [Body] → [End]
                    ↳ [Header Field] ↘ [End]
 ```
-### 1. Start State 
-The initial state, waiting for the beginning of a request.
 
-### 2. Request Line Parsing:
-- This is where the 1st **recursion** occurs, because it reads each letter and accepts a digit or letter.
-- In our case `Request line` contains the HTTP method, the request target/path (Request-URI), and the HTTP version:
+
+## 1. Start State:
+Waiting for the request line.
+
+## 2. Request Line Parsing:
+
+- In our case `Request line` contains the **HTTP method (GET or POST), the request target/path (Request-URI), and the HTTP version**:
 
     ```c++
     GET /index.html HTTP/1.1
     ```
 
-### 3. Header Field Parsing:
-- This is where the 2nd **recursion** occurs.
+## 3. Header Field Parsing:
+- Parsing headers line by line.
 - Split each header line into a key-value pair and store it in a dictionary.
 - Read each line until an empty line is encountered. (Blank line).
 
@@ -24,20 +26,20 @@ The initial state, waiting for the beginning of a request.
     User-Agent: Mozilla/5.0
     ```
 
-### 4. Body Parsing:
+## 4. Body Parsing:
 - Before Body part is a `Blank line`: a line separating headers from the body.
-- Optional content, typically present in POST requests.
+- Parsing the message body, if present. Typically present in POST requests.
 - Determine the presence and length of the body using [Content-Length](/doc/background_knowledge.md#definitions) or [Transfer-Encoding](/doc/HTTP/general_1.1.md#2-transfer-encoding).
 - Read the body based on the determined length or chunk encoding
 
-### 5. Complete: 
+## 5. Complete and Error State:
 The final state, indicating that the entire request has been parsed successfully.
 
-### 6. Error: 
+`Error`: 
 - Implement error handling for each state to manage invalid inputs and malformed requests.
 - Ensure proper logging and error response generation for client and server errors.
 
-## Transitions:
+## Transitions - Applying Steps into HTTP parsing:
 Use a loop to manage state transitions and parsing flow.
 
 Ensure that each state performs its function and transitions appropriately based on the input data.
@@ -49,11 +51,28 @@ Ensure that each state performs its function and transitions appropriately based
 - **Body Parsing -> Complete**: When the body is fully read (based on Content-Length or Transfer-Encoding headers).
 - **Any State -> Error**: On encountering a malformed line or unexpected input.
 
+
 ## Key Considerations
 - **Line Endings**: HTTP uses CRLF (\r\n) as the line separator. Ensure your parser handles this correctly.
 - **Headers**: Headers are case-insensitive. Consider normalizing them.
-- **Chunked Transfer Encoding**: If using HTTP/1.1, be prepared to handle chunked transfer encoding.
+- **Chunked Transfer Encoding**: If using HTTP/1.1, be prepared to handle chunked transfer encoding. We dont implement chunks of the requests, we just need to read the chunks input.
 - **Error Handling**: Robust error handling is crucial for security and stability.
+
+
+## Why do we need statemachine instead of a simpler line-by-line and key-value pair parsing approach?
+
+#### HTTP requests can be received in fragments, and because the state machine can parse the HTTP request `byte` by `byte`, also:
+
+- HTTP headers can span **multiple continuation lines** which simpler line-by-line parsing can not effectively keep track of the current state and neither decide how to proceed based on the input.
+
+- HTTP/1.1 allows for **chunked transfer encoding**, where the message body is sent in chunks, each prefixed with its size.
+
+- A state machine can **detect a syntax error in the request** early and set appropriate flags or states to handle the error. No need to wait until the end of the entire reading request. -> Which can prevent unnecessary processing of invalid data.
+
+# Question
+
+- I'm not sure about the chunked transfer encoding, its said that "HTTP/1.1 allows for **chunked transfer encoding**, where the message body is sent in chunks, each prefixed with its size."
+-> Here I dont think only the message body is sent in chunks, can be other parts too. What do you think?
 
 ## Implementation Details
 

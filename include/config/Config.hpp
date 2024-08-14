@@ -11,11 +11,11 @@
 namespace webconfig
 {
 
-class ServerConfig
+class Config
 {
   public:
-    ServerConfig(const std::string& filename);
-    ~ServerConfig();
+    Config(const std::string& filename);
+    ~Config();
 
     void parse(void);
     void print_config(void) const;
@@ -26,9 +26,9 @@ class ServerConfig
     std::vector<ConfigServerBlock>& server_block_list(void);
 
   private:
-    ServerConfig();
-    ServerConfig(const ServerConfig& other);
-    ServerConfig& operator=(const ServerConfig& other);
+    Config();
+    Config(const Config& other);
+    Config& operator=(const Config& other);
 
     ConfigBlockLevel _current_block_level;
     std::string _filename;

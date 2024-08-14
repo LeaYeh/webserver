@@ -1,11 +1,11 @@
-#include "ServerConfig.hpp"
+#include "Config.hpp"
 #include "defines.hpp"
 #include <iostream>
 
 namespace webconfig
 {
 
-ServerConfig::ServerConfig(const std::string& filename)
+Config::Config(const std::string& filename)
     : _current_block_level(GLOBAL), _filename(filename), _global_block(),
       _http_block(), _server_block_list()
 {
@@ -14,32 +14,32 @@ ServerConfig::ServerConfig(const std::string& filename)
         throw std::invalid_argument("Error opening file: " + filename);
 }
 
-ServerConfig::~ServerConfig()
+Config::~Config()
 {
     _file_stream.close();
 }
 
-std::string ServerConfig::filename(void) const
+std::string Config::filename(void) const
 {
     return (_filename);
 }
 
-ConfigGlobalBlock& ServerConfig::global_block(void)
+ConfigGlobalBlock& Config::global_block(void)
 {
     return (_global_block);
 }
 
-ConfigHttpBlock& ServerConfig::http_block(void)
+ConfigHttpBlock& Config::http_block(void)
 {
     return (_http_block);
 }
 
-std::vector<ConfigServerBlock>& ServerConfig::server_block_list(void)
+std::vector<ConfigServerBlock>& Config::server_block_list(void)
 {
     return (_server_block_list);
 }
 
-void ServerConfig::print_config(void) const
+void Config::print_config(void) const
 {
     _global_block.print_config();
     _http_block.print_config();
@@ -50,7 +50,7 @@ void ServerConfig::print_config(void) const
     }
 }
 
-void ServerConfig::parse(void)
+void Config::parse(void)
 {
     std::string line;
 
@@ -73,7 +73,7 @@ void ServerConfig::parse(void)
             "Invalid block level: Make sure to close all blocks");
 }
 
-bool ServerConfig::_set_block_level(const std::string& line)
+bool Config::_set_block_level(const std::string& line)
 {
     if (line[0] == '{')
         _current_block_level = GLOBAL;

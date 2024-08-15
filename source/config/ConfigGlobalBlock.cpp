@@ -10,6 +10,23 @@ ConfigGlobalBlock::ConfigGlobalBlock()
     _valid_directives.insert("worker_connections");
 }
 
+ConfigGlobalBlock::ConfigGlobalBlock(const ConfigGlobalBlock& other)
+    : AConfigParser(other), _worker_processes(other._worker_processes),
+      _worker_connections(other._worker_connections)
+{
+}
+
+ConfigGlobalBlock& ConfigGlobalBlock::operator=(const ConfigGlobalBlock& other)
+{
+    if (this != &other)
+    {
+        AConfigParser::operator=(other);
+        _worker_processes = other._worker_processes;
+        _worker_connections = other._worker_connections;
+    }
+    return (*this);
+}
+
 ConfigGlobalBlock::~ConfigGlobalBlock()
 {
 }

@@ -1,6 +1,6 @@
 #include "ConfigLocationBlock.hpp"
 #include "defines.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 
 namespace webconfig
 {

@@ -6,12 +6,12 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/14 12:16:35 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/15 18:26:11 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
-#include "Logger.hpp"
+#include "utils/Logger.hpp"
 #include "defines.hpp"
 
 void uncatchable_exception_handler(void)

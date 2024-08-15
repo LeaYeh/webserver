@@ -78,7 +78,7 @@ std::string ConfigServerBlock::parse(std::ifstream& file_stream)
         // std::cout << "SERVER line: " << line << std::endl;
         if (_need_to_skip(line))
             continue;
-        if (!_is_valid_scentence(line))
+        if (!_is_valid_sentence(line))
             throw std::invalid_argument("Server scope has invalid line: " +
                                         line);
         if (_is_scope_symbol(line))

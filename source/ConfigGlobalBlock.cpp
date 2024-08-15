@@ -40,7 +40,7 @@ std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
         // std::cout << "GLOBAL line: " << line << std::endl;
         if (_need_to_skip(line))
             continue;
-        if (!_is_valid_scentence(line))
+        if (!_is_valid_sentence(line))
             throw std::invalid_argument("Global scope has invalid line: " +
                                         line);
         if (_is_scope_symbol(line))

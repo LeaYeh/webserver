@@ -67,7 +67,7 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
         // std::cout << "LOCATION line: " << line << std::endl;
         if (_need_to_skip(line))
             continue;
-        if (!_is_valid_scentence(line))
+        if (!_is_valid_sentence(line))
             throw std::runtime_error("Invalid sentence in location block " +
                                      line);
         if (_is_scope_symbol(line))

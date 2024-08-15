@@ -26,7 +26,7 @@ std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
     while (std::getline(file_stream, line))
     {
         // std::cout << "HTTP line: " << line << std::endl;
-        if (!_is_valid_scentence(line))
+        if (!_is_valid_sentence(line))
             throw std::invalid_argument("HTTP scope has invalid line: " + line);
         if (_need_to_skip(line))
             continue;

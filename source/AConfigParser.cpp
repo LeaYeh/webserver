@@ -46,7 +46,7 @@ std::string AConfigParser::_get_directive_name(const std::string& line) const
     return (directive_name);
 }
 
-bool AConfigParser::_is_valid_scentence(const std::string& line) const
+bool AConfigParser::_is_valid_sentence(const std::string& line) const
 {
     if (_need_to_skip(line) || line.find('{') != std::string::npos)
         return (true);

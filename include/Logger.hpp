@@ -6,31 +6,18 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/06 20:01:08 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/13 20:39:04 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+#include "defines.hpp"
 #include <ctime>
 #include <fstream>
 #include <iostream>
 
 namespace weblog
 {
-
-/**
- * @brief Log levels for the Logger.
- *
- * Defines the severity of log messages.
- */
-enum LogLevel
-{
-    DEBUG = 0,
-    INFO,
-    WARNING,
-    ERROR,
-    CRITICAL
-};
 
 /**
  * @brief Logger class for logging messages with different severity levels.

@@ -6,21 +6,22 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/12 18:04:23 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/15 18:26:11 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Logger.hpp"
+#include "Config.hpp"
+#include "utils/Logger.hpp"
 #include "defines.hpp"
-#include "ServerConfig.hpp"
 
 void uncatchable_exception_handler(void)
 {
-    std::cerr << "An uncatchable exception has occurred. Exiting..." << std::endl;
+    std::cerr << "An uncatchable exception has occurred. Exiting..."
+              << std::endl;
     exit(FAILURE);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     if (argc != 2)
     {
@@ -29,7 +30,7 @@ int main(int argc, char **argv)
     }
     try
     {
-        webconfig::ServerConfig config(argv[1]);
+        webconfig::Config config(argv[1]);
         config.parse();
         config.print_config();
     }

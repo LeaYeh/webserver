@@ -1,6 +1,6 @@
 #include "ConfigHttpBlock.hpp"
 #include "defines.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include <cstddef>
 
 namespace webconfig
@@ -13,6 +13,24 @@ ConfigHttpBlock::ConfigHttpBlock()
     _valid_directives.insert("client_max_body_size");
     _valid_directives.insert("default_type");
     _valid_directives.insert("error_page");
+}
+
+ConfigHttpBlock::ConfigHttpBlock(const ConfigHttpBlock& other)
+    : AConfigParser(other), _client_max_body_size(other._client_max_body_size),
+      _default_type(other._default_type), _error_page_list(other._error_page_list)
+{
+}
+
+ConfigHttpBlock& ConfigHttpBlock::operator=(const ConfigHttpBlock& other)
+{
+    if (this != &other)
+    {
+        AConfigParser::operator=(other);
+        _client_max_body_size = other._client_max_body_size;
+        _default_type = other._default_type;
+        _error_page_list = other._error_page_list;
+    }
+    return (*this);
 }
 
 ConfigHttpBlock::~ConfigHttpBlock()

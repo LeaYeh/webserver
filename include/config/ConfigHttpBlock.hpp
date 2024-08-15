@@ -12,17 +12,15 @@ namespace webconfig
 class ConfigHttpBlock : public AConfigParser
 {
   public:
-    const static std::set<std::string> VALID_DIRECTIVES;
     ConfigHttpBlock();
+    ConfigHttpBlock(const ConfigHttpBlock& other);
+    ConfigHttpBlock& operator=(const ConfigHttpBlock& other);
     ~ConfigHttpBlock();
 
     std::string parse(std::ifstream& file_stream);
     void print_config(void) const;
 
   private:
-    ConfigHttpBlock(const ConfigHttpBlock& other);
-    ConfigHttpBlock& operator=(const ConfigHttpBlock& other);
-
     unsigned int _client_max_body_size;
     webshell::ContentType _default_type;
     std::vector<ErrorPage> _error_page_list;

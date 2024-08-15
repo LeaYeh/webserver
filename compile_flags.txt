@@ -3,3 +3,6 @@
 -Werror
 -std=c++98
 -Iinclude
+-Iinclude/config
+-Iinclude/shell
+-Iinclude/kernel

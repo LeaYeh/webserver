@@ -12,6 +12,8 @@ class ConfigGlobalBlock : public AConfigParser
   public:
 
     ConfigGlobalBlock();
+    ConfigGlobalBlock(const ConfigGlobalBlock& other);
+    ConfigGlobalBlock& operator=(const ConfigGlobalBlock& other);
     ~ConfigGlobalBlock();
 
     void print_config(void) const;
@@ -23,9 +25,6 @@ class ConfigGlobalBlock : public AConfigParser
   private:
     unsigned int _worker_processes;
     unsigned int _worker_connections;
-
-    ConfigGlobalBlock(const ConfigGlobalBlock& other);
-    ConfigGlobalBlock& operator=(const ConfigGlobalBlock& other);
 
     void _parse_config_directive(const std::string& line);
 };

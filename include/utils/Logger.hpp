@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/13 20:39:04 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/17 18:38:46 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,8 @@ class Logger
      * @param level The minimum log level.
      */
     void set_level(LogLevel level);
+
+    void set_file_mode(const std::string& filename);
 
   protected:
   private:

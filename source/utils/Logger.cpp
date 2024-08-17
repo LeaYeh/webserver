@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/15 18:26:02 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/17 18:41:38 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,24 @@ void Logger::set_level(LogLevel level)
 {
     std::cout << "Log level set to: " << _get_level_str(level) << std::endl;
     _level = level;
+}
+
+void Logger::set_file_mode(const std::string& filename)
+{
+    if (_is_file_mode)
+        _file_stream.close();
+
+    _file_stream.open(filename.c_str(), std::ios::out | std::ios::app);
+    if (!_file_stream.is_open())
+    {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        _is_file_mode = false;
+    }
+    else
+    {
+        _is_file_mode = true;
+        std::cout << "Logger switched to file mode" << std::endl;
+    }
 }
 
 std::string Logger::_get_level_str(LogLevel level)

@@ -1,8 +1,13 @@
 #include "AConfigParser.hpp"
-#include "utils.hpp"
+#include "defines.hpp"
+#include "utils/utils.hpp"
 
 namespace webconfig
 {
+
+AConfigParser::AConfigParser() : _block_level(GLOBAL)
+{
+}
 
 AConfigParser::AConfigParser(ConfigBlockLevel block_level)
     : _block_level(block_level)
@@ -10,9 +15,8 @@ AConfigParser::AConfigParser(ConfigBlockLevel block_level)
 }
 
 AConfigParser::AConfigParser(const AConfigParser& other)
-    : _block_level(other._block_level)
+    : _block_level(other._block_level), _valid_directives(other._valid_directives)
 {
-    _valid_directives = other._valid_directives;
 }
 
 AConfigParser& AConfigParser::operator=(const AConfigParser& other)

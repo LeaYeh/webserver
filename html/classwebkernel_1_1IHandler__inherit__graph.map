@@ -1,0 +1,7 @@
+<map id="webkernel::IHandler" name="webkernel::IHandler">
+<area shape="rect" id="Node000001" title="The IHandler class is an interface class for handling events." alt="" coords="116,5,260,91"/>
+<area shape="rect" id="Node000002" href="$classwebkernel_1_1Acceptor.html" title="The Acceptor class is a concrete class for accepting connections." alt="" coords="5,139,163,324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,104,139,140,134,137,155,101"/>
+<area shape="rect" id="Node000003" href="$classwebkernel_1_1ConnectionHandler.html" title="The ConnectionHandler class is a concrete class for handling connections." alt="" coords="187,149,400,314"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,101,248,147,244,150,217,104"/>
+</map>

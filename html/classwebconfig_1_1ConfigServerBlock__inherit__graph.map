@@ -1,0 +1,5 @@
+<map id="webconfig::ConfigServerBlock" name="webconfig::ConfigServerBlock">
+<area shape="rect" id="Node000001" title="The ConfigServerBlock class is a concrete class for parsing the server block of the configuration fil..." alt="" coords="5,379,212,644"/>
+<area shape="rect" id="Node000002" href="$classwebconfig_1_1AConfigParser.html" title="The AConfigParser class is an abstract base class for parsing configuration files." alt="" coords="13,5,205,331"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,344,111,378,106,378,106,344"/>
+</map>

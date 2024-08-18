@@ -1,0 +1,7 @@
+<map id="webshell::ARequestParser" name="webshell::ARequestParser">
+<area shape="rect" id="Node000001" title="Abstract class for parsing HTTP requests." alt="" coords="5,163,188,308"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="6,5,94,71"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="53,71,61,138,63,146,58,147,55,139,47,71"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="118,5,169,71"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,72,120,147,115,146,133,70"/>
+</map>

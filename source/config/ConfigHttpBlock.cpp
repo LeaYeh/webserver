@@ -106,7 +106,7 @@ ConfigHttpBlock::_parse_default_type(const std::string& line)
     return (string_to_content_type(value));
 }
 
-ErrorPage ConfigHttpBlock::_parse_error_page(const std::string& line)
+std::pair<webshell::StatusCode, std::string> ConfigHttpBlock::_parse_error_page(const std::string& line)
 {
     std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
@@ -117,7 +117,7 @@ ErrorPage ConfigHttpBlock::_parse_error_page(const std::string& line)
                                     value);
     webshell::StatusCode status_code = string_to_status_code(args[0]);
 
-    return (ErrorPage(status_code, args[1]));
+    return (std::make_pair(status_code, args[1]));
 }
 
 } // namespace webconfig

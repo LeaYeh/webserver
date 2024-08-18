@@ -1,5 +1,6 @@
 #include "Config.hpp"
 #include "defines.hpp"
+#include "utils/Logger.hpp"
 #include <iostream>
 
 namespace webconfig
@@ -79,7 +80,8 @@ void Config::print_config(void) const
     _http_block.print_config();
     for (size_t i = 0; i < _server_block_list.size(); ++i)
     {
-        std::cout << "Server block [" << i << "]:" << std::endl;
+        weblog::logger.log(weblog::DEBUG,
+                           "Server block [" + utils::to_string(i) + "]:");
         _server_block_list[i].print_config();
     }
 }

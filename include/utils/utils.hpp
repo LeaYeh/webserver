@@ -22,5 +22,14 @@ std::string trim(const std::string& str);
 int stoi(const std::string& str);
 unsigned int convert_to_size(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delim);
+std::string request_method_to_string(webshell::RequestMethod method);
+std::string content_type_to_string(webshell::ContentType type);
+
+template <typename T> std::string to_string(const T& value)
+{
+    std::ostringstream oss;
+    oss << value;
+    return (oss.str());
+}
 
 } // namespace utils

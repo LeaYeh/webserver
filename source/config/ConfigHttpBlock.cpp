@@ -1,6 +1,7 @@
 #include "ConfigHttpBlock.hpp"
 #include "defines.hpp"
 #include "utils/utils.hpp"
+#include "utils/Logger.hpp"
 #include <cstddef>
 
 namespace webconfig
@@ -43,7 +44,6 @@ std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
 
     while (std::getline(file_stream, line))
     {
-        // std::cout << "HTTP line: " << line << std::endl;
         if (!_is_valid_sentence(line))
             throw std::invalid_argument("HTTP scope has invalid line: " + line);
         if (_need_to_skip(line))
@@ -61,14 +61,16 @@ std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
 
 void ConfigHttpBlock::print_config(void) const
 {
-    std::cout << "HTTP scope:" << std::endl;
-    std::cout << "\tclient_max_body_size: " << _client_max_body_size
-              << std::endl;
-    std::cout << "\tdefault_type: " << _default_type << std::endl;
-    std::cout << "\terror_page:" << std::endl;
+    weblog::logger.log(weblog::DEBUG, "HTTP scope:");
+    weblog::logger.log(weblog::DEBUG, "\tclient_max_body_size: " +
+                                          utils::to_string(_client_max_body_size));
+    weblog::logger.log(weblog::DEBUG, "\tdefault_type: " + utils::content_type_to_string(_default_type));
+    weblog::logger.log(weblog::DEBUG, "\terror_page:");
     for (size_t i = 0; i < _error_page_list.size(); ++i)
-        std::cout << "\t\t" << _error_page_list[i].status_code << " "
-                  << _error_page_list[i].path << std::endl;
+    {
+        weblog::logger.log(weblog::DEBUG, "\t\t" + utils::to_string(_error_page_list[i].status_code) + " " +
+                                              _error_page_list[i].path);
+    }
 }
 
 void ConfigHttpBlock::_parse_config_directive(const std::string& line)
@@ -104,7 +106,7 @@ ConfigHttpBlock::_parse_default_type(const std::string& line)
     return (string_to_content_type(value));
 }
 
-ErrorPage ConfigHttpBlock::_parse_error_page(const std::string& line)
+std::pair<webshell::StatusCode, std::string> ConfigHttpBlock::_parse_error_page(const std::string& line)
 {
     std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
@@ -115,7 +117,7 @@ ErrorPage ConfigHttpBlock::_parse_error_page(const std::string& line)
                                     value);
     webshell::StatusCode status_code = string_to_status_code(args[0]);
 
-    return (ErrorPage(status_code, args[1]));
+    return (std::make_pair(status_code, args[1]));
 }
 
 } // namespace webconfig

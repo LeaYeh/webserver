@@ -1,0 +1,5 @@
+<map id="webkernel::ConnectionHandler" name="webkernel::ConnectionHandler">
+<area shape="rect" id="Node000001" title="The ConnectionHandler class is a concrete class for handling connections." alt="" coords="5,139,219,304"/>
+<area shape="rect" id="Node000002" href="$classwebkernel_1_1IHandler.html" title="The IHandler class is an interface class for handling events." alt="" coords="40,5,184,91"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,104,115,139,109,139,109,104"/>
+</map>

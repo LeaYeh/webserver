@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/17 18:41:38 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/18 16:00:23 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,22 @@ void Logger::log(LogLevel level, const std::string& message)
     if (level < _level)
         return;
 
-    std::string logMessage = _get_current_time() + " [" +
-                             _get_level_str(level) + "] " + message + "\n";
-
+    const int level_width = 50;
+    const int message_width = 100;
     if (_is_file_mode)
-        _file_stream << logMessage;
+    {
+        _file_stream << _get_current_time() << " [" + _get_level_str(level) + "] "
+                     << std::setw(level_width) << std::left
+                     << std::setw(message_width) << std::left << message
+                     << std::endl;
+    }
     else
-        std::cout << logMessage;
+    {
+        std::cout << _get_current_time() << " [" + _get_color_level_str(level) + "] "
+                  << std::setw(level_width) << std::left
+                  << std::setw(message_width) << std::left << message
+                  << std::endl;
+    }
 }
 
 void Logger::set_level(LogLevel level)
@@ -81,6 +90,25 @@ std::string Logger::_get_level_str(LogLevel level)
     switch (level)
     {
     case DEBUG:
+        return "DEBUG";
+    case INFO:
+        return "INFO";
+    case WARNING:
+        return "WARNING";
+    case ERROR:
+        return "ERROR";
+    case CRITICAL:
+        return "CRITICAL";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+std::string Logger::_get_color_level_str(LogLevel level)
+{
+    switch (level)
+    {
+    case DEBUG:
         return "\033[34mDEBUG\033[0m";
     case INFO:
         return "\033[32mINFO\033[0m";
@@ -107,5 +135,7 @@ std::string Logger::_get_current_time()
     strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
     return std::string(buffer);
 }
+
+Logger logger;
 
 } // namespace weblog

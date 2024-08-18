@@ -12,6 +12,7 @@ namespace webconfig
 class AConfigParser
 {
   public:
+    AConfigParser();
     AConfigParser(ConfigBlockLevel block_level);
     AConfigParser(const AConfigParser& other);
     AConfigParser& operator=(const AConfigParser& other);
@@ -31,7 +32,6 @@ class AConfigParser
     virtual void _parse_config_directive(const std::string& line) = 0;
 
   private:
-    AConfigParser();
 };
 
 } // namespace webconfig

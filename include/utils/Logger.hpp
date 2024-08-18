@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/17 18:38:46 by lyeh             ###   ########.fr       */
+/*   Updated: 2024/08/18 15:52:41 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 namespace weblog
 {
@@ -93,7 +94,8 @@ class Logger
      * @param level The log level to convert.
      * @return The string representation of the log level.
      */
-    std::string _get_level_str(LogLevel level);
+    std::string _get_level_str(LogLevel level);;
+    std::string _get_color_level_str(LogLevel level);;
 
     /**
      * @brief Get the current time as a string.
@@ -104,5 +106,7 @@ class Logger
      */
     std::string _get_current_time();
 };
+
+extern Logger logger;
 
 } // namespace weblog

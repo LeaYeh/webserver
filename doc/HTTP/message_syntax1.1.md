@@ -18,7 +18,7 @@ An HTTP/1.1 request message includes the following components:
 <method> <request-target> <HTTP-version>
 <headers>
 
-<body>
+<body
 ```
 
 - `Method`: This specifies the action to be performed. Common methods include:

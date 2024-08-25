@@ -1,6 +1,5 @@
 {
     "[cpp]": {
         "editor.formatOnSave": true
-    },
-    "clang-format.executable": "${env.HOME}/sgoinfre/llvm-project/build/bin/clang-format"
+    }
 }

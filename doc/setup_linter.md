@@ -1,60 +1,69 @@
 # Setup Coding Style Linter
 
-## Install Clang-Format
+## Install the clangd VSCode extension
 
-```bash
-> sudo apt-get install clang-format
-```
+1. Open the Extensions view.
 
-```bash
-# without sudo permission
-cd sgoinfre
-git clone https://github.com/llvm/llvm-project.git
+2. Search for `clangd`.
 
-cd llvm-project
-mkdir build
-cd build
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="clang" ../llvm
-make clang-format
+3. Click the `Install` button.
 
-# Add the path to the clang-format binary to your PATH
-echo 'export PATH=$PATH:/path/to/llvm-project/build/bin' >> ~/.zshrc
-```
+## Config VSCode settings
 
-## Install vscode extension
-
-1. Open Visual Studio Code
-
-2. Press `Ctrl+P` to open the Quick Open dialog
-
-3. Paste the following command and press Enter
-
-```bash
-ext install xaver.clang-format
-```
-
-4. Press `Ctrl+Shift+P` to open the Command Palette
-
-5. Type `Preferences: Open Settings (UI)` and press Enter
-
-![Diagram](images/vscode-clang-format.png)
-
-## Config vscode settings
-
+Create a `.vscode/settings.json` file in the root of your project with the following content:
 ```
 {
     "[cpp]": {
         "editor.formatOnSave": true
-    },
-    "clang-format.executable": "${env.HOME}/sgoinfre/llvm-project/build/bin/clang-format"
+    }
 }
 ```
 
 ## Config clang-format
 
+Create a `.clang-format` file in the root of your project with the following content:
 ```
-# .clang-format
-BasedOnStyle: Google
-Language: Cpp
-IndentWidth: 4
+BasedOnStyle: LLVM                          # Use the LLVM style as a base
+IndentWidth: 4                              # Commonly used indent width
+UseTab: Never                               # Prefer spaces, as is typical in older C++ code styles
+BreakBeforeBraces: Allman                   # Use the Allman style for braces
+AllowShortIfStatementsOnASingleLine: false  # Keep even short if statements on separate lines
+ColumnLimit: 80                             # Keeping with the traditional 80 characters per line limit
+PointerAlignment: Left                      # Place the asterisk close to the variable type e.g., int* x;
+AllowShortFunctionsOnASingleLine: false     # Force functions to be on multiple lines
+AllowShortBlocksOnASingleLine: false        # Force blocks to be on multiple lines
+SortIncludes: true                          # Sort includes alphabetically
+InsertNewlineAtEOF: true                    # Ensure a newline at the end of the file
+```
+
+## Select the default formatter
+
+In VSCode, go to any source file and press `Ctrl + Shift + I` to `Format Document`.
+You will be prompted to select a default formatter. Select `clangd`.
+
+Now, every time you save a file (`Ctrl + S`), it will be automatically formatted according to the `.clang-format` file.
+
+---
+
+## Bonus: Install clang-format without clangd
+
+clangd already includes clang-format, but if you want to install clang-format separately, you can do so with the following steps:
+
+### With sudo
+
+```bash
+sudo apt-get install clang-format
+```
+
+### Without sudo
+
+```bash
+# Download the latest clang-format binary into $HOME/bin
+LATEST_URL=$(curl -s https://api.github.com/repos/muttleyxd/clang-tools-static-binaries/releases/latest | grep -oP '(?<="browser_download_url": ")[^"]*clang-format-[0-9]+_linux-amd64(?=")' | sort -V | tail -n 1)
+wget -qO $HOME/bin/clang-format $LATEST_URL
+chmod +x $HOME/bin/clang-format
+
+# Add the path to the clang-format binary to your PATH
+echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.zshrc
+echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.bashrc
 ```

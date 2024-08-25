@@ -55,12 +55,25 @@ clangd already includes clang-format, but if you want to install clang-format se
 sudo apt-get install clang-format
 ```
 
-### Without sudo
+### Without sudo (statically linked)
 
 ```bash
-# Download the latest clang-format binary into $HOME/bin
-LATEST_URL=$(curl -s https://api.github.com/repos/muttleyxd/clang-tools-static-binaries/releases/latest | grep -oP '(?<="browser_download_url": ")[^"]*clang-format-[0-9]+_linux-amd64(?=")' | sort -V | tail -n 1)
+# Download the latest clang-format binary from a mirror into $HOME/bin
+LATEST_URL=$(wget -qO- https://api.github.com/repos/muttleyxd/clang-tools-static-binaries/releases/latest | grep -oP '(?<="browser_download_url": ")[^"]*clang-format-[0-9]+_linux-amd64(?=")' | sort -V | tail -n 1)
 wget -qO $HOME/bin/clang-format $LATEST_URL
+chmod +x $HOME/bin/clang-format
+
+# Add the path to the clang-format binary to your PATH
+echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.zshrc
+echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.bashrc
+```
+
+### Without sudo (dynamically linked)
+
+```bash
+# Download the latest clang-format binary from LLVM into $HOME/bin
+LATEST_URL=$(wget -qO- https://api.github.com/repos/llvm/llvm-project/releases/latest | grep "browser_download_url.*clang.*x86_64-linux-gnu-ubuntu-.*.tar.xz" | cut -d : -f 2,3 | tr -d \" | xargs)
+wget -qO- $LATEST_URL | tar -xJv -C $HOME/bin/ --strip-components=2 --occurrence=1 --wildcards \*/bin/clang-format
 chmod +x $HOME/bin/clang-format
 
 # Add the path to the clang-format binary to your PATH

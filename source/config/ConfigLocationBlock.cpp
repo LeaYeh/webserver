@@ -1,5 +1,6 @@
 #include "ConfigLocationBlock.hpp"
 #include "defines.hpp"
+#include "utils/Logger.hpp"
 #include "utils/utils.hpp"
 
 namespace webconfig
@@ -64,7 +65,6 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 
     while (std::getline(file_stream, line))
     {
-        // std::cout << "LOCATION line: " << line << std::endl;
         if (_need_to_skip(line))
             continue;
         if (!_is_valid_sentence(line))
@@ -80,19 +80,21 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 
 void ConfigLocationBlock::print_config(void) const
 {
-    std::cout << "\t\troute: " << _route << std::endl;
-    std::cout << "\t\tlimit_except: ";
+    weblog::logger.log(weblog::DEBUG, "\troute: " + _route);
+    weblog::logger.log(weblog::DEBUG, "\tlimit_except:");
     for (std::size_t i = 0; i < _limit_except.size(); ++i)
-        std::cout << _limit_except[i] << " ";
-    std::cout << std::endl;
-    std::cout << "\t\troot: " << _root << std::endl;
-    std::cout << "\t\tindex: " << _index << std::endl;
-    std::cout << "\t\tredirect: " << _redirect << std::endl;
-    std::cout << "\t\tautoindex: " << _autoindex << std::endl;
-    std::cout << "\t\tcgi_extension: " << _cgi_extension << std::endl;
-    std::cout << "\t\tcgi_path: " << _cgi_path << std::endl;
-    std::cout << "\t\tenable_upload: " << _enable_upload << std::endl;
-    std::cout << "\t\tupload_path: " << _upload_path << std::endl;
+        weblog::logger.log(
+            weblog::DEBUG,
+            "\t\t" + utils::request_method_to_string(_limit_except[i]));
+    weblog::logger.log(weblog::DEBUG, "\troot: " + _root);
+    weblog::logger.log(weblog::DEBUG, "\tindex: " + _index);
+    weblog::logger.log(weblog::DEBUG,
+                       "\tautoindex: " + utils::to_string(_autoindex));
+    weblog::logger.log(weblog::DEBUG, "\tcgi_extension: " + _cgi_extension);
+    weblog::logger.log(weblog::DEBUG, "\tcgi_path: " + _cgi_path);
+    weblog::logger.log(weblog::DEBUG,
+                       "\tenable_upload: " + utils::to_string(_enable_upload));
+    weblog::logger.log(weblog::DEBUG, "\tupload_path: " + _upload_path);
 }
 
 void ConfigLocationBlock::_parse_config_directive(const std::string& line)

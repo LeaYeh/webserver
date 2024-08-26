@@ -1,4 +1,5 @@
 #include "ConfigGlobalBlock.hpp"
+#include "utils/Logger.hpp"
 
 namespace webconfig
 {
@@ -43,9 +44,12 @@ unsigned int ConfigGlobalBlock::worker_connections(void) const
 
 void ConfigGlobalBlock::print_config(void) const
 {
-    std::cout << "Global scope:" << std::endl;
-    std::cout << "\tworker_processes: " << _worker_processes << std::endl;
-    std::cout << "\tworker_connections: " << _worker_connections << std::endl;
+    weblog::logger.log(weblog::DEBUG, "Global scope:");
+    weblog::logger.log(weblog::DEBUG, "\tworker_processes: " +
+                                          utils::to_string(_worker_processes));
+    weblog::logger.log(weblog::DEBUG,
+                       "\tworker_connections: " +
+                           utils::to_string(_worker_connections));
 }
 
 std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
@@ -54,7 +58,6 @@ std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
 
     while (std::getline(file_stream, line))
     {
-        // std::cout << "GLOBAL line: " << line << std::endl;
         if (_need_to_skip(line))
             continue;
         if (!_is_valid_sentence(line))

@@ -125,3 +125,28 @@ enum ConfigBlockLevel
 };
 
 } // namespace webconfig
+
+namespace webkernel
+{
+
+// TODO: the MAX_EVENTS is critical for the performance of the server, need to
+// be optimized
+const int MAX_EVENTS = 10;
+
+enum ReactorType
+{
+    UNDEFINED = -1,
+    REACTOR = 0,
+    DISPATCHER,
+    WORKER
+};
+
+enum EventType
+{
+    NEW_CONNECTION = 0,
+    COMMUNICATION,
+    DATA_RECEIVED,
+    DATA_SENT
+};
+
+} // namespace webkernel

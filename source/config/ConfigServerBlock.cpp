@@ -1,13 +1,15 @@
 #include "ConfigServerBlock.hpp"
 #include "defines.hpp"
 #include "utils/utils.hpp"
+#include "utils/Logger.hpp"
+#include <string>
 
 namespace webconfig
 {
 
 ConfigServerBlock::ConfigServerBlock()
     : AConfigParser(SERVER), _server_name("localhost"),
-      _listen(std::make_pair("127.0.0.1", 80)), _keepalive_timeout(65)
+      _listen(std::make_pair(std::string("127.0.0.1"), std::string("80"))), _keepalive_timeout(65)
 {
     _valid_directives.insert("server_name");
     _valid_directives.insert("listen");
@@ -48,7 +50,7 @@ std::string ConfigServerBlock::server_name(void) const
     return (_server_name);
 }
 
-std::pair<std::string, unsigned int> ConfigServerBlock::listen(void) const
+std::pair<std::string, std::string> ConfigServerBlock::listen(void) const
 {
     return (_listen);
 }
@@ -94,18 +96,22 @@ std::string ConfigServerBlock::parse(std::ifstream& file_stream)
 
 void ConfigServerBlock::print_config(void) const
 {
-    std::cout << "\tServer name: " << _server_name << std::endl;
-    std::cout << "\tListen: " << _listen.first << ":" << _listen.second
-              << std::endl;
+    weblog::logger.log(weblog::DEBUG, "Server block:");
+    weblog::logger.log(weblog::DEBUG, "\tServer name: " + _server_name);
+    weblog::logger.log(weblog::DEBUG, "\tListen: " + _listen.first + ":" +
+                                          _listen.second);
     for (size_t i = 0; i < _error_log.size(); ++i)
     {
-        std::cout << "\tError log: " << _error_log[i].first << " "
-                  << level_to_string(_error_log[i].second) << std::endl;
+        weblog::logger.log(weblog::DEBUG, "\tError log: " + _error_log[i].first +
+                                              " " +
+                                              level_to_string(_error_log[i].second));
     }
-    std::cout << "\tKeepalive timeout: " << _keepalive_timeout << std::endl;
+    weblog::logger.log(weblog::DEBUG, "\tKeepalive timeout: " +
+                                          utils::to_string(_keepalive_timeout));
     for (size_t i = 0; i < _location_block_list.size(); ++i)
     {
-        std::cout << "\tLocation block [" << i << "]:" << std::endl;
+        weblog::logger.log(weblog::DEBUG, "Location block [" +
+                                              utils::to_string(i) + "]:");
         _location_block_list[i].print_config();
     }
 }
@@ -124,7 +130,7 @@ void ConfigServerBlock::_parse_config_directive(const std::string& line)
         _keepalive_timeout = _parse_keepalive_timeout(line, directive);
 }
 
-std::pair<std::string, unsigned int>
+std::pair<std::string, std::string>
 ConfigServerBlock::_parse_listen(const std::string& line,
                                  const std::string& directive)
 {
@@ -132,9 +138,8 @@ ConfigServerBlock::_parse_listen(const std::string& line,
 
     size_t pos = value.find(":");
     if (pos == std::string::npos)
-        return std::make_pair(value, 80);
-    return (std::make_pair(value.substr(0, pos),
-                           utils::stoi(value.substr(pos + 1))));
+        return std::make_pair(value, std::string("80"));
+    return (std::make_pair(value.substr(0, pos), value.substr(pos + 1)));
 }
 
 std::pair<std::string, weblog::LogLevel>

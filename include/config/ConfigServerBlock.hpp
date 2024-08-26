@@ -18,7 +18,7 @@ class ConfigServerBlock : public AConfigParser
     ConfigServerBlock& operator=(const ConfigServerBlock& other);
 
     std::string server_name(void) const;
-    std::pair<std::string, unsigned int> listen(void) const;
+    std::pair<std::string, std::string> listen(void) const;
     std::vector<std::pair<std::string, weblog::LogLevel> > error_log(void) const;
     unsigned int keepalive_timeout(void) const;
     std::vector<ConfigLocationBlock>& location_block_list(void);
@@ -28,13 +28,13 @@ class ConfigServerBlock : public AConfigParser
 
   private:
     std::string _server_name;
-    std::pair<std::string, unsigned int> _listen;
+    std::pair<std::string, std::string> _listen;
     std::vector<std::pair<std::string, weblog::LogLevel> > _error_log;
     unsigned int _keepalive_timeout;
     std::vector<ConfigLocationBlock> _location_block_list;
 
     void _parse_config_directive(const std::string& line);
-    std::pair<std::string, unsigned int>
+    std::pair<std::string, std::string>
     _parse_listen(const std::string& line, const std::string& directive);
     std::pair<std::string, weblog::LogLevel>
     _parse_error_log(const std::string& line, const std::string& directive);

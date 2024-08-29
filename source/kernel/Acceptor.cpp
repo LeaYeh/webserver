@@ -1,4 +1,5 @@
 #include "Acceptor.hpp"
+#include "Config.hpp"
 #include "ConnectionHandler.hpp"
 #include "defines.hpp"
 #include "utils/Logger.hpp"
@@ -8,20 +9,21 @@
 namespace webkernel
 {
 
-Acceptor::Acceptor() : _reactor(NULL)
+Acceptor::Acceptor() : _reactor(NULL), _config(NULL), _server_id(-1)
 {
 }
 
-Acceptor::Acceptor(Reactor* reactor) : _reactor(reactor)
+Acceptor::Acceptor(Reactor* reactor, webconfig::Config* config)
+    : _reactor(reactor), _config(config), _server_id(-1)
 {
+    weblog::logger.log(weblog::DEBUG, "Acceptor created with server_id: " +
+                                          utils::to_string(_server_id));
 }
 
 Acceptor::Acceptor(const Acceptor& other)
+    : _reactor(other._reactor), _config(other._config),
+      _server_id(other._server_id)
 {
-    if (this != &other)
-    {
-        _reactor = other._reactor;
-    }
 }
 
 Acceptor& Acceptor::operator=(const Acceptor& other)
@@ -29,16 +31,22 @@ Acceptor& Acceptor::operator=(const Acceptor& other)
     if (this != &other)
     {
         _reactor = other._reactor;
+        _config = other._config;
+        _server_id = other._server_id;
     }
     return (*this);
 }
 
 Acceptor::~Acceptor()
 {
+    weblog::logger.log(weblog::DEBUG, "Acceptor destroyed with server_id: " +
+                                          utils::to_string(_server_id));
 }
 
 // The ConnectionHandler object is created and registered with the Reactor
 // the object will be deleted by the Reactor when the connection is closed
+// Register the connection handler with the reactor and set it to epoll edge
+// triggered mode with EPOLLET
 void Acceptor::handle_event(int fd, uint32_t events)
 {
     if (events & EPOLLIN)
@@ -52,12 +60,17 @@ void Acceptor::handle_event(int fd, uint32_t events)
             throw std::runtime_error("accept() failed: " +
                                      std::string(strerror(errno)));
         ConnectionHandler* conn_handler =
-            new ConnectionHandler(conn_fd, _reactor);
-        _reactor->register_handler(conn_fd, conn_handler, EPOLLIN | EPOLLOUT);
+            new ConnectionHandler(conn_fd, _reactor, _config, _server_id);
+        _reactor->register_handler(conn_fd, conn_handler, EPOLLIN | EPOLLET);
         weblog::logger.log(weblog::DEBUG,
                            "Registered connection handler with fd: " +
                                utils::to_string(conn_fd));
     }
+}
+
+void Acceptor::setup_server_id(int server_id)
+{
+    _server_id = server_id;
 }
 
 } // namespace webkernel

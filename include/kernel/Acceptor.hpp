@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.hpp"
 #include "IHandler.hpp"
 #include "Reactor.hpp"
 #include "ConnectionHandler.hpp"
@@ -16,16 +17,19 @@ class Acceptor : public IHandler
 {
   public:
     Acceptor();
-    Acceptor(Reactor* reactor);
+    Acceptor(Reactor* reactor, webconfig::Config* config);
     Acceptor(const Acceptor& other);
     Acceptor& operator=(const Acceptor& other);
     ~Acceptor();
 
     int create_connection(const char* ip, const char* port);
     void handle_event(int fd, uint32_t events);
+    void setup_server_id(int server_id);
 
   private:
     Reactor* _reactor;
+    webconfig::Config* _config;
+    int _server_id;
 };
 
 } // namespace webkernel

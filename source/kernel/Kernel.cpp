@@ -68,11 +68,13 @@ void Kernel::_init_listener(void)
         if (listen(fd, SOMAXCONN) < 0)
             throw std::runtime_error("listen() failed: " +
                                      std::string(strerror(errno)));
-        weblog::logger.log(weblog::INFO, "Listening on " + config.listen().first + ":" +
-                                     config.listen().second);
+        weblog::logger.log(weblog::INFO, "Listening on " +
+                                             config.listen().first + ":" +
+                                             config.listen().second);
+        _acceptor->setup_server_id(i);
         _reactor->register_handler(fd, _acceptor, EPOLLIN);
-        weblog::logger.log(weblog::INFO,
-                   "Registered acceptor with fd: " + utils::to_string(fd));
+        weblog::logger.log(weblog::INFO, "Registered acceptor with fd: " +
+                                             utils::to_string(fd));
     }
 }
 
@@ -116,24 +118,25 @@ int Kernel::_create_listen_socket(const char* ip, const char* port)
         throw e;
     }
     freeaddrinfo(res);
+    _fd_server_id_map[fd] = -1;
     return (fd);
 }
 
 void Kernel::_create_single_reactor_single_worker(void)
 {
     weblog::logger.log(weblog::INFO,
-               "Creating single reactor and single worker structure");
+                       "Creating single reactor and single worker structure");
     _reactor = new Reactor(REACTOR);
-    _acceptor = new Acceptor(_reactor);
+    _acceptor = new Acceptor(_reactor, &_config);
     _init_listener();
 }
 
 void Kernel::_create_multi_reactor_multi_worker(void)
 {
     weblog::logger.log(weblog::INFO,
-               "Creating multi reactor and multi worker structure");
+                       "Creating multi reactor and multi worker structure");
     _reactor = new Reactor(DISPATCHER);
-    _acceptor = new Acceptor(_reactor);
+    _acceptor = new Acceptor(_reactor, &_config);
     _init_listener();
     for (unsigned int i = 1; i < _config.global_block().worker_processes(); i++)
     {

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  run-container:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER: ${USER}
+    volumes:
+      - .:/app
+    environment:
+      - USER=${USER}
+    user: root
+    command: ["sh", "-c", "sudo chmod -R 755 /app && sleep infinity"]

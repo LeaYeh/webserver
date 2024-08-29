@@ -10,6 +10,8 @@ class UriAnalyser
 {
   public:
     UriAnalyser();
+    UriAnalyser(const UriAnalyser& other);
+    UriAnalyser& operator=(const UriAnalyser& other);
     ~UriAnalyser();
 
     void parse_uri(const std::string& uri);

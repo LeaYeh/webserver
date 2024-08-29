@@ -45,6 +45,13 @@ enum LogLevel
 namespace webshell
 {
 
+enum RequestAnalyzerState
+{
+    PARSING_REQUUEST_LINE = 0,
+    PARSING_REQUUEST_HEADERS,
+    COMPLITE
+};
+
 enum RequestMethod
 {
     GET = 0,

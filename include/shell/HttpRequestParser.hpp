@@ -1,37 +1,35 @@
 #pragma once
 
 #include "HeaderAnalyzer.hpp"
-#include "RequestLine.hpp"
+#include "RequestLineAnalyzer.hpp"
 #include "defines.hpp"
 
 #include <iostream>
 
 namespace webshell
 {
-/**
- * @brief Abstract class for parsing HTTP requests.
- *
- * The RequestParser class provides an interface for parsing HTTP requests.
- * It defines the parse function that must be implemented by derived classes.
- * Use state machine to parse the raw request.
- */
+
 class HttpRequestParser
 {
   public:
-    /**
-     * @brief Destroy the RequestParser object.
-     */
-    virtual ~HttpRequestParser();
+    HttpRequestParser();
+    HttpRequestParser(const HttpRequestParser& other);
+    HttpRequestParser& operator=(const HttpRequestParser& other);
+    ~HttpRequestParser();
 
     void update_state(const char* buf, size_t chunk_size);
     bool is_complete(void) const;
     void reset(void);
-    void body(void);
+    std::string partial_body(void) const;
+    RequestAnalyzerState state(void) const;
+    const RequestLineAnalyzer& request_line_analyzer(void) const;
+    const HeaderAnalyzer& header_analyzer(void) const;
 
   private:
-    RequestLine _request_line;
+    RequestAnalyzerState _state;
+    RequestLineAnalyzer _request_line_analyzer;
     HeaderAnalyzer _header_analyzer;
-    std::string _body;
+    std::string _partial_body;
 };
 
 } // namespace webshell

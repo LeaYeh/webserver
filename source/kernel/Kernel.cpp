@@ -118,7 +118,6 @@ int Kernel::_create_listen_socket(const char* ip, const char* port)
         throw e;
     }
     freeaddrinfo(res);
-    _fd_server_id_map[fd] = -1;
     return (fd);
 }
 

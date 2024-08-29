@@ -70,6 +70,17 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
                       "Handler got unknown event: " + utils::to_string(events));
 }
 
+// if (bytes_read == -1)
+// {
+//     if (errno == EAGAIN || errno == EWOULDBLOCK)
+//         break;
+//     else
+//     {
+//         _handle_close(fd, weblog::ERROR,
+//                       "read() failed: " + std::string(strerror(errno)));
+//         return;
+//     }
+// }
 void ConnectionHandler::_handle_read(int fd)
 {
     char buffer[CHUNKED_SIZE];
@@ -77,15 +88,21 @@ void ConnectionHandler::_handle_read(int fd)
     while (true)
     {
         ssize_t bytes_read = read(fd, buffer, CHUNKED_SIZE);
-        if (bytes_read == -1)
+
+        if (bytes_read > 0)
         {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                break;
+            weblog::logger.log(weblog::DEBUG,
+                               "Read " + utils::to_string(bytes_read) +
+                                   " bytes from fd: " + utils::to_string(fd));
+            weblog::logger.log(weblog::DEBUG, "Buffer: \n" + std::string(buffer));
+            if (!_request_parser.is_complete())
+                _request_parser.update_state(buffer, bytes_read);
             else
             {
-                _handle_close(fd, weblog::ERROR,
-                              "read() failed: " + std::string(strerror(errno)));
-                return;
+                weblog::logger.log(weblog::INFO, "Request is complete");
+                _process_request();
+                _respond(fd);
+                break;
             }
         }
         else if (bytes_read == 0)
@@ -95,15 +112,14 @@ void ConnectionHandler::_handle_read(int fd)
         }
         else
         {
-            weblog::logger.log(weblog::DEBUG,
-                               "Read " + utils::to_string(bytes_read) +
-                                   " bytes from fd: " + utils::to_string(fd));
-            _request_parser.update_state(buffer, bytes_read);
-            if (_request_parser.is_complete())
-            {
-                weblog::logger.log(weblog::INFO, "Request is complete");
-                // Process the request
+            // TODO: the errno is forbidden by the subject, maybe we should just break and assume the error case never happens
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
+            else
+            {
+                _handle_close(fd, weblog::ERROR,
+                              "read() failed: " + std::string(strerror(errno)));
+                return;
             }
         }
     }
@@ -129,12 +145,36 @@ bool ConnectionHandler::_keep_alive(void)
     time_t now = time(0);
     double elapsed = difftime(now, _start_time);
 
+    weblog::logger.log(weblog::DEBUG, "Elapsed time: " + utils::to_string(elapsed));
     if (_request_parser.header_analyzer().content_type() == webshell::CLOSE)
         return (false);
     else if (elapsed > _server_config.keep_alive_timeout())
         return (false);
 
     return (true);
+}
+
+void ConnectionHandler::_process_request(void)
+{
+    weblog::logger.log(weblog::DEBUG, "Processing request");
+
+}
+
+void ConnectionHandler::_respond(int fd)
+{
+    weblog::logger.log(weblog::DEBUG, "Responding to request");
+
+    std::string response = "HTTP/1.1 200 OK\r\n"
+                           "Content-Type: text/html\r\n"
+                           "Content-Length: 12\r\n"
+                           "\r\n"
+                           "Hello World!";
+    write(fd, response.c_str(), response.size());
+}
+
+void ConnectionHandler::_send_chunked_response(int fd)
+{
+    (void)fd;
 }
 
 } // namespace webkernel

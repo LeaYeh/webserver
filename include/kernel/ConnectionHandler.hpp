@@ -43,8 +43,10 @@ class ConnectionHandler : public IHandler
     void _handle_write(int fd);
     void _handle_close(int fd, weblog::LogLevel level, std::string message);
 
-    void _process_request(void);
     bool _keep_alive(void);
+    void _process_request(void);
+    void _respond(int fd);
+    void _send_chunked_response(int fd);
 };
 
 } // namespace webkernel

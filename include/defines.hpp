@@ -194,6 +194,10 @@ namespace webkernel
 // be optimized
 const int MAX_EVENTS = 10;
 
+// TODO: the CHUNKED_SIZE is critical for the performance of the server, need to
+// be optimized (it is the size of the buffer for the body)
+const int CHUNKED_SIZE = 1024;
+
 enum ReactorType
 {
     UNDEFINED = -1,

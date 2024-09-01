@@ -3,7 +3,7 @@
 namespace webshell
 {
 
-HttpRequestParser::HttpRequestParser() : _state(PARSING_REQUUEST_LINE)
+HttpRequestParser::HttpRequestParser() : _state(PARSING_REQUEST_LINE)
 {
 }
 
@@ -44,7 +44,7 @@ bool HttpRequestParser::is_complete(void) const
 
 void HttpRequestParser::reset(void)
 {
-    _state = PARSING_REQUUEST_LINE;
+    _state = PARSING_REQUEST_LINE;
     _partial_body.clear();
 }
 

@@ -1,0 +1,30 @@
+{
+	"name": "wevserv",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"runArgs": [
+		"--privileged"
+	],
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terminal.integrated.shell.linux": "/bin/zsh"
+			},
+			"extensions": [
+				"ms-python.python",
+				"eamodio.gitlens",
+				"github.copilot",
+				"bierner.markdown-mermaid"
+			]
+		}
+	},
+	"mounts": [
+		"source=${env:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+		"source=${env:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,consistency=cached",
+		"source=${env:HOME}/.some_alias,target=/root/.some_alias,type=bind,consistency=cached"
+	],
+	"workspaceFolder": "/workspace",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+	"remoteUser": "root"
+}

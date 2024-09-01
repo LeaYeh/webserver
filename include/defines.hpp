@@ -47,9 +47,9 @@ namespace webshell
 
 enum RequestAnalyzerState
 {
-    PARSING_REQUUEST_LINE = 0,
-    PARSING_REQUUEST_HEADERS,
-    COMPLITE
+    PARSING_REQUEST_LINE = 0,
+    PARSING_REQUEST_HEADERS,
+    COMPLETE
 };
 
 enum RequestMethod

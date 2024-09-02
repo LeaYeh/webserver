@@ -16,8 +16,6 @@ Acceptor::Acceptor() : _reactor(NULL), _config(NULL), _server_id(-1)
 Acceptor::Acceptor(Reactor* reactor, webconfig::Config* config)
     : _reactor(reactor), _config(config), _server_id(-1)
 {
-    weblog::logger.log(weblog::DEBUG, "Acceptor created with server_id: " +
-                                          utils::to_string(_server_id));
 }
 
 Acceptor::Acceptor(const Acceptor& other)
@@ -70,6 +68,8 @@ void Acceptor::handle_event(int fd, uint32_t events)
 
 void Acceptor::setup_server_id(int server_id)
 {
+    weblog::logger.log(weblog::DEBUG, "Acceptor setup with server_id: " +
+                                          utils::to_string(server_id));
     _server_id = server_id;
 }
 

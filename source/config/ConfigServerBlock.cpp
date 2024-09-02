@@ -1,7 +1,7 @@
 #include "ConfigServerBlock.hpp"
 #include "defines.hpp"
-#include "utils/utils.hpp"
 #include "utils/Logger.hpp"
+#include "utils/utils.hpp"
 #include <string>
 
 namespace webconfig
@@ -9,12 +9,13 @@ namespace webconfig
 
 ConfigServerBlock::ConfigServerBlock()
     : AConfigParser(SERVER), _server_name("localhost"),
-      _listen(std::make_pair(std::string("127.0.0.1"), std::string("80"))), _keepalive_timeout(65)
+      _listen(std::make_pair(std::string("127.0.0.1"), std::string("80"))),
+      _keep_alive_timeout(65)
 {
     _valid_directives.insert("server_name");
     _valid_directives.insert("listen");
     _valid_directives.insert("error_log");
-    _valid_directives.insert("keepalive_timeout");
+    _valid_directives.insert("keep_alive_timeout");
 
     _error_log.push_back(std::make_pair("logs/error.log", weblog::ERROR));
 }
@@ -22,7 +23,7 @@ ConfigServerBlock::ConfigServerBlock()
 ConfigServerBlock::ConfigServerBlock(const ConfigServerBlock& other)
     : AConfigParser(other), _server_name(other._server_name),
       _listen(other._listen), _error_log(other._error_log),
-      _keepalive_timeout(other._keepalive_timeout),
+      _keep_alive_timeout(other._keep_alive_timeout),
       _location_block_list(other._location_block_list)
 {
 }
@@ -35,7 +36,7 @@ ConfigServerBlock& ConfigServerBlock::operator=(const ConfigServerBlock& other)
         _server_name = other._server_name;
         _listen = other._listen;
         _error_log = other._error_log;
-        _keepalive_timeout = other._keepalive_timeout;
+        _keep_alive_timeout = other._keep_alive_timeout;
         _location_block_list = other._location_block_list;
     }
     return (*this);
@@ -61,9 +62,9 @@ ConfigServerBlock::error_log(void) const
     return (_error_log);
 }
 
-unsigned int ConfigServerBlock::keepalive_timeout(void) const
+unsigned int ConfigServerBlock::keep_alive_timeout(void) const
 {
-    return (_keepalive_timeout);
+    return (_keep_alive_timeout);
 }
 
 std::vector<ConfigLocationBlock>& ConfigServerBlock::location_block_list(void)
@@ -98,20 +99,21 @@ void ConfigServerBlock::print_config(void) const
 {
     weblog::logger.log(weblog::DEBUG, "Server block:");
     weblog::logger.log(weblog::DEBUG, "\tServer name: " + _server_name);
-    weblog::logger.log(weblog::DEBUG, "\tListen: " + _listen.first + ":" +
-                                          _listen.second);
+    weblog::logger.log(weblog::DEBUG,
+                       "\tListen: " + _listen.first + ":" + _listen.second);
     for (size_t i = 0; i < _error_log.size(); ++i)
     {
-        weblog::logger.log(weblog::DEBUG, "\tError log: " + _error_log[i].first +
-                                              " " +
-                                              level_to_string(_error_log[i].second));
+        weblog::logger.log(weblog::DEBUG,
+                           "\tError log: " + _error_log[i].first + " " +
+                               level_to_string(_error_log[i].second));
     }
-    weblog::logger.log(weblog::DEBUG, "\tKeepalive timeout: " +
-                                          utils::to_string(_keepalive_timeout));
+    weblog::logger.log(weblog::DEBUG,
+                       "\tKeepalive timeout: " +
+                           utils::to_string(_keep_alive_timeout));
     for (size_t i = 0; i < _location_block_list.size(); ++i)
     {
-        weblog::logger.log(weblog::DEBUG, "Location block [" +
-                                              utils::to_string(i) + "]:");
+        weblog::logger.log(weblog::DEBUG,
+                           "Location block [" + utils::to_string(i) + "]:");
         _location_block_list[i].print_config();
     }
 }
@@ -126,8 +128,8 @@ void ConfigServerBlock::_parse_config_directive(const std::string& line)
         _listen = _parse_listen(line, directive);
     else if (directive == "error_log")
         _error_log.push_back(_parse_error_log(line, directive));
-    else if (directive == "keepalive_timeout")
-        _keepalive_timeout = _parse_keepalive_timeout(line, directive);
+    else if (directive == "keep_alive_timeout")
+        _keep_alive_timeout = _parse_keep_alive_timeout(line, directive);
 }
 
 std::pair<std::string, std::string>
@@ -157,8 +159,8 @@ ConfigServerBlock::_parse_error_log(const std::string& line,
 }
 
 unsigned int
-ConfigServerBlock::_parse_keepalive_timeout(const std::string& line,
-                                            const std::string& directive)
+ConfigServerBlock::_parse_keep_alive_timeout(const std::string& line,
+                                             const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 

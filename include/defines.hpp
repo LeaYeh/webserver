@@ -45,6 +45,13 @@ enum LogLevel
 namespace webshell
 {
 
+enum RequestAnalyzerState
+{
+    PARSING_REQUEST_LINE = 0,
+    PARSING_REQUEST_HEADERS,
+    COMPLETE
+};
+
 enum RequestMethod
 {
     GET = 0,
@@ -186,6 +193,10 @@ namespace webkernel
 // TODO: the MAX_EVENTS is critical for the performance of the server, need to
 // be optimized
 const int MAX_EVENTS = 10;
+
+// TODO: the CHUNKED_SIZE is critical for the performance of the server, need to
+// be optimized (it is the size of the buffer for the body)
+const int CHUNKED_SIZE = 1024;
 
 enum ReactorType
 {

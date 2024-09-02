@@ -8,32 +8,29 @@
 namespace webshell
 {
 
-/**
- * @brief Abstract class for analyzing HTTP headers and extracting information.
- *
- * The AHeaderAnalyzer class provides an interface for analyzing HTTP headers.
- * It defines the analyze function that must be implemented by derived classes.
- */
+// TODO: Fix the naming convention to be more consistent.
+//  All custom functions and variables should be named with snake_case.
+//  All class and enum names should be named with CamelCase.
 class HeaderAnalyzer
 {
   public:
     HeaderAnalyzer();
-    HeaderAnalyzer(const HeaderAnalyzer& src);
-    HeaderAnalyzer& operator=(const HeaderAnalyzer& src);
+    HeaderAnalyzer(const HeaderAnalyzer& other);
+    HeaderAnalyzer& operator=(const HeaderAnalyzer& other);
     ~HeaderAnalyzer();
 
     void parse_headers(const std::string& line,
-                       RequestHeaderState currentState);
+                       RequestHeaderState current_state);
 
     std::string host() const;
     std::string accept() const;
     std::string accept_encoding() const;
     std::string connection() const;
-    std::string content_type() const;
+    ConnectionType content_type() const;
     std::string content_length() const;
 
   private:
-  
+    // TODO: Seperate the variables name with prefix by different usage.
     RequestHeaderState _header_state;
     std::string _host;
     std::string _header_new_line;
@@ -43,7 +40,7 @@ class HeaderAnalyzer
     std::string _accept_encoding;
     std::string _accept_encoding_type;
     std::string _connection;
-    std::string _connection_type;
+    ConnectionType _connection_type;
     std::string _content_type;
     std::string _content_type_name;
     std::string _content_length;

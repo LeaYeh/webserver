@@ -20,7 +20,7 @@ class ConfigServerBlock : public AConfigParser
     std::string server_name(void) const;
     std::pair<std::string, std::string> listen(void) const;
     std::vector<std::pair<std::string, weblog::LogLevel> > error_log(void) const;
-    unsigned int keepalive_timeout(void) const;
+    unsigned int keep_alive_timeout(void) const;
     std::vector<ConfigLocationBlock>& location_block_list(void);
 
     std::string parse(std::ifstream& file_stream);
@@ -30,7 +30,7 @@ class ConfigServerBlock : public AConfigParser
     std::string _server_name;
     std::pair<std::string, std::string> _listen;
     std::vector<std::pair<std::string, weblog::LogLevel> > _error_log;
-    unsigned int _keepalive_timeout;
+    unsigned int _keep_alive_timeout;
     std::vector<ConfigLocationBlock> _location_block_list;
 
     void _parse_config_directive(const std::string& line);
@@ -38,8 +38,8 @@ class ConfigServerBlock : public AConfigParser
     _parse_listen(const std::string& line, const std::string& directive);
     std::pair<std::string, weblog::LogLevel>
     _parse_error_log(const std::string& line, const std::string& directive);
-    unsigned int _parse_keepalive_timeout(const std::string& line,
-                                          const std::string& directive);
+    unsigned int _parse_keep_alive_timeout(const std::string& line,
+                                           const std::string& directive);
 };
 
 } // namespace webconfig

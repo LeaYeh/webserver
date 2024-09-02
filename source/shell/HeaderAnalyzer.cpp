@@ -3,7 +3,7 @@
 namespace webshell
 {
 
-HeaderAnalyzer::HeaderAnalyzer()
+HeaderAnalyzer::HeaderAnalyzer() : _connection_type(KEEP_ALIVE)
 {
 }
 
@@ -77,7 +77,7 @@ std::string HeaderAnalyzer::connection() const
     return (_connection);
 }
 
-ConnectionType HeaderAnalyzer::content_type() const
+ConnectionType HeaderAnalyzer::connection_type() const
 {
     return (_connection_type);
 }

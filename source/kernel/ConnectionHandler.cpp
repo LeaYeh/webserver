@@ -146,7 +146,7 @@ bool ConnectionHandler::_keep_alive(void)
     double elapsed = difftime(now, _start_time);
 
     weblog::logger.log(weblog::DEBUG, "Elapsed time: " + utils::to_string(elapsed));
-    if (_request_parser.header_analyzer().content_type() == webshell::CLOSE)
+    if (_request_parser.header_analyzer().connection_type() == webshell::CLOSE)
         return (false);
     else if (elapsed > _server_config.keep_alive_timeout())
         return (false);

@@ -26,7 +26,7 @@ class HeaderAnalyzer
     std::string accept() const;
     std::string accept_encoding() const;
     std::string connection() const;
-    ConnectionType content_type() const;
+    ConnectionType connection_type() const;
     std::string content_length() const;
 
   private:

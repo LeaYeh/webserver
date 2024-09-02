@@ -2,6 +2,7 @@
 #include "defines.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
+#include "kernel_utils.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <unistd.h>
@@ -64,6 +65,7 @@ void Reactor::run(void)
         {
             weblog::logger.log(weblog::ERROR, "epoll_wait failed: " +
                                                   std::string(strerror(errno)));
+            // TODO: the errno is forbidden by the subject, maybe we should just continue and assume the error case never happens
             if (errno == EINTR)
                 continue;
             throw std::runtime_error("epoll_wait failed");
@@ -85,6 +87,7 @@ void Reactor::run(void)
             _handlers[fd]->handle_event(fd, events[i].events);
         }
     }
+    weblog::logger.log(weblog::DEBUG, "Reactor is shutting down");
 }
 
 void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
@@ -104,16 +107,15 @@ void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
 
 void Reactor::remove_handler(int fd)
 {
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1)
-        throw std::runtime_error("epoll_ctl failed");
-
     std::map<int, IHandler*>::iterator it = _handlers.find(fd);
     if (it != _handlers.end())
     {
         weblog::logger.log(weblog::DEBUG,
                            "Removed handler with fd: " + utils::to_string(fd));
+        if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1)
+            throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on " + utils::to_string(fd) + ": " +
+                                 std::string(strerror(errno)));
         close(it->first);
-        delete it->second;
         _handlers.erase(it);
     }
 }

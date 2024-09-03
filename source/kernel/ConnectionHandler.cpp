@@ -90,7 +90,7 @@ void ConnectionHandler::_handle_read(int fd)
 {
     char buffer[CHUNKED_SIZE];
 
-    while (_keep_alive())
+    while (true)
     {
         ssize_t bytes_read = read(fd, buffer, CHUNKED_SIZE);
 
@@ -127,6 +127,8 @@ void ConnectionHandler::_handle_read(int fd)
                 return;
             }
         }
+        if (!_keep_alive())
+            break;
     }
     _handle_close(fd, weblog::INFO, "Keep-alive timeout or close request");
 }

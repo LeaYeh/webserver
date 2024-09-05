@@ -58,10 +58,15 @@ void Reactor::run(void)
 
     while (true)
     {
+        if (stop_flag)
+        {
+            weblog::logger.log(weblog::INFO, "Reactor received interrupt signal");
+            throw InterruptException();
+        }
         weblog::logger.log(weblog::INFO, "Reactor is waiting for epoll events");
         int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
 
-        if (nfds == -1)
+        if (nfds == -1 && !stop_flag)
         {
             weblog::logger.log(weblog::ERROR, "epoll_wait failed: " +
                                                   std::string(strerror(errno)));

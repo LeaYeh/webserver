@@ -14,6 +14,14 @@
 #include "Kernel.hpp"
 #include "defines.hpp"
 #include "utils/Logger.hpp"
+#include <csignal>
+
+volatile sig_atomic_t stop_flag = 0;
+
+void handle_sigint(int signum)
+{
+    stop_flag = signum;
+}
 
 void uncatchable_exception_handler(void)
 {
@@ -31,6 +39,7 @@ int main(int argc, char** argv)
     }
     try
     {
+        signal(SIGINT, handle_sigint);
         // weblog::logger.set_file_mode("webserver.log");
         weblog::logger.set_level(weblog::DEBUG);
 

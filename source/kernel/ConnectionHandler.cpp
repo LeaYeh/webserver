@@ -2,6 +2,7 @@
 #include "defines.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
+#include "kernel_utils.hpp"
 #include <ctime>
 
 namespace webkernel
@@ -50,11 +51,15 @@ ConnectionHandler::~ConnectionHandler()
     weblog::logger.log(weblog::DEBUG,
                        "ConnectionHandler destroyed with server_id: " +
                            utils::to_string(_server_id));
-    _handle_close(_conn_fd, weblog::INFO, "Connection closed by server");
+    // TODO: Check the conn_fd is closed by the reactor
+    // _handle_close(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
 void ConnectionHandler::handle_event(int fd, uint32_t events)
 {
+    weblog::logger.log(weblog::DEBUG,
+                       "ConnectionHandler::handle_event() on fd: " +
+                           utils::to_string(fd) + " with events: " + explain_epoll_event(events));
     if (events & EPOLLIN)
         _handle_read(fd);
     else if (events & EPOLLOUT)
@@ -107,8 +112,8 @@ void ConnectionHandler::_handle_read(int fd)
         }
         else if (bytes_read == 0)
         {
-            _handle_close(fd, weblog::INFO, "Connection closed by client");
-            return;
+            weblog::logger.log(weblog::INFO, "Read 0 bytes, waiting for more data");
+            break;
         }
         else
         {
@@ -122,9 +127,10 @@ void ConnectionHandler::_handle_read(int fd)
                 return;
             }
         }
+        if (!_keep_alive())
+            break;
     }
-    if (!_keep_alive())
-        _handle_close(fd, weblog::INFO, "Keep-alive timeout or close request");
+    _handle_close(fd, weblog::INFO, "Keep-alive timeout or close request");
 }
 
 void ConnectionHandler::_handle_write(int fd)
@@ -135,8 +141,7 @@ void ConnectionHandler::_handle_write(int fd)
 void ConnectionHandler::_handle_close(int fd, weblog::LogLevel level,
                                       std::string message)
 {
-    weblog::logger.log(level, message);
-    utils::safe_close(fd);
+    weblog::logger.log(level, message + " on fd: " + utils::to_string(fd));
     _reactor->remove_handler(fd);
 }
 
@@ -146,7 +151,7 @@ bool ConnectionHandler::_keep_alive(void)
     double elapsed = difftime(now, _start_time);
 
     weblog::logger.log(weblog::DEBUG, "Elapsed time: " + utils::to_string(elapsed));
-    if (_request_parser.header_analyzer().content_type() == webshell::CLOSE)
+    if (_request_parser.header_analyzer().connection_type() == webshell::CLOSE)
         return (false);
     else if (elapsed > _server_config.keep_alive_timeout())
         return (false);

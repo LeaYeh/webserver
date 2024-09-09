@@ -18,7 +18,7 @@
 
 volatile sig_atomic_t stop_flag = 0;
 
-void handle_sigint(int signum)
+void handle_terminate_signal(int signum)
 {
     stop_flag = signum;
 }
@@ -32,6 +32,7 @@ void uncatchable_exception_handler(void)
 
 int main(int argc, char** argv)
 {
+    std::set_terminate(uncatchable_exception_handler);
     if (argc != 2)
     {
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
@@ -39,7 +40,8 @@ int main(int argc, char** argv)
     }
     try
     {
-        signal(SIGINT, handle_sigint);
+        signal(SIGINT, handle_terminate_signal);
+        signal(SIGTERM, handle_terminate_signal);
         // weblog::logger.set_file_mode("webserver.log");
         weblog::logger.set_level(weblog::DEBUG);
 
@@ -55,7 +57,11 @@ int main(int argc, char** argv)
         std::cerr << e.what() << std::endl;
         return (FAILURE);
     }
-    std::set_terminate(uncatchable_exception_handler);
+    catch (...)
+    {
+        std::cerr << "An unknown exception has occurred. Exiting..." << std::endl;
+        return (FAILURE);
+    }
 
     return (SUCCESS);
 }

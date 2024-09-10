@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Acceptor.hpp"
 #include "Config.hpp"
 #include "Reactor.hpp"
-#include "Acceptor.hpp"
 #include "defines.hpp"
 #include <iostream>
 #include <netdb.h>
@@ -25,8 +25,8 @@ class Kernel
   private:
     Kernel();
     webconfig::Config _config;
-    Reactor *_reactor;
-    Acceptor *_acceptor;
+    Reactor* _reactor;
+    Acceptor* _acceptor;
 
     void _init(void);
     void _init_listener(void);

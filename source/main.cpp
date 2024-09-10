@@ -41,7 +41,6 @@ int main(int argc, char** argv)
     try
     {
         signal(SIGINT, handle_terminate_signal);
-        signal(SIGTERM, handle_terminate_signal);
         // weblog::logger.set_file_mode("webserver.log");
         weblog::logger.set_level(weblog::DEBUG);
 

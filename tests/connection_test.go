@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"os"
+	"time"
 	"runtime"
 	"net/http"
 	"os/exec"
@@ -47,7 +48,9 @@ func TestConnection(t *testing.T) {
 				t.Fatalf("Error making GET request: %v", err)
 			}
 			defer resp.Body.Close()
-			t.Logf("Response status: %s", resp.Status)
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
+			}
 		}
 	})
 }
@@ -110,6 +113,8 @@ func StartCppServer(t *testing.T, configName string) *exec.Cmd {
 	if err != nil {
 		t.Fatalf("Error starting c++ web server: %v", err)
 	}
+	t.Log("Waiting for c++ web server to start...")
+	time.Sleep(5 * time.Second)
 	return cmd
 }
 

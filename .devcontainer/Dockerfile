@@ -30,8 +30,8 @@ RUN wget http://ftp.gnu.org/gnu/make/make-4.3.tar.gz && \
     sudo make install
 
 # Install the stable version of Go
-RUN wget https://go.dev/dl/go1.20.6.linux-arm64.tar.gz && \
-    tar -C /usr/local -xzf go1.20.6.linux-arm64.tar.gz
+RUN wget https://go.dev/dl/go1.20.6.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.20.6.linux-amd64.tar.gz
 
 # Set Go environment variables
 ENV PATH="/usr/local/go/bin:${PATH}"

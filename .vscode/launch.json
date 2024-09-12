@@ -20,6 +20,14 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "go run",
+            "type": "go",
+            "request": "launch",
+            "program": "${workspaceFolder}/tests/main.go",
+            "args": ["${workspaceFolder}/data"],
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

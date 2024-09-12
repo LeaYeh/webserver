@@ -30,3 +30,12 @@ func (c *ConfigServerBlock) GetDirectives() map[string]interface{} {
 func (c *ConfigServerBlock) Parse(line string) error {
 	return ParseDirective(line, c.Directives)
 }
+
+func (c *ConfigServerBlock) GetLocationBlock(route string) ConfigBlock {
+	for _, locationBlock := range c.LocationBlocks {
+		if locationBlock.GetDirectives()["route"] == route {
+			return locationBlock
+		}
+	}
+	return nil
+}

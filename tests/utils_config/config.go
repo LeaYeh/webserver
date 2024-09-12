@@ -132,11 +132,21 @@ func ParseDirective(line string, directives map[string]interface{}) error {
 
 	key := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
+	value = strings.TrimSuffix(value, ";")
 
 	if _, ok := directives[key]; !ok {
 		return fmt.Errorf("invalid directive: %s", key)
 	}
 
 	directives[key] = value
+	return nil
+}
+
+func (c *Config) GetServerBlock(listen string) ConfigBlock {
+	for _, serverBlock := range c.ServerBlockList {
+		if serverBlock.GetDirectives()["listen"] == listen {
+			return serverBlock
+		}
+	}
 	return nil
 }

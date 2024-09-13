@@ -19,7 +19,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     libreadline8 \
     xorg libxext-dev zlib1g-dev libbsd-dev \
     libcmocka-dev \
-    pkg-config
+    pkg-config \
+    nginx
 
 # Download and install the latest version of make
 RUN wget http://ftp.gnu.org/gnu/make/make-4.3.tar.gz && \

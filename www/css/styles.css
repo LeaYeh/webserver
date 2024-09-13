@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #22b5b7;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5em;
+    color: white;
+    font-weight: bold;
+}
+
+nav ul {
+    list-style-type: none;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 1em;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+.hero {
+    background-color: #22b5b7;
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+.cta-button {
+    background-color: white;
+    color: #22b5b7;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.cta-button:hover {
+    background-color: #f4f4f4;
+}
+
+.about-section, .features-section {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.about-section h2, .features-section h2 {
+    font-size: 2em;
+    color: #22b5b7;
+    margin-bottom: 20px;
+}
+
+.about-section p, .features-section ul {
+    font-size: 1.1em;
+    margin: 20px 0;
+}
+
+.features-section ul {
+    list-style-type: none;
+}
+
+.features-section ul li {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+footer {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+footer a {
+    color: #22b5b7;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+.email-link {
+    text-decoration: none;
+    color: #0066cc;
+    border-bottom: 1px dotted #0066cc;
+}
+
+.email-link:hover {
+    border-bottom: 1px solid #0066cc;
+}

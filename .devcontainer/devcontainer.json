@@ -15,7 +15,8 @@
 				"ms-python.python",
 				"eamodio.gitlens",
 				"github.copilot",
-				"bierner.markdown-mermaid"
+				"bierner.markdown-mermaid",
+				"golang.go"
 			]
 		}
 	},

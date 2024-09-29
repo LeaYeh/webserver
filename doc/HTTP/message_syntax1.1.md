@@ -1,4 +1,4 @@
-## Protocol Versioning
+# Protocol Versioning
 The version of an HTTP message is indicated by an HTTP-version field in the first line of the message.
 
 ```c++
@@ -10,7 +10,7 @@ HTTP-version  = HTTP-name "/" MAJOR "." MINOR
 - The first digit ("major version") indicates the HTTP messaging syntax, whereas the second digit ("minor version") indicates the highest minor version within that major version to which the sender is conformant and able to understand for future communication.
 - Exp for HTTP-version: HTTP/1.1 added features like persistent connections over HTTP/1.0, which improves performance.
 
-## Message Format
+# Message Format
 ## 1. Request Message Format
 An HTTP/1.1 request message includes the following components:
 
@@ -23,10 +23,8 @@ An HTTP/1.1 request message includes the following components:
 
 - `Method`: This specifies the action to be performed. Common methods include:
 
-    - GET: Retrieve data from the server.
-    - POST: Send data to the server.
-    - PUT: Update data on the server.
-    - DELETE: Remove data from the server.
+    ![http_method](/doc/images/http_methods.png)
+
 - `Request Target`: This is the path to the resource you want to access. It usually starts with a /.
 
 - `HTTP-Version`: Specifies the version of HTTP being used, such as HTTP/1.1.
@@ -152,13 +150,16 @@ void sendHttpRequest() {
     - **200 OK**: The request was successful.
     - **404 Not Found**: The requested resource could not be found.
     - **500 Internal Server Error**: The server encountered an error.
-- `Reason-Phrase`: A short description of the status code.
+- `Reason-Phrase`: A short description of the status code. A client SHOULD ignore the reason-phrase content.
 
-- `Headers`: Thes provide metadata about the response, such as:
+- `Headers`: A server **MUST** reject any received request message that contains whitespace between a `header field-name and colon` with a response code of 400 (Bad Request).These provide metadata about the response, such as:
 
     - **Content-Type**: Specifies the media type of the response body, like text/html or application/json.
     - **Content-Length**: Indicates the size of the response body in bytes.
     - **Set-Cookie**: Sends cookies from the server to the client.
+
+      `Note`: In practice, the "Set-Cookie" header field often appears multiple times in a response message and does not use the list syntax, violating the above requirements on multiple header fields with the same name. Since it cannot be combined into a single field-value recipients ought to handle "Set-Cookie" as a special case while processing header fields.
+
 - `Body`: This contains the content being sent back to the client, such as the HTML of a web page, an image, or JSON data.
 
 ### Example Request
@@ -200,9 +201,23 @@ void sendHttpResponse() {
     // Print the HTTP response
     std::cout << response;
 }
-
-int main() {
-    sendHttpResponse();
-    return 0;
-}
 ```
+
+## A server 
+### MUST NOT:
+- Send Content-Length in such a response unless its field-value equals the decimal number of octets that would have been sent in the payload body of a response if the same request had used the GET method.
+- send a Transfer-Encoding header field in any response with a status code of 1xx (Informational) or 204 (No Content).
+- send a Transfer-Encoding header field in any 2xx (Successful) response to a CONNECT request.
+- send a response containing Transfer-Encoding unless the corresponding request indicates HTTP/1.1 (or later).
+- send a Content-Length header field in any message that contains a Transfer-Encoding header field.
+
+### MAY:
+- send a Content-Length header field in a response to a HEAD request.
+- send a Content-Length header field in a 304 (Not Modified) response to a conditional GET request.
+- reject a request that contains a message body but not a Content-Length by responding with 411 (Length Required).
+- A server that receives an incomplete request message, usually due to a canceled request or a triggered timeout exception, MAY send an error response prior to closing the connection.
+
+## A Reciepent
+### MUST:
+- a recipient MUST anticipate potentially large decimal numerals and prevent parsing errors due to integer conversion overflows.
+- either reject the message as invalid or replace the duplicated field-values with a single valid Content-Length field containing that decimal value prior to determining the message body length or forwarding the message.

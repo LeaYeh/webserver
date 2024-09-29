@@ -12,6 +12,8 @@ Comprises the request line (in requests) or status line (in responses).
 ## 2. Methods:
 - HTTP methods (GET, POST, PUT, DELETE, etc.) define the desired action to be performed on the resource.
 
+![http_method](/doc/images/http_methods.png)
+
 Written in [enum Method](https://github.com/LeaYeh/webserver/blob/623b31802186bcf9b4ee6a1f8f1abd2e8eeaea87/include/AHeaderAnalyzer.hpp#L57-L64)
 
 ## 3. Headers:

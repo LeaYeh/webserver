@@ -1,10 +1,13 @@
 {
-	"name": "wevserv",
+	"name": "webserv",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
 	"runArgs": [
-		"--privileged"
+		"--privileged",
+		"--name=webserv_container",
+		"--network=share_network",
+		"-p", "8080:8080"
 	],
 	"customizations": {
 		"vscode": {

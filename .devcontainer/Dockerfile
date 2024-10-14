@@ -14,13 +14,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     wget \
     curl \
+    vim \
     python3 python3-venv python3-pip \
     libreadline-dev \
     libreadline8 \
     xorg libxext-dev zlib1g-dev libbsd-dev \
     libcmocka-dev \
     pkg-config \
-    nginx
+    nginx \
+    fcgiwrap
 
 # Download and install the latest version of make
 RUN wget http://ftp.gnu.org/gnu/make/make-4.3.tar.gz && \
@@ -42,6 +44,9 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 RUN echo "source $HOME/.oh-my-zsh/oh-my-zsh.sh" >> $HOME/.zshrc
 
 # Set the working directory in the container to /app
-WORKDIR /app
+WORKDIR /workspace
+
+COPY configs/nginx/upload.cgi /workspace/www/upload/upload.cgi
+RUN chmod +x /workspace/www/upload/upload.cgi
 
 CMD ["/bin/zsh"]

@@ -13,7 +13,8 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
-				"terminal.integrated.shell.linux": "/bin/zsh"
+				"terminal.integrated.shell.linux": "/bin/zsh",
+				"clangd.path": "/usr/bin/clangd"
 			},
 			"extensions": [
 				"eamodio.gitlens",

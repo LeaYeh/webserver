@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Config.hpp"
+#include "ConnectionHandler.hpp"
 #include "IHandler.hpp"
 #include "Reactor.hpp"
-#include "ConnectionHandler.hpp"
 #include <errno.h>
 #include <iostream>
 #include <netdb.h>
@@ -23,7 +23,7 @@ class Acceptor : public IHandler
     ~Acceptor();
 
     int create_connection(const char* ip, const char* port);
-    void handle_event(int fd, uint32_t events);
+    void handleEvent(int fd, uint32_t events);
     void setup_server_id(int server_id);
 
   private:

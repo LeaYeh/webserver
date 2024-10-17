@@ -46,7 +46,7 @@ ConfigServerBlock::~ConfigServerBlock()
 {
 }
 
-std::string ConfigServerBlock::server_name(void) const
+std::string ConfigServerBlock::serverName(void) const
 {
     return (_server_name);
 }
@@ -56,18 +56,18 @@ std::pair<std::string, std::string> ConfigServerBlock::listen(void) const
     return (_listen);
 }
 
-std::vector<std::pair<std::string, weblog::LogLevel> >
-ConfigServerBlock::error_log(void) const
+std::vector<std::pair<std::string, weblog::LogLevel>>
+ConfigServerBlock::errorLog(void) const
 {
     return (_error_log);
 }
 
-unsigned int ConfigServerBlock::keep_alive_timeout(void) const
+unsigned int ConfigServerBlock::keepAliveTimeout(void) const
 {
     return (_keep_alive_timeout);
 }
 
-std::vector<ConfigLocationBlock>& ConfigServerBlock::location_block_list(void)
+std::vector<ConfigLocationBlock>& ConfigServerBlock::locationBlockList(void)
 {
     return (_location_block_list);
 }
@@ -79,23 +79,23 @@ std::string ConfigServerBlock::parse(std::ifstream& file_stream)
     while (std::getline(file_stream, line))
     {
         // std::cout << "SERVER line: " << line << std::endl;
-        if (_need_to_skip(line))
+        if (_needToSkip(line))
             continue;
-        if (!_is_valid_sentence(line))
+        if (!_isValidSentence(line))
             throw std::invalid_argument("Server scope has invalid line: " +
                                         line);
-        if (_is_scope_symbol(line))
+        if (_isScopeSymbol(line))
             return (line);
-        std::string directive = _get_directive_name(line);
-        if (!_is_valid_directive(directive))
+        std::string directive = _getDirectiveName(line);
+        if (!_isValidDirective(directive))
             throw std::invalid_argument("Server scope has invalid directive: " +
                                         directive);
-        _parse_config_directive(line);
+        _parseConfigDirective(line);
     }
     return "";
 }
 
-void ConfigServerBlock::print_config(void) const
+void ConfigServerBlock::printConfig(void) const
 {
     weblog::logger.log(weblog::DEBUG, "Server block:");
     weblog::logger.log(weblog::DEBUG, "\tServer name: " + _server_name);
@@ -107,34 +107,33 @@ void ConfigServerBlock::print_config(void) const
                            "\tError log: " + _error_log[i].first + " " +
                                level_to_string(_error_log[i].second));
     }
-    weblog::logger.log(weblog::DEBUG,
-                       "\tKeepalive timeout: " +
-                           utils::to_string(_keep_alive_timeout));
+    weblog::logger.log(weblog::DEBUG, "\tKeepalive timeout: " +
+                                          utils::toString(_keep_alive_timeout));
     for (size_t i = 0; i < _location_block_list.size(); ++i)
     {
         weblog::logger.log(weblog::DEBUG,
-                           "Location block [" + utils::to_string(i) + "]:");
-        _location_block_list[i].print_config();
+                           "Location block [" + utils::toString(i) + "]:");
+        _location_block_list[i].printConfig();
     }
 }
 
-void ConfigServerBlock::_parse_config_directive(const std::string& line)
+void ConfigServerBlock::_parseConfigDirective(const std::string& line)
 {
-    std::string directive = _get_directive_name(line);
+    std::string directive = _getDirectiveName(line);
 
     if (directive == "server_name")
         _server_name = extract_directive_value(line, directive);
     else if (directive == "listen")
-        _listen = _parse_listen(line, directive);
+        _listen = _parseListen(line, directive);
     else if (directive == "error_log")
-        _error_log.push_back(_parse_error_log(line, directive));
+        _error_log.push_back(_parseErrorLog(line, directive));
     else if (directive == "keep_alive_timeout")
-        _keep_alive_timeout = _parse_keep_alive_timeout(line, directive);
+        _keep_alive_timeout = _parseKeepAliveTimeout(line, directive);
 }
 
 std::pair<std::string, std::string>
-ConfigServerBlock::_parse_listen(const std::string& line,
-                                 const std::string& directive)
+ConfigServerBlock::_parseListen(const std::string& line,
+                                const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 
@@ -145,8 +144,8 @@ ConfigServerBlock::_parse_listen(const std::string& line,
 }
 
 std::pair<std::string, weblog::LogLevel>
-ConfigServerBlock::_parse_error_log(const std::string& line,
-                                    const std::string& directive)
+ConfigServerBlock::_parseErrorLog(const std::string& line,
+                                  const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 
@@ -159,8 +158,8 @@ ConfigServerBlock::_parse_error_log(const std::string& line,
 }
 
 unsigned int
-ConfigServerBlock::_parse_keep_alive_timeout(const std::string& line,
-                                             const std::string& directive)
+ConfigServerBlock::_parseKeepAliveTimeout(const std::string& line,
+                                          const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 

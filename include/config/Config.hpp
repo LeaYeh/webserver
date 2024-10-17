@@ -21,15 +21,14 @@ class Config
     ~Config();
 
     void parse(void);
-    void print_config(void) const;
+    void printConfig(void) const;
 
     std::string filename(void) const;
-    ConfigGlobalBlock& global_block(void);
-    ConfigHttpBlock& http_block(void);
-    std::vector<ConfigServerBlock>& server_block_list(void);
+    ConfigGlobalBlock& globalBlock(void);
+    ConfigHttpBlock& httpBlock(void);
+    std::vector<ConfigServerBlock>& serverBlockList(void);
 
   private:
-
     ConfigBlockLevel _current_block_level;
     std::string _filename;
     std::ifstream _file_stream;
@@ -37,7 +36,7 @@ class Config
     ConfigHttpBlock _http_block;
     std::vector<ConfigServerBlock> _server_block_list;
 
-    bool _set_block_level(const std::string& line);
+    bool _setBlockLevel(const std::string& line);
 };
 
 } // namespace webconfig

@@ -52,7 +52,7 @@ void Kernel::run()
 
 void Kernel::_init(void)
 {
-    if (_config.global_block().worker_processes() == 1)
+    if (_config.global_block().workerProcesses() == 1)
         _create_single_reactor_single_worker();
     else
         _create_multi_reactor_multi_worker();
@@ -137,7 +137,7 @@ void Kernel::_create_multi_reactor_multi_worker(void)
     _reactor = new Reactor(DISPATCHER);
     _acceptor = new Acceptor(_reactor, &_config);
     _init_listener();
-    for (unsigned int i = 1; i < _config.global_block().worker_processes(); i++)
+    for (unsigned int i = 1; i < _config.global_block().workerProcesses(); i++)
     {
         pid_t pid = fork();
 

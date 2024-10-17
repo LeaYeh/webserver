@@ -1,4 +1,4 @@
-#include "utils/config_utils.hpp"
+#include "utils/configUtils.hpp"
 #include "defines.hpp"
 
 namespace webconfig

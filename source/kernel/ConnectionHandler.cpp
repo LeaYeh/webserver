@@ -1,8 +1,8 @@
 #include "ConnectionHandler.hpp"
 #include "defines.hpp"
+#include "kernel_utils.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
-#include "kernel_utils.hpp"
 #include <ctime>
 
 namespace webkernel
@@ -52,27 +52,28 @@ ConnectionHandler::~ConnectionHandler()
                        "ConnectionHandler destroyed with server_id: " +
                            utils::to_string(_server_id));
     // TODO: Check the conn_fd is closed by the reactor
-    // _handle_close(_conn_fd, weblog::INFO, "Connection closed by server");
+    // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
-void ConnectionHandler::handle_event(int fd, uint32_t events)
+void ConnectionHandler::handleEvent(int fd, uint32_t events)
 {
-    weblog::logger.log(weblog::DEBUG,
-                       "ConnectionHandler::handle_event() on fd: " +
-                           utils::to_string(fd) + " with events: " + explain_epoll_event(events));
+    weblog::logger.log(
+        weblog::DEBUG,
+        "ConnectionHandler::handleEvent() on fd: " + utils::to_string(fd) +
+            " with events: " + explain_epoll_event(events));
     if (events & EPOLLIN)
-        _handle_read(fd);
+        _handleRead(fd);
     else if (events & EPOLLOUT)
-        _handle_write(fd);
+        _handleWrite(fd);
     else if (events & EPOLLHUP)
-        _handle_close(fd, weblog::INFO,
-                      "Connection closed by client " + utils::to_string(fd));
+        _handleClose(fd, weblog::INFO,
+                     "Connection closed by client " + utils::to_string(fd));
     else if (events & EPOLLERR)
-        _handle_close(fd, weblog::ERROR,
-                      "EPOLLERR on fd: " + utils::to_string(fd));
+        _handleClose(fd, weblog::ERROR,
+                     "EPOLLERR on fd: " + utils::to_string(fd));
     else
-        _handle_close(fd, weblog::ERROR,
-                      "Handler got unknown event: " + utils::to_string(events));
+        _handleClose(fd, weblog::ERROR,
+                     "Handler got unknown event: " + utils::to_string(events));
 }
 
 // if (bytes_read == -1)
@@ -81,12 +82,12 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
 //         break;
 //     else
 //     {
-//         _handle_close(fd, weblog::ERROR,
+//         _handleClose(fd, weblog::ERROR,
 //                       "read() failed: " + std::string(strerror(errno)));
 //         return;
 //     }
 // }
-void ConnectionHandler::_handle_read(int fd)
+void ConnectionHandler::_handleRead(int fd)
 {
     char buffer[CHUNKED_SIZE];
 
@@ -99,70 +100,73 @@ void ConnectionHandler::_handle_read(int fd)
             weblog::logger.log(weblog::DEBUG,
                                "Read " + utils::to_string(bytes_read) +
                                    " bytes from fd: " + utils::to_string(fd));
-            weblog::logger.log(weblog::DEBUG, "Buffer: \n" + std::string(buffer));
+            weblog::logger.log(weblog::DEBUG,
+                               "Buffer: \n" + std::string(buffer));
             if (!_request_parser.is_complete())
                 _request_parser.update_state(buffer, bytes_read);
             else
             {
                 weblog::logger.log(weblog::INFO, "Request is complete");
-                _process_request();
+                _processRequest();
                 _respond(fd);
                 break;
             }
         }
         else if (bytes_read == 0)
         {
-            weblog::logger.log(weblog::INFO, "Read 0 bytes, waiting for more data");
+            weblog::logger.log(weblog::INFO,
+                               "Read 0 bytes, waiting for more data");
             break;
         }
         else
         {
-            // TODO: the errno is forbidden by the subject, maybe we should just break and assume the error case never happens
+            // TODO: the errno is forbidden by the subject, maybe we should just
+            // break and assume the error case never happens
             if (errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
             else
             {
-                _handle_close(fd, weblog::ERROR,
-                              "read() failed: " + std::string(strerror(errno)));
+                _handleClose(fd, weblog::ERROR,
+                             "read() failed: " + std::string(strerror(errno)));
                 return;
             }
         }
-        if (!_keep_alive())
+        if (!_keepAlive())
             break;
     }
-    _handle_close(fd, weblog::INFO, "Keep-alive timeout or close request");
+    _handleClose(fd, weblog::INFO, "Keep-alive timeout or close request");
 }
 
-void ConnectionHandler::_handle_write(int fd)
+void ConnectionHandler::_handleWrite(int fd)
 {
     (void)fd;
 }
 
-void ConnectionHandler::_handle_close(int fd, weblog::LogLevel level,
-                                      std::string message)
+void ConnectionHandler::_handleClose(int fd, weblog::LogLevel level,
+                                     std::string message)
 {
     weblog::logger.log(level, message + " on fd: " + utils::to_string(fd));
     _reactor->remove_handler(fd);
 }
 
-bool ConnectionHandler::_keep_alive(void)
+bool ConnectionHandler::_keepAlive(void)
 {
     time_t now = time(0);
     double elapsed = difftime(now, _start_time);
 
-    weblog::logger.log(weblog::DEBUG, "Elapsed time: " + utils::to_string(elapsed));
+    weblog::logger.log(weblog::DEBUG,
+                       "Elapsed time: " + utils::to_string(elapsed));
     if (_request_parser.header_analyzer().connection_type() == webshell::CLOSE)
         return (false);
-    else if (elapsed > _server_config.keep_alive_timeout())
+    else if (elapsed > _server_config.keepAliveTimeout())
         return (false);
 
     return (true);
 }
 
-void ConnectionHandler::_process_request(void)
+void ConnectionHandler::_processRequest(void)
 {
     weblog::logger.log(weblog::DEBUG, "Processing request");
-
 }
 
 void ConnectionHandler::_respond(int fd)
@@ -175,11 +179,6 @@ void ConnectionHandler::_respond(int fd)
                            "\r\n"
                            "Hello World!";
     write(fd, response.c_str(), response.size());
-}
-
-void ConnectionHandler::_send_chunked_response(int fd)
-{
-    (void)fd;
 }
 
 } // namespace webkernel

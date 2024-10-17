@@ -1,10 +1,10 @@
-#include <sys/socket.h>
+#include "defines.hpp"
 #include <iostream>
 #include <stdint.h>
 #include <sys/epoll.h>
-#include "defines.hpp"
+#include <sys/socket.h>
 
 namespace webkernel
 {
-    std::string explain_epoll_event(uint32_t events);
+std::string explainEpollEvent(uint32_t events);
 } // namespace webkernel

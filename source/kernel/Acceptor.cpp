@@ -45,7 +45,7 @@ Acceptor::~Acceptor()
 // the object will be deleted by the Reactor when the connection is closed
 // Register the connection handler with the reactor and set it to epoll edge
 // triggered mode with EPOLLET
-void Acceptor::handle_event(int fd, uint32_t events)
+void Acceptor::handleEvent(int fd, uint32_t events)
 {
     if (events & EPOLLIN)
     {

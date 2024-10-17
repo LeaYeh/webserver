@@ -59,30 +59,30 @@ std::string Config::filename(void) const
     return (_filename);
 }
 
-ConfigGlobalBlock& Config::global_block(void)
+ConfigGlobalBlock& Config::globalBlock(void)
 {
     return (_global_block);
 }
 
-ConfigHttpBlock& Config::http_block(void)
+ConfigHttpBlock& Config::httpBlock(void)
 {
     return (_http_block);
 }
 
-std::vector<ConfigServerBlock>& Config::server_block_list(void)
+std::vector<ConfigServerBlock>& Config::serverBlockList(void)
 {
     return (_server_block_list);
 }
 
-void Config::print_config(void) const
+void Config::printConfig(void) const
 {
-    _global_block.print_config();
-    _http_block.print_config();
+    _global_block.printConfig();
+    _http_block.printConfig();
     for (size_t i = 0; i < _server_block_list.size(); ++i)
     {
         weblog::logger.log(weblog::DEBUG,
-                           "Server block [" + utils::to_string(i) + "]:");
-        _server_block_list[i].print_config();
+                           "Server block [" + utils::toString(i) + "]:");
+        _server_block_list[i].printConfig();
     }
 }
 
@@ -99,9 +99,9 @@ void Config::parse(void)
         else if (_current_block_level == SERVER)
             line = _server_block_list.back().parse(_file_stream);
         else if (_current_block_level == LOCATION)
-            line = _server_block_list.back().location_block_list().back().parse(
+            line = _server_block_list.back().locationBlockList().back().parse(
                 _file_stream);
-        if (_set_block_level(line))
+        if (_setBlockLevel(line))
             continue;
     }
     if (_current_block_level != GLOBAL)
@@ -109,7 +109,7 @@ void Config::parse(void)
             "Invalid block level: Make sure to close all blocks");
 }
 
-bool Config::_set_block_level(const std::string& line)
+bool Config::_setBlockLevel(const std::string& line)
 {
     if (line[0] == '{')
         _current_block_level = GLOBAL;
@@ -123,7 +123,7 @@ bool Config::_set_block_level(const std::string& line)
     else if (line.find("location {") != std::string::npos)
     {
         _current_block_level = LOCATION;
-        _server_block_list.back().location_block_list().push_back(
+        _server_block_list.back().locationBlockList().push_back(
             ConfigLocationBlock());
     }
     else if (line.find("}") != std::string::npos)

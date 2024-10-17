@@ -18,17 +18,17 @@ class ConfigHttpBlock : public AConfigParser
     ~ConfigHttpBlock();
 
     std::string parse(std::ifstream& file_stream);
-    void print_config(void) const;
+    void printConfig(void) const;
 
   private:
     unsigned int _client_max_body_size;
     webshell::ContentType _default_type;
     std::vector<ErrorPage> _error_page_list;
 
-    void _parse_config_directive(const std::string& line);
-    unsigned int _parse_client_max_body_size(const std::string& line);
-    webshell::ContentType _parse_default_type(const std::string& line);
-    ErrorPage _parse_error_page(const std::string& line);
+    void _parseConfigDirective(const std::string& line);
+    unsigned int _parseClientMaxBodySize(const std::string& line);
+    webshell::ContentType _parseDefaultType(const std::string& line);
+    ErrorPage _parseErrorPage(const std::string& line);
 };
 
 } // namespace webconfig

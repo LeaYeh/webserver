@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
         webconfig::Config config(argv[1]);
         config.parse();
-        config.print_config();
+        config.printConfig();
         webkernel::Kernel kernel(config);
 
         kernel.run();
@@ -58,7 +58,8 @@ int main(int argc, char** argv)
     }
     catch (...)
     {
-        std::cerr << "An unknown exception has occurred. Exiting..." << std::endl;
+        std::cerr << "An unknown exception has occurred. Exiting..."
+                  << std::endl;
         return (FAILURE);
     }
 

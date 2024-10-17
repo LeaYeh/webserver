@@ -26,7 +26,7 @@ class ConnectionHandler : public IHandler
     ConnectionHandler& operator=(const ConnectionHandler& other);
     ~ConnectionHandler();
 
-    void handle_event(int fd, uint32_t events);
+    void handleEvent(int fd, uint32_t events);
 
   private:
     int _conn_fd;
@@ -37,16 +37,15 @@ class ConnectionHandler : public IHandler
     webconfig::ConfigServerBlock _server_config;
     webshell::HttpRequestParser _request_parser;
 
-    void _setup_config(void);
+    void _setupConfig(void);
 
-    void _handle_read(int fd);
-    void _handle_write(int fd);
-    void _handle_close(int fd, weblog::LogLevel level, std::string message);
+    void _handleRead(int fd);
+    void _handleWrite(int fd);
+    void _handleClose(int fd, weblog::LogLevel level, std::string message);
 
-    bool _keep_alive(void);
-    void _process_request(void);
+    bool _keepAlive(void);
+    void _processRequest(void);
     void _respond(int fd);
-    void _send_chunked_response(int fd);
 };
 
 } // namespace webkernel

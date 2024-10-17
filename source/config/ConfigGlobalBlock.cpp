@@ -32,24 +32,23 @@ ConfigGlobalBlock::~ConfigGlobalBlock()
 {
 }
 
-unsigned int ConfigGlobalBlock::worker_processes(void) const
+unsigned int ConfigGlobalBlock::workerProcesses(void) const
 {
     return (_worker_processes);
 }
 
-unsigned int ConfigGlobalBlock::worker_connections(void) const
+unsigned int ConfigGlobalBlock::workerConnections(void) const
 {
     return (_worker_connections);
 }
 
-void ConfigGlobalBlock::print_config(void) const
+void ConfigGlobalBlock::printConfig(void) const
 {
     weblog::logger.log(weblog::DEBUG, "Global scope:");
     weblog::logger.log(weblog::DEBUG, "\tworker_processes: " +
-                                          utils::to_string(_worker_processes));
-    weblog::logger.log(weblog::DEBUG,
-                       "\tworker_connections: " +
-                           utils::to_string(_worker_connections));
+                                          utils::toString(_worker_processes));
+    weblog::logger.log(weblog::DEBUG, "\tworker_connections: " +
+                                          utils::toString(_worker_connections));
 }
 
 std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
@@ -58,25 +57,25 @@ std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
 
     while (std::getline(file_stream, line))
     {
-        if (_need_to_skip(line))
+        if (_needToSkip(line))
             continue;
-        if (!_is_valid_sentence(line))
+        if (!_isValidSentence(line))
             throw std::invalid_argument("Global scope has invalid line: " +
                                         line);
-        if (_is_scope_symbol(line))
+        if (_isScopeSymbol(line))
             return (line);
-        std::string directive = _get_directive_name(line);
-        if (!_is_valid_directive(directive))
+        std::string directive = _getDirectiveName(line);
+        if (!_isValidDirective(directive))
             throw std::invalid_argument("Global scope has invalid directive: " +
                                         directive);
-        _parse_config_directive(line);
+        _parseConfigDirective(line);
     }
     return ("");
 }
 
-void ConfigGlobalBlock::_parse_config_directive(const std::string& line)
+void ConfigGlobalBlock::_parseConfigDirective(const std::string& line)
 {
-    std::string directive = _get_directive_name(line);
+    std::string directive = _getDirectiveName(line);
 
     if (directive == "worker_processes")
         _worker_processes =

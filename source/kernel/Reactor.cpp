@@ -1,8 +1,8 @@
 #include "Reactor.hpp"
 #include "defines.hpp"
+#include "kernel_utils.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
-#include "kernel_utils.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <unistd.h>
@@ -60,7 +60,8 @@ void Reactor::run(void)
     {
         if (stop_flag)
         {
-            weblog::logger.log(weblog::INFO, "Reactor received interrupt signal");
+            weblog::logger.log(weblog::INFO,
+                               "Reactor received interrupt signal");
             throw InterruptException();
         }
         weblog::logger.log(weblog::INFO, "Reactor is waiting for epoll events");
@@ -70,7 +71,8 @@ void Reactor::run(void)
         {
             weblog::logger.log(weblog::ERROR, "epoll_wait failed: " +
                                                   std::string(strerror(errno)));
-            // TODO: the errno is forbidden by the subject, maybe we should just continue and assume the error case never happens
+            // TODO: the errno is forbidden by the subject, maybe we should just
+            // continue and assume the error case never happens
             if (errno == EINTR)
                 continue;
             throw std::runtime_error("epoll_wait failed");
@@ -89,7 +91,7 @@ void Reactor::run(void)
                                                       utils::to_string(fd));
                 continue;
             }
-            _handlers[fd]->handle_event(fd, events[i].events);
+            _handlers[fd]->handleEvent(fd, events[i].events);
         }
     }
     weblog::logger.log(weblog::DEBUG, "Reactor is shutting down");
@@ -118,8 +120,9 @@ void Reactor::remove_handler(int fd)
         weblog::logger.log(weblog::DEBUG,
                            "Removed handler with fd: " + utils::to_string(fd));
         if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1)
-            throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on " + utils::to_string(fd) + ": " +
-                                 std::string(strerror(errno)));
+            throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on " +
+                                     utils::to_string(fd) + ": " +
+                                     std::string(strerror(errno)));
         close(it->first);
         _handlers.erase(it);
     }

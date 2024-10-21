@@ -56,7 +56,7 @@ std::pair<std::string, std::string> ConfigServerBlock::listen(void) const
     return (_listen);
 }
 
-std::vector<std::pair<std::string, weblog::LogLevel>>
+std::vector<std::pair<std::string, weblog::LogLevel> >
 ConfigServerBlock::errorLog(void) const
 {
     return (_error_log);

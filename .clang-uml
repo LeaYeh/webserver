@@ -1,0 +1,9 @@
+compilation_database_dir: .
+output_directory: doxygen_output
+diagrams:
+  webserv:
+    type: class
+    glob:
+      - ./source/**/*.cpp
+      - ./source/*.cpp
+      - /app/source/main.cpp

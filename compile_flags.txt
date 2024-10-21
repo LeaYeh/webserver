@@ -6,3 +6,4 @@
 -Iinclude/config
 -Iinclude/shell
 -Iinclude/kernel
+-Iinclude/templates

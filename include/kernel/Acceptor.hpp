@@ -16,20 +16,16 @@ namespace webkernel
 class Acceptor : public IHandler
 {
   public:
-    Acceptor();
-    Acceptor(Reactor* reactor, webconfig::Config* config);
+    Acceptor(Reactor* reactor);
     Acceptor(const Acceptor& other);
     Acceptor& operator=(const Acceptor& other);
     ~Acceptor();
 
-    int create_connection(const char* ip, const char* port);
     void handleEvent(int fd, uint32_t events);
-    void setup_server_id(int server_id);
 
   private:
+    Acceptor();
     Reactor* _reactor;
-    webconfig::Config* _config;
-    int _server_id;
 };
 
 } // namespace webkernel

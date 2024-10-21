@@ -54,6 +54,7 @@ enum RequestAnalyzerState
 
 enum RequestMethod
 {
+    UNKNOWN = -1,
     GET = 0,
     HEAD,
     POST,

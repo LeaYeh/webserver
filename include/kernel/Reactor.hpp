@@ -3,12 +3,13 @@
 #include "IHandler.hpp"
 #include "defines.hpp"
 #include "utils/utils.hpp"
+#include "Config.hpp"
+#include <csignal>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <sys/epoll.h>
-#include <csignal>
-#include <exception>
 #include <unistd.h>
 
 extern volatile sig_atomic_t stop_flag;
@@ -17,19 +18,23 @@ namespace webkernel
 {
 
 class Acceptor;
+class ConnectionHandler;
 
 class Reactor
 {
   public:
-    Reactor();
     Reactor(ReactorType type);
     Reactor(const Reactor&);
     Reactor& operator=(const Reactor&);
     ~Reactor();
 
     void run(void);
-    void register_handler(int fd, IHandler* handler, uint32_t events);
-    void remove_handler(int fd);
+    void registerHandler(int fd, int server_id, IHandler* handler, uint32_t events);
+    void removeHandler(int fd);
+    int lookupServerId(int fd) const;
+    int epollFd(void) const;
+
+    ConnectionHandler* conn_handler;
 
     class InterruptException : public std::exception
     {
@@ -41,11 +46,11 @@ class Reactor
     };
 
   private:
+    Reactor();
     ReactorType _type;
     int _epoll_fd;
-    std::map<int, IHandler*> _handlers;
-
-    void _init_epoll(void);
+    std::map<int /* fd */, IHandler*> _handlers;
+    std::map<int /* fd */, int /* server_id */> _server_map;
 };
 
 } // namespace webkernel

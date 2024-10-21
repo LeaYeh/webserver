@@ -6,52 +6,32 @@
 namespace webconfig
 {
 
-Config::Config()
-    : _current_block_level(GLOBAL), _filename("configs/default.conf"),
-      _global_block(), _http_block(), _server_block_list()
-{
-}
-
-Config::Config(const std::string& filename)
-    : _current_block_level(GLOBAL), _filename(filename), _global_block(),
-      _http_block(), _server_block_list()
-{
-    _file_stream.open(filename.c_str(), std::ifstream::in);
-    if (!_file_stream.good() || !_file_stream.is_open())
-        throw std::invalid_argument("Error opening file: " + filename);
-}
-
-Config::Config(const Config& other)
-    : _current_block_level(other._current_block_level),
-      _filename(other._filename), _global_block(other._global_block),
-      _http_block(other._http_block),
-      _server_block_list(other._server_block_list)
-{
-    if (_file_stream.is_open())
-        _file_stream.close();
-    _file_stream.open(_filename.c_str(), std::ifstream::in);
-}
-
-Config& Config::operator=(const Config& other)
-{
-    if (this != &other)
-    {
-        _current_block_level = other._current_block_level;
-        _filename = other._filename;
-        _global_block = other._global_block;
-        _http_block = other._http_block;
-        _server_block_list = other._server_block_list;
-
-        if (_file_stream.is_open())
-            _file_stream.close();
-        _file_stream.open(_filename.c_str(), std::ifstream::in);
-    }
-    return (*this);
-}
-
 Config::~Config()
 {
     _file_stream.close();
+}
+
+Config* Config::createInstance()
+{
+    return (new Config());
+}
+
+Config* Config::createInstance(const std::string& filename)
+{
+    return (new Config(filename));
+}
+
+Config::Config() : _current_block_level(GLOBAL)
+{
+}
+
+Config::Config(const std::string& filename) : _current_block_level(GLOBAL)
+{
+     _filename = filename;
+    _file_stream.open(_filename.c_str());
+    if (!_file_stream.is_open() || !_file_stream.good())
+        throw std::runtime_error("Failed to open file: " + _filename);
+    _parse();
 }
 
 std::string Config::filename(void) const
@@ -59,17 +39,23 @@ std::string Config::filename(void) const
     return (_filename);
 }
 
-ConfigGlobalBlock& Config::globalBlock(void)
+const ConfigGlobalBlock& Config::globalBlock(void) const
 {
     return (_global_block);
 }
 
-ConfigHttpBlock& Config::httpBlock(void)
+const ConfigHttpBlock& Config::httpBlock(void) const
 {
     return (_http_block);
 }
 
 std::vector<ConfigServerBlock>& Config::serverBlockList(void)
+{
+    return (_server_block_list);
+}
+
+// const 版本
+const std::vector<ConfigServerBlock>& Config::serverBlockList(void) const
 {
     return (_server_block_list);
 }
@@ -86,7 +72,7 @@ void Config::printConfig(void) const
     }
 }
 
-void Config::parse(void)
+void Config::_parse(void)
 {
     std::string line;
 

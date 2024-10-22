@@ -12,10 +12,9 @@
 
 #pragma once
 #include "defines.hpp"
+#include "Singleton.hpp"
 #include <ctime>
 #include <fstream>
-#include <iomanip>
-#include <iostream>
 
 namespace weblog
 {
@@ -26,14 +25,23 @@ namespace weblog
  * The Logger class provides functionality to log messages to either the console
  * or a file with different log levels.
  */
-class Logger
+class Logger : public templates::Singleton<Logger, std::string>
 {
   public:
     ~Logger();
 
-    void log(LogLevel level, const std::string& message);
+    static Logger* createInstance();
+    static Logger* createInstance(const std::string& filename);
+
+    static void log(LogLevel level, const std::string& message);
     void setLevel(LogLevel level);
     void setFileMode(const std::string& filename);
+    bool isFileMode(void) const;
+    LogLevel level(void) const;
+    std::ofstream& fileStream(void);
+    std::string getLevelStr(LogLevel level) const;
+    std::string getColorLevelStr(LogLevel level) const;
+    std::string getCurrentTime() const;
 
   protected:
   private:
@@ -45,12 +53,6 @@ class Logger
     std::ofstream _file_stream;
     bool _is_file_mode;
     LogLevel _level;
-
-    std::string _getLevelStr(LogLevel level);
-    ;
-    std::string _getColorLevelStr(LogLevel level);
-    ;
-    std::string _getCurrentTime();
 };
 
 } // namespace weblog

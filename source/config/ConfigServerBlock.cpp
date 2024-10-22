@@ -97,22 +97,23 @@ std::string ConfigServerBlock::parse(std::ifstream& file_stream)
 
 void ConfigServerBlock::printConfig(void) const
 {
-    weblog::logger.log(weblog::DEBUG, "Server block:");
-    weblog::logger.log(weblog::DEBUG, "\tServer name: " + _server_name);
-    weblog::logger.log(weblog::DEBUG,
-                       "\tListen: " + _listen.first + ":" + _listen.second);
+    weblog::Logger::log(weblog::DEBUG, "Server block:");
+    weblog::Logger::log(weblog::DEBUG, "\tServer name: " + _server_name);
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tListen: " + _listen.first + ":" + _listen.second);
     for (size_t i = 0; i < _error_log.size(); ++i)
     {
-        weblog::logger.log(weblog::DEBUG,
-                           "\tError log: " + _error_log[i].first + " " +
-                               level_to_string(_error_log[i].second));
+        weblog::Logger::log(weblog::DEBUG,
+                            "\tError log: " + _error_log[i].first + " " +
+                                level_to_string(_error_log[i].second));
     }
-    weblog::logger.log(weblog::DEBUG, "\tKeepalive timeout: " +
-                                          utils::toString(_keep_alive_timeout));
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tKeepalive timeout: " +
+                            utils::toString(_keep_alive_timeout));
     for (size_t i = 0; i < _location_block_list.size(); ++i)
     {
-        weblog::logger.log(weblog::DEBUG,
-                           "Location block [" + utils::toString(i) + "]:");
+        weblog::Logger::log(weblog::DEBUG,
+                            "Location block [" + utils::toString(i) + "]:");
         _location_block_list[i].printConfig();
     }
 }

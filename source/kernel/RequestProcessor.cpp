@@ -61,9 +61,9 @@ void RequestProcessor::analyzeFinalize(int fd)
 {
     if (true || _analyzer.hasError())
     {
-        weblog::logger.log(weblog::DEBUG,
-                           "Error detected in request analyzer: " +
-                               _analyzer.statusInfo().second);
+        weblog::Logger::log(weblog::DEBUG,
+                            "Error detected in request analyzer: " +
+                                _analyzer.statusInfo().second);
         webshell::Response resp = _builder.buildErrorResponse(
             _analyzer.statusInfo().first, _analyzer.statusInfo().second);
         _handler->prepareWrite(fd, resp.serialize());

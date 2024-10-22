@@ -11,13 +11,11 @@
 namespace webkernel
 {
 
-Acceptor::Acceptor(Reactor* reactor)
-    : _reactor(reactor)
+Acceptor::Acceptor(Reactor* reactor) : _reactor(reactor)
 {
 }
 
-Acceptor::Acceptor(const Acceptor& other)
-    : _reactor(other._reactor)
+Acceptor::Acceptor(const Acceptor& other) : _reactor(other._reactor)
 {
 }
 
@@ -32,7 +30,7 @@ Acceptor& Acceptor::operator=(const Acceptor& other)
 
 Acceptor::~Acceptor()
 {
-    weblog::logger.log(weblog::DEBUG, "Acceptor destroyed");
+    weblog::Logger::log(weblog::DEBUG, "Acceptor destroyed");
 }
 
 // The ConnectionHandler object is created and registered with the Reactor
@@ -47,21 +45,24 @@ void Acceptor::handleEvent(int fd, uint32_t events)
         socklen_t addr_size = sizeof(client_addr);
         int conn_fd = accept(fd, (struct sockaddr*)&client_addr, &addr_size);
 
-        weblog::logger.log(weblog::INFO, "Accepted connection on fd: " +
-                                             utils::toString(conn_fd));
+        weblog::Logger::log(weblog::INFO, "Accepted connection on fd: " +
+                                              utils::toString(conn_fd));
         if (conn_fd < 0)
             throw std::runtime_error("accept() failed: " +
                                      std::string(strerror(errno)));
         int server_id = _reactor->lookupServerId(fd);
-        _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP | EPOLLERR);
-        // _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler, EPOLLIN);
-        weblog::logger.log(weblog::DEBUG,
-                           "Registered connection handler with fd: " +
-                               utils::toString(conn_fd));
+        _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler,
+                                  EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP |
+                                      EPOLLERR);
+        // _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler,
+        // EPOLLIN);
+        weblog::Logger::log(weblog::DEBUG,
+                            "Registered connection handler with fd: " +
+                                utils::toString(conn_fd));
     }
     else
-        weblog::logger.log(weblog::ERROR, "Acceptor got unknown event: " +
-                                              explainEpollEvent(events));
+        weblog::Logger::log(weblog::ERROR, "Acceptor got unknown event: " +
+                                               explainEpollEvent(events));
 }
 
 } // namespace webkernel

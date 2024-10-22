@@ -38,13 +38,15 @@ int main(int argc, char** argv)
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return (FAILURE);
     }
-    weblog::logger.set_level(weblog::DEBUG);
+    weblog::Logger::instantiate();
     webconfig::Config::instantiate(argv[1]);
     webconfig::Config* config = webconfig::Config::instance();
     try
     {
         signal(SIGINT, handle_terminate_signal);
-        // weblog::logger.set_file_mode("webserver.log");
+        weblog::Logger *logger = weblog::Logger::instance();
+        logger->setLevel(weblog::DEBUG);
+        // weblog::logger->setFileMode("webserver.log");
 
         config->printConfig();
         webkernel::Kernel kernel;
@@ -55,6 +57,7 @@ int main(int argc, char** argv)
     {
         std::cerr << e.what() << std::endl;
         config->destroy();
+        weblog::Logger::destroy();
         return (FAILURE);
     }
     catch (...)
@@ -62,8 +65,10 @@ int main(int argc, char** argv)
         std::cerr << "An unknown exception has occurred. Exiting..."
                   << std::endl;
         config->destroy();
+        weblog::Logger::destroy();
         return (FAILURE);
     }
     config->destroy();
+    weblog::Logger::destroy();
     return (SUCCESS);
 }

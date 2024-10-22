@@ -11,9 +11,21 @@
 /* ************************************************************************** */
 
 #include "utils/Logger.hpp"
+#include <iomanip>
+#include <iostream>
 
 namespace weblog
 {
+
+Logger* Logger::createInstance()
+{
+    return new Logger();
+}
+
+Logger* Logger::createInstance(const std::string& filename)
+{
+    return new Logger(filename);
+}
 
 Logger::Logger() : _is_file_mode(false), _level(INFO)
 {
@@ -40,30 +52,47 @@ Logger::~Logger()
 
 void Logger::log(LogLevel level, const std::string& message)
 {
-    if (level < _level)
+    weblog::Logger* logger = weblog::Logger::instance();
+
+    if (level < logger->level())
         return;
 
     const int level_width = 50;
     const int message_width = 100;
-    if (_is_file_mode)
+    if (logger->isFileMode())
     {
-        _file_stream << _getCurrentTime() << " [" + _getLevelStr(level) + "] "
+        logger->fileStream() << logger->getCurrentTime() << " [" + logger->getLevelStr(level) + "] "
                      << std::setw(level_width) << std::left
                      << std::setw(message_width) << std::left << message
                      << std::endl;
     }
     else
     {
-        std::cout << _getCurrentTime() << " [" + _getColorLevelStr(level) + "] "
+        std::cout << logger->getCurrentTime() << " [" + logger->getColorLevelStr(level) + "] "
                   << std::setw(level_width) << std::left
                   << std::setw(message_width) << std::left << message
                   << std::endl;
     }
 }
 
+std::ofstream& Logger::fileStream()
+{
+    return _file_stream;
+}
+
+bool Logger::isFileMode() const
+{
+    return _is_file_mode;
+}
+
+LogLevel Logger::level() const
+{
+    return _level;
+}
+
 void Logger::setLevel(LogLevel level)
 {
-    std::cout << "Log level set to: " << _getLevelStr(level) << std::endl;
+    std::cout << "Log level set to: " << getLevelStr(level) << std::endl;
     _level = level;
 }
 
@@ -85,7 +114,7 @@ void Logger::setFileMode(const std::string& filename)
     }
 }
 
-std::string Logger::_getLevelStr(LogLevel level)
+std::string Logger::getLevelStr(LogLevel level) const
 {
     switch (level)
     {
@@ -104,7 +133,7 @@ std::string Logger::_getLevelStr(LogLevel level)
     }
 }
 
-std::string Logger::_getColorLevelStr(LogLevel level)
+std::string Logger::getColorLevelStr(LogLevel level) const
 {
     switch (level)
     {
@@ -123,7 +152,7 @@ std::string Logger::_getColorLevelStr(LogLevel level)
     }
 }
 
-std::string Logger::_getCurrentTime()
+std::string Logger::getCurrentTime() const
 {
     time_t rawtime;
     struct tm* timeinfo;

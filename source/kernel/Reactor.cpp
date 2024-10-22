@@ -1,6 +1,8 @@
 #include "Reactor.hpp"
+#include "Config.hpp"
+#include "ConnectionHandler.hpp"
 #include "defines.hpp"
-#include "kernel_utils.hpp"
+#include "kernelUtils.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
 #include <cerrno>
@@ -10,20 +12,34 @@
 namespace webkernel
 {
 
-Reactor::Reactor() : _type(UNDEFINED)
+// EPOLL_CLOEXEC is a flag that makes sure that the file descriptor is closed
+// when the process is replaced by another process
+Reactor::Reactor(ReactorType type) : conn_handler(NULL), _type(type)
 {
-    weblog::logger.log(weblog::DEBUG, "Reactor::Reactor()");
-    _epoll_fd = -1;
-}
-
-Reactor::Reactor(ReactorType type) : _type(type)
-{
-    weblog::logger.log(weblog::DEBUG, "Reactor::Reactor(ReactorType type)");
-    _init_epoll();
+    weblog::logger.log(weblog::DEBUG,
+                       "Reactor::Reactor(" + utils::toString(type) + ")");
+    if (_type == REACTOR)
+    {
+        _epoll_fd = epoll_create1(0);
+        conn_handler = new ConnectionHandler(this);
+    }
+    else if (_type == WORKER)
+    {
+        _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+        conn_handler = new ConnectionHandler(this);
+    }
+    else if (_type == DISPATCHER)
+        _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+    else
+        throw std::runtime_error("Invalid reactor type");
+    if (_epoll_fd == -1)
+        throw std::runtime_error("epoll_create1 failed");
+    weblog::logger.log(weblog::DEBUG,
+                       "Created epoll fd: " + utils::toString(_epoll_fd));
 }
 
 Reactor::Reactor(const Reactor& other)
-    : _type(other._type), _epoll_fd(other._epoll_fd)
+    : _type(other._type), _epoll_fd(other._epoll_fd), _handlers(other._handlers)
 {
     weblog::logger.log(weblog::DEBUG, "Reactor::Reactor(const Reactor& other)");
 }
@@ -43,13 +59,16 @@ Reactor& Reactor::operator=(const Reactor& other)
 Reactor::~Reactor()
 {
     weblog::logger.log(weblog::DEBUG, "Reactor::~Reactor()");
-    utils::safe_close(_epoll_fd);
+    utils::safeClose(_epoll_fd);
     for (std::map<int, IHandler*>::iterator it = _handlers.begin();
          it != _handlers.end(); it++)
     {
         close(it->first);
-        delete it->second;
+        // TODO: here is only one ConnectionHandler in the map, the delete here will occur segmentation fault
+        // delete it->second;
     }
+    if (conn_handler)
+        delete conn_handler;
 }
 
 void Reactor::run(void)
@@ -79,7 +98,7 @@ void Reactor::run(void)
         }
 
         weblog::logger.log(weblog::DEBUG, "Reactor received " +
-                                              utils::to_string(nfds) +
+                                              utils::toString(nfds) +
                                               " events");
         for (int i = 0; i < nfds; i++)
         {
@@ -88,7 +107,7 @@ void Reactor::run(void)
             if (_handlers.find(fd) == _handlers.end())
             {
                 weblog::logger.log(weblog::ERROR, "No handler found for fd: " +
-                                                      utils::to_string(fd));
+                                                      utils::toString(fd));
                 continue;
             }
             _handlers[fd]->handleEvent(fd, events[i].events);
@@ -97,49 +116,48 @@ void Reactor::run(void)
     weblog::logger.log(weblog::DEBUG, "Reactor is shutting down");
 }
 
-void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
+// Add the handler to the map and register the fd with epoll
+void Reactor::registerHandler(int fd, int server_id, IHandler* handler, uint32_t events)
 {
     struct epoll_event ev = {.events = 0, .data = {0}};
     ev.events = events;
     ev.data.fd = fd;
 
     weblog::logger.log(weblog::DEBUG,
-                       "Registering handler and set to non-blocking with fd: " +
-                           utils::to_string(fd));
-    utils::setup_nonblocking(fd);
+                       "Registering handler with fd: " + utils::toString(fd));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1)
         throw std::runtime_error("epoll_ctl failed");
     _handlers[fd] = handler;
+    _server_map[fd] = server_id;
 }
 
-void Reactor::remove_handler(int fd)
+void Reactor::removeHandler(int fd)
 {
     std::map<int, IHandler*>::iterator it = _handlers.find(fd);
     if (it != _handlers.end())
     {
         weblog::logger.log(weblog::DEBUG,
-                           "Removed handler with fd: " + utils::to_string(fd));
+                           "Removed handler with fd: " + utils::toString(fd));
         if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1)
             throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on " +
-                                     utils::to_string(fd) + ": " +
+                                     utils::toString(fd) + ": " +
                                      std::string(strerror(errno)));
         close(it->first);
         _handlers.erase(it);
     }
 }
 
-// EPOLL_CLOEXEC is a flag that makes sure that the file descriptor is closed
-// when the process is replaced by another process
-void Reactor::_init_epoll(void)
+int Reactor::lookupServerId(int fd) const
 {
-    if (_type == REACTOR)
-        _epoll_fd = epoll_create1(0);
-    else if (_type == WORKER)
-        _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-    if (_epoll_fd == -1)
-        throw std::runtime_error("epoll_create1 failed");
-    weblog::logger.log(weblog::DEBUG,
-                       "Created epoll fd: " + utils::to_string(_epoll_fd));
+    std::map<int, int>::const_iterator it = _server_map.find(fd);
+    if (it != _server_map.end())
+        return (it->second);
+    return (-1);
+}
+
+int Reactor::epollFd(void) const
+{
+    return (_epoll_fd);
 }
 
 } // namespace webkernel

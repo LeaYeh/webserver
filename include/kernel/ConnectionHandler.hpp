@@ -3,15 +3,18 @@
 #include "Config.hpp"
 #include "ConfigHttpBlock.hpp"
 #include "ConfigServerBlock.hpp"
-#include "HttpRequestParser.hpp"
 #include "IHandler.hpp"
 #include "Reactor.hpp"
+#include "RequestProcessor.hpp"
+#include "Response.hpp"
 #include "defines.hpp"
 #include <ctime>
 #include <errno.h>
 #include <iostream>
+#include <map>
 #include <string.h>
 #include <string>
+#include <vector>
 
 namespace webkernel
 {
@@ -19,33 +22,27 @@ namespace webkernel
 class ConnectionHandler : public IHandler
 {
   public:
-    ConnectionHandler();
-    ConnectionHandler(int conn_fd, Reactor* reactor, webconfig::Config* config,
-                      int server_id);
+    ConnectionHandler(Reactor* reactor);
     ConnectionHandler(const ConnectionHandler& other);
     ConnectionHandler& operator=(const ConnectionHandler& other);
     ~ConnectionHandler();
 
     void handleEvent(int fd, uint32_t events);
+    void closeConnection(int fd, weblog::LogLevel level, std::string message);
+    void prepareWrite(int fd, const std::string& buffer);
 
   private:
-    int _conn_fd;
-    time_t _start_time;
     Reactor* _reactor;
-    int _server_id;
-    webconfig::ConfigHttpBlock _http_config;
-    webconfig::ConfigServerBlock _server_config;
-    webshell::HttpRequestParser _request_parser;
+    RequestProcessor _processor;
+    // TODO: Use _read_buffer to handle extra data which out of a request
+    // TODO: Consider to use pair instead of map
+    std::map<int /*fd*/, std::string> _write_buffer;
 
-    void _setupConfig(void);
-
+    ConnectionHandler();
     void _handleRead(int fd);
     void _handleWrite(int fd);
-    void _handleClose(int fd, weblog::LogLevel level, std::string message);
 
-    bool _keepAlive(void);
-    void _processRequest(void);
-    void _respond(int fd);
+    // bool _keepAlive(void);
 };
 
 } // namespace webkernel

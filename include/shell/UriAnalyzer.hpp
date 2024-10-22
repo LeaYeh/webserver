@@ -1,18 +1,18 @@
 #pragma once
 
 #include "defines.hpp"
-#include <iostream>
+#include <string>
 
 namespace webshell
 {
 
-class UriAnalyser
+class UriAnalyzer
 {
   public:
-    UriAnalyser();
-    UriAnalyser(const UriAnalyser& other);
-    UriAnalyser& operator=(const UriAnalyser& other);
-    ~UriAnalyser();
+    UriAnalyzer();
+    UriAnalyzer(const UriAnalyzer& other);
+    UriAnalyzer& operator=(const UriAnalyzer& other);
+    ~UriAnalyzer();
 
     void parse_uri(const std::string& uri);
 

@@ -47,27 +47,27 @@ void Logger::log(LogLevel level, const std::string& message)
     const int message_width = 100;
     if (_is_file_mode)
     {
-        _file_stream << _get_current_time() << " [" + _get_level_str(level) + "] "
+        _file_stream << _getCurrentTime() << " [" + _getLevelStr(level) + "] "
                      << std::setw(level_width) << std::left
                      << std::setw(message_width) << std::left << message
                      << std::endl;
     }
     else
     {
-        std::cout << _get_current_time() << " [" + _get_color_level_str(level) + "] "
+        std::cout << _getCurrentTime() << " [" + _getColorLevelStr(level) + "] "
                   << std::setw(level_width) << std::left
                   << std::setw(message_width) << std::left << message
                   << std::endl;
     }
 }
 
-void Logger::set_level(LogLevel level)
+void Logger::setLevel(LogLevel level)
 {
-    std::cout << "Log level set to: " << _get_level_str(level) << std::endl;
+    std::cout << "Log level set to: " << _getLevelStr(level) << std::endl;
     _level = level;
 }
 
-void Logger::set_file_mode(const std::string& filename)
+void Logger::setFileMode(const std::string& filename)
 {
     if (_is_file_mode)
         _file_stream.close();
@@ -85,7 +85,7 @@ void Logger::set_file_mode(const std::string& filename)
     }
 }
 
-std::string Logger::_get_level_str(LogLevel level)
+std::string Logger::_getLevelStr(LogLevel level)
 {
     switch (level)
     {
@@ -104,7 +104,7 @@ std::string Logger::_get_level_str(LogLevel level)
     }
 }
 
-std::string Logger::_get_color_level_str(LogLevel level)
+std::string Logger::_getColorLevelStr(LogLevel level)
 {
     switch (level)
     {
@@ -123,7 +123,7 @@ std::string Logger::_get_color_level_str(LogLevel level)
     }
 }
 
-std::string Logger::_get_current_time()
+std::string Logger::_getCurrentTime()
 {
     time_t rawtime;
     struct tm* timeinfo;
@@ -135,7 +135,5 @@ std::string Logger::_get_current_time()
     strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
     return std::string(buffer);
 }
-
-Logger logger;
 
 } // namespace weblog

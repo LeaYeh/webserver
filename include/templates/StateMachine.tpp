@@ -10,20 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-template<class TState>
-StateMachine<TState>::StateMachine()
+#include <exception>
+
+template <class TState> StateMachine<TState>::StateMachine()
 {
     _setup = false;
 }
 
-template<class TState>
-StateMachine<TState>::~StateMachine()
+template <class TState> StateMachine<TState>::~StateMachine()
 {
-
 }
 
-template<class TState>
-void StateMachine<TState>::addState(const TState& state)
+template <class TState> void StateMachine<TState>::addState(const TState& state)
 {
     if (!_setup)
     {
@@ -33,17 +31,21 @@ void StateMachine<TState>::addState(const TState& state)
     _states.insert(state);
 }
 
-template<class TState>
-void StateMachine<TState>::addTransition(const TState& startState, const TState& finalState, transitionFunction lambda)
+template <class TState>
+void StateMachine<TState>::addTransition(const TState& startState,
+                                         const TState& finalState,
+                                         transitionFunction lambda)
 {
-    if (_states.find(startState) == _states.end() || _states.find(finalState) == _states.end())
+    if (_states.find(startState) == _states.end() ||
+        _states.find(finalState) == _states.end())
     {
         throw std::runtime_error("Setup error: state does not exist");
     }
     std::pair<TState, transitionFunction> new_option;
     new_option.first = finalState;
     new_option.second = lambda;
-    typename std::map<TState, t_options>::iterator iter = _transitions.find(startState);
+    typename std::map<TState, t_options>::iterator iter =
+        _transitions.find(startState);
     if (iter != _transitions.end())
     {
         _transitions[startState].insert(new_option);
@@ -59,7 +61,7 @@ void StateMachine<TState>::addTransition(const TState& startState, const TState&
     }
 }
 
-template<class TState>
+template <class TState>
 void StateMachine<TState>::addAction(const TState& state, actionFunction lambda)
 {
     if (_states.find(state) == _states.end())
@@ -76,7 +78,7 @@ void StateMachine<TState>::addAction(const TState& state, actionFunction lambda)
     _actions.insert(new_action);
 }
 
-template<class TState>
+template <class TState>
 void StateMachine<TState>::transitionTo(const TState& state)
 {
     if (_states.find(state) == _states.end())
@@ -85,18 +87,21 @@ void StateMachine<TState>::transitionTo(const TState& state)
     }
     if (_transitions.find(_current_state) == _transitions.end())
     {
-        throw std::runtime_error("Transition error: no transition for current state");
+        throw std::runtime_error(
+            "Transition error: no transition for current state");
     }
-    else if (_transitions[_current_state].find(state) == _transitions[_current_state].end())
+    else if (_transitions[_current_state].find(state) ==
+             _transitions[_current_state].end())
     {
-        throw std::runtime_error("Transition error: no transition from current state to target state");
+        throw std::runtime_error("Transition error: no transition from current "
+                                 "state to target state");
     }
     _transitions[_current_state][state]();
-    _current_state = state; //i cant put this before the previous line lol im stupid
+    _current_state =
+        state; // i cant put this before the previous line lol im stupid
 }
 
-template<class TState>
-bool StateMachine<TState>::update(unsigned char c)
+template <class TState> bool StateMachine<TState>::update(unsigned char c)
 {
     if (_actions.find(_current_state) == _actions.end())
     {
@@ -105,8 +110,7 @@ bool StateMachine<TState>::update(unsigned char c)
     return (_actions[_current_state](c));
 }
 
-template<class TState>
-TState StateMachine<TState>::getCurrentState() const
+template <class TState> TState StateMachine<TState>::getCurrentState() const
 {
     return (_current_state);
 }

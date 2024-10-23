@@ -7,3 +7,4 @@
 -Iinclude/shell
 -Iinclude/kernel
 -Iinclude/templates
+-Iinclude/utils

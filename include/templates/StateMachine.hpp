@@ -13,40 +13,36 @@
 #ifndef STATE_MACHINE_HPP
 #define STATE_MACHINE_HPP
 
-#include <vector>
 #include <map>
-#include <exception>
 #include <set>
 
-template<class TState>
-class StateMachine
+template <class TState> class StateMachine
 {
     typedef void (*transitionFunction)();
     typedef bool (*actionFunction)(unsigned char c);
     typedef std::map<TState, transitionFunction> t_options;
 
-    public:
-        
-        StateMachine();
-        ~StateMachine();
-        
-        void addState(const TState& state);
-        void addTransition(const TState& startState, const TState& finalState, transitionFunction lambda);
-        void addAction(const TState& state, actionFunction lambda);
-        void transitionTo(const TState& state);
-        bool update(unsigned char c);
-        TState getCurrentState() const;
+  public:
+    StateMachine();
+    ~StateMachine();
 
-    private:
+    void addState(const TState& state);
+    void addTransition(const TState& startState, const TState& finalState,
+                       transitionFunction lambda);
+    void addAction(const TState& state, actionFunction lambda);
+    void transitionTo(const TState& state);
+    bool update(unsigned char c);
+    TState getCurrentState() const;
 
-        StateMachine(const StateMachine& other);
-        StateMachine& operator=(const StateMachine& other);
-        
-        TState                              _current_state;
-        std::set<TState>                    _states;
-        std::map<TState, t_options>         _transitions;
-        std::map<TState, actionFunction>    _actions;
-        bool                                _setup;
+  private:
+    StateMachine(const StateMachine& other);
+    StateMachine& operator=(const StateMachine& other);
+
+    TState _current_state;
+    std::set<TState> _states;
+    std::map<TState, t_options> _transitions;
+    std::map<TState, actionFunction> _actions;
+    bool _setup;
 };
 
 #include "StateMachine.tpp"

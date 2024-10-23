@@ -24,7 +24,6 @@ OperationInterrupt::OperationInterrupt(bool primer)
 
 OperationInterrupt::~OperationInterrupt() throw()
 {
-    
 }
 
 OperationInterrupt::OperationInterrupt(const OperationInterrupt& other)

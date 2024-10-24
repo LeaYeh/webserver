@@ -13,14 +13,43 @@
 namespace webkernel
 {
 
-Kernel::Kernel(webconfig::Config& config) : _config(config)
+Kernel::Kernel()
 {
-    _init();
+    webconfig::Config* config = webconfig::Config::instance();
+    if (config->globalBlock().workerProcesses() == 1)
+    {
+        weblog::logger.log(weblog::INFO,
+                           "Create single reactor and single worker structure");
+        _reactor = new Reactor(REACTOR);
+        _acceptor = new Acceptor(_reactor);
+        _registerListener();
+    }
+    else
+    {
+        weblog::logger.log(weblog::INFO,
+                           "Create multi reactor and multi worker structure");
+        _reactor = new Reactor(DISPATCHER);
+        _acceptor = new Acceptor(_reactor);
+        _registerListener();
+        for (unsigned int i = 1; i < config->globalBlock().workerProcesses();
+             i++)
+        {
+            pid_t pid = fork();
+
+            if (pid < 0)
+                throw std::runtime_error("fork() failed");
+            else if (pid == 0)
+            {
+                // child process will
+                _reactor = new Reactor(WORKER);
+                break;
+            }
+        }
+    }
 }
 
 Kernel::Kernel(const Kernel& other)
-    : _config(other._config), _reactor(other._reactor),
-      _acceptor(other._acceptor)
+    : _reactor(other._reactor), _acceptor(other._acceptor)
 {
     weblog::logger.log(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
 }
@@ -30,7 +59,6 @@ Kernel& Kernel::operator=(const Kernel& other)
     weblog::logger.log(weblog::DEBUG, "Kernel::operator=(const Kernel& other)");
     if (this != &other)
     {
-        _config = other._config;
         _reactor = other._reactor;
         _acceptor = other._acceptor;
     }
@@ -42,6 +70,8 @@ Kernel::~Kernel()
     weblog::logger.log(weblog::DEBUG, "Kernel::~Kernel()");
     if (_reactor)
         delete _reactor;
+    if (_acceptor)
+        delete _acceptor;
 }
 
 void Kernel::run()
@@ -50,35 +80,28 @@ void Kernel::run()
     _reactor->run();
 }
 
-void Kernel::_init(void)
+void Kernel::_registerListener(void)
 {
-    if (_config.global_block().worker_processes() == 1)
-        _create_single_reactor_single_worker();
-    else
-        _create_multi_reactor_multi_worker();
-}
+    webconfig::Config* config = webconfig::Config::instance();
 
-void Kernel::_init_listener(void)
-{
-    for (size_t i = 0; i < _config.server_block_list().size(); i++)
+    for (size_t i = 0; i < config->serverBlockList().size(); i++)
     {
-        webconfig::ConfigServerBlock config = _config.server_block_list()[i];
-        int fd = _create_listen_socket(config.listen().first.c_str(),
-                                       config.listen().second.c_str());
+        webconfig::ConfigServerBlock servConfig = config->serverBlockList()[i];
+        int fd = _createListenSocket(servConfig.listen().first.c_str(),
+                                     servConfig.listen().second.c_str());
         if (listen(fd, SOMAXCONN) < 0)
             throw std::runtime_error("listen() failed: " +
                                      std::string(strerror(errno)));
         weblog::logger.log(weblog::INFO, "Listening on " +
-                                             config.listen().first + ":" +
-                                             config.listen().second);
-        _acceptor->setup_server_id(i);
-        _reactor->register_handler(fd, _acceptor, EPOLLIN);
+                                             servConfig.listen().first + ":" +
+                                             servConfig.listen().second);
+        _reactor->registerHandler(fd, i, _acceptor, EPOLLIN);
         weblog::logger.log(weblog::INFO, "Registered acceptor with fd: " +
-                                             utils::to_string(fd));
+                                             utils::toString(fd));
     }
 }
 
-int Kernel::_create_listen_socket(const char* ip, const char* port)
+int Kernel::_createListenSocket(const char* ip, const char* port)
 {
     struct addrinfo hints, *res;
     int status;
@@ -113,43 +136,12 @@ int Kernel::_create_listen_socket(const char* ip, const char* port)
     {
         freeaddrinfo(res);
         if (fd >= 0)
-            utils::safe_close(fd);
+            utils::safeClose(fd);
         std::cerr << e.what() << std::endl;
         throw e;
     }
     freeaddrinfo(res);
     return (fd);
-}
-
-void Kernel::_create_single_reactor_single_worker(void)
-{
-    weblog::logger.log(weblog::INFO,
-                       "Creating single reactor and single worker structure");
-    _reactor = new Reactor(REACTOR);
-    _acceptor = new Acceptor(_reactor, &_config);
-    _init_listener();
-}
-
-void Kernel::_create_multi_reactor_multi_worker(void)
-{
-    weblog::logger.log(weblog::INFO,
-                       "Creating multi reactor and multi worker structure");
-    _reactor = new Reactor(DISPATCHER);
-    _acceptor = new Acceptor(_reactor, &_config);
-    _init_listener();
-    for (unsigned int i = 1; i < _config.global_block().worker_processes(); i++)
-    {
-        pid_t pid = fork();
-
-        if (pid < 0)
-            throw std::runtime_error("fork() failed");
-        else if (pid == 0)
-        {
-            // child process will
-            _reactor = new Reactor(WORKER);
-            break;
-        }
-    }
 }
 
 } // namespace webkernel

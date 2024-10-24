@@ -1,35 +1,41 @@
 #pragma once
 
 #include "HeaderAnalyzer.hpp"
+#include "Request.hpp"
 #include "RequestLineAnalyzer.hpp"
+#include "UriAnalyzer.hpp"
 #include "defines.hpp"
 
-#include <iostream>
+#include <string>
 
 namespace webshell
 {
 
-class HttpRequestParser
+class RequestAnalyzer
 {
   public:
-    HttpRequestParser();
-    HttpRequestParser(const HttpRequestParser& other);
-    HttpRequestParser& operator=(const HttpRequestParser& other);
-    ~HttpRequestParser();
+    // TODO: put the copy constructor and assignment operator in private
+    RequestAnalyzer(const RequestAnalyzer& other);
+    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
-    void update_state(const char* buf, size_t chunk_size);
-    bool is_complete(void) const;
+    RequestAnalyzer();
+    ~RequestAnalyzer();
+
+    void read(const char* buf, size_t chunk_size);
+    bool isComplete(void) const;
     void reset(void);
-    std::string partial_body(void) const;
     RequestAnalyzerState state(void) const;
-    const RequestLineAnalyzer& request_line_analyzer(void) const;
-    const HeaderAnalyzer& header_analyzer(void) const;
+    Request request(void) const;
+
+    std::pair<StatusCode, std::string> statusInfo();
+    bool hasError();
 
   private:
     RequestAnalyzerState _state;
     RequestLineAnalyzer _request_line_analyzer;
+    UriAnalyzer _uri_analyzer;
     HeaderAnalyzer _header_analyzer;
-    std::string _partial_body;
+    std::pair<StatusCode, std::string> _status_info;
 };
 
 } // namespace webshell
@@ -54,8 +60,8 @@ std::string(strerror(errno)));
     }
     else
     {
-        request_parser.update_state(buf, bytes_read);
-        if (request_parser.is_complete())
+        request_parser.read(buf, bytes_read);
+        if (request_parser.isComplete())
         {
             request_parser.partial_body();
             break;
@@ -63,7 +69,7 @@ std::string(strerror(errno)));
     }
 }
 
-if (request_parser.is_complete())
+if (request_parser.isComplete())
 {
     // Process the request
 }

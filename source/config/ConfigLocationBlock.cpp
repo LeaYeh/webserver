@@ -65,20 +65,20 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 
     while (std::getline(file_stream, line))
     {
-        if (_need_to_skip(line))
+        if (_needToSkip(line))
             continue;
-        if (!_is_valid_sentence(line))
+        if (!_isValidSentence(line))
             throw std::runtime_error("Invalid sentence in location block " +
                                      line);
-        if (_is_scope_symbol(line))
+        if (_isScopeSymbol(line))
             return (line);
-        _parse_config_directive(line);
+        _parseConfigDirective(line);
     }
 
     return ("");
 }
 
-void ConfigLocationBlock::print_config(void) const
+void ConfigLocationBlock::printConfig(void) const
 {
     weblog::logger.log(weblog::DEBUG, "\troute: " + _route);
     weblog::logger.log(weblog::DEBUG, "\tlimit_except:");
@@ -89,22 +89,22 @@ void ConfigLocationBlock::print_config(void) const
     weblog::logger.log(weblog::DEBUG, "\troot: " + _root);
     weblog::logger.log(weblog::DEBUG, "\tindex: " + _index);
     weblog::logger.log(weblog::DEBUG,
-                       "\tautoindex: " + utils::to_string(_autoindex));
+                       "\tautoindex: " + utils::toString(_autoindex));
     weblog::logger.log(weblog::DEBUG, "\tcgi_extension: " + _cgi_extension);
     weblog::logger.log(weblog::DEBUG, "\tcgi_path: " + _cgi_path);
     weblog::logger.log(weblog::DEBUG,
-                       "\tenable_upload: " + utils::to_string(_enable_upload));
+                       "\tenable_upload: " + utils::toString(_enable_upload));
     weblog::logger.log(weblog::DEBUG, "\tupload_path: " + _upload_path);
 }
 
-void ConfigLocationBlock::_parse_config_directive(const std::string& line)
+void ConfigLocationBlock::_parseConfigDirective(const std::string& line)
 {
-    std::string directive = _get_directive_name(line);
+    std::string directive = _getDirectiveName(line);
 
     if (directive == "route")
         _route = extract_directive_value(line, directive);
     else if (directive == "limit_except")
-        _limit_except = _parse_limit_except(line, directive);
+        _limit_except = _parseLimitExcept(line, directive);
     else if (directive == "root")
         _root = extract_directive_value(line, directive);
     else if (directive == "index")
@@ -112,13 +112,13 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
     else if (directive == "redirect")
         _redirect = extract_directive_value(line, directive);
     else if (directive == "autoindex")
-        _autoindex = _parse_autoindex(line, directive);
+        _autoindex = _parseAutoindex(line, directive);
     else if (directive == "cgi_extension")
         _cgi_extension = extract_directive_value(line, directive);
     else if (directive == "cgi_path")
         _cgi_path = extract_directive_value(line, directive);
     else if (directive == "enable_upload")
-        _enable_upload = _parse_enable_upload(line, directive);
+        _enable_upload = _parseEnableUpload(line, directive);
     else if (directive == "upload_path")
         _upload_path = extract_directive_value(line, directive);
     else
@@ -127,8 +127,8 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
 }
 
 std::vector<webshell::RequestMethod>
-ConfigLocationBlock::_parse_limit_except(const std::string& line,
-                                         const std::string& directive)
+ConfigLocationBlock::_parseLimitExcept(const std::string& line,
+                                       const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
     std::vector<std::string> method_str_list = utils::split(value, ' ');
@@ -140,8 +140,8 @@ ConfigLocationBlock::_parse_limit_except(const std::string& line,
     return (methods);
 }
 
-bool ConfigLocationBlock::_parse_autoindex(const std::string& line,
-                                           const std::string& directive)
+bool ConfigLocationBlock::_parseAutoindex(const std::string& line,
+                                          const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 
@@ -152,8 +152,8 @@ bool ConfigLocationBlock::_parse_autoindex(const std::string& line,
     throw std::runtime_error("Invalid value for autoindex: " + value);
 }
 
-bool ConfigLocationBlock::_parse_enable_upload(const std::string& line,
-                                               const std::string& directive)
+bool ConfigLocationBlock::_parseEnableUpload(const std::string& line,
+                                             const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
 

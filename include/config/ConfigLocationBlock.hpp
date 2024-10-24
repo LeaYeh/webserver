@@ -17,7 +17,7 @@ class ConfigLocationBlock : public AConfigParser
     ~ConfigLocationBlock();
 
     std::string parse(std::ifstream& file_stream);
-    void print_config(void) const;
+    void printConfig(void) const;
 
   private:
     std::string _route;
@@ -31,11 +31,12 @@ class ConfigLocationBlock : public AConfigParser
     bool _enable_upload;
     std::string _upload_path;
 
-    void _parse_config_directive(const std::string& line);
-    std::vector<webshell::RequestMethod> _parse_limit_except(const std::string& line, const std::string& directive);
-    bool _parse_autoindex(const std::string& line, const std::string& directive);
-    bool _parse_enable_upload(const std::string& line, const std::string& directive);
-
+    void _parseConfigDirective(const std::string& line);
+    std::vector<webshell::RequestMethod>
+    _parseLimitExcept(const std::string& line, const std::string& directive);
+    bool _parseAutoindex(const std::string& line, const std::string& directive);
+    bool _parseEnableUpload(const std::string& line,
+                            const std::string& directive);
 };
 
 } // namespace webconfig

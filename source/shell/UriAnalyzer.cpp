@@ -1,18 +1,18 @@
-#include "UriAnalyser.hpp"
+#include "UriAnalyzer.hpp"
 
 namespace webshell
 {
 
-UriAnalyser::UriAnalyser()
+UriAnalyzer::UriAnalyzer()
 {
 }
 
-UriAnalyser::UriAnalyser(const UriAnalyser& other)
+UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
     : _scheme(other._scheme), _directory(other._directory), _query(other._query)
 {
 }
 
-UriAnalyser& UriAnalyser::operator=(const UriAnalyser& other)
+UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
 {
     if (this != &other)
     {
@@ -23,26 +23,26 @@ UriAnalyser& UriAnalyser::operator=(const UriAnalyser& other)
     return (*this);
 }
 
-UriAnalyser::~UriAnalyser()
+UriAnalyzer::~UriAnalyzer()
 {
 }
 
-void UriAnalyser::parse_uri(const std::string& uri)
+void UriAnalyzer::parse_uri(const std::string& uri)
 {
     (void)uri;
 }
 
-std::string UriAnalyser::scheme() const
+std::string UriAnalyzer::scheme() const
 {
     return (_scheme);
 }
 
-std::string UriAnalyser::directory() const
+std::string UriAnalyzer::directory() const
 {
     return (_directory);
 }
 
-std::string UriAnalyser::query() const
+std::string UriAnalyzer::query() const
 {
     return (_query);
 }

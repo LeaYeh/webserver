@@ -38,29 +38,32 @@ int main(int argc, char** argv)
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return (FAILURE);
     }
+    weblog::logger.set_level(weblog::DEBUG);
+    webconfig::Config::instantiate(argv[1]);
+    webconfig::Config* config = webconfig::Config::instance();
     try
     {
         signal(SIGINT, handle_terminate_signal);
         // weblog::logger.set_file_mode("webserver.log");
-        weblog::logger.set_level(weblog::DEBUG);
 
-        webconfig::Config config(argv[1]);
-        config.parse();
-        config.print_config();
-        webkernel::Kernel kernel(config);
+        config->printConfig();
+        webkernel::Kernel kernel;
 
         kernel.run();
     }
     catch (const std::exception& e)
     {
         std::cerr << e.what() << std::endl;
+        config->destroy();
         return (FAILURE);
     }
     catch (...)
     {
-        std::cerr << "An unknown exception has occurred. Exiting..." << std::endl;
+        std::cerr << "An unknown exception has occurred. Exiting..."
+                  << std::endl;
+        config->destroy();
         return (FAILURE);
     }
-
+    config->destroy();
     return (SUCCESS);
 }

@@ -18,16 +18,16 @@ Kernel::Kernel()
     webconfig::Config* config = webconfig::Config::instance();
     if (config->globalBlock().workerProcesses() == 1)
     {
-        weblog::logger.log(weblog::INFO,
-                           "Create single reactor and single worker structure");
+        weblog::Logger::log(
+            weblog::INFO, "Create single reactor and single worker structure");
         _reactor = new Reactor(REACTOR);
         _acceptor = new Acceptor(_reactor);
         _registerListener();
     }
     else
     {
-        weblog::logger.log(weblog::INFO,
-                           "Create multi reactor and multi worker structure");
+        weblog::Logger::log(weblog::INFO,
+                            "Create multi reactor and multi worker structure");
         _reactor = new Reactor(DISPATCHER);
         _acceptor = new Acceptor(_reactor);
         _registerListener();
@@ -51,12 +51,13 @@ Kernel::Kernel()
 Kernel::Kernel(const Kernel& other)
     : _reactor(other._reactor), _acceptor(other._acceptor)
 {
-    weblog::logger.log(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
+    weblog::Logger::log(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
 }
 
 Kernel& Kernel::operator=(const Kernel& other)
 {
-    weblog::logger.log(weblog::DEBUG, "Kernel::operator=(const Kernel& other)");
+    weblog::Logger::log(weblog::DEBUG,
+                        "Kernel::operator=(const Kernel& other)");
     if (this != &other)
     {
         _reactor = other._reactor;
@@ -67,7 +68,7 @@ Kernel& Kernel::operator=(const Kernel& other)
 
 Kernel::~Kernel()
 {
-    weblog::logger.log(weblog::DEBUG, "Kernel::~Kernel()");
+    weblog::Logger::log(weblog::DEBUG, "Kernel::~Kernel()");
     if (_reactor)
         delete _reactor;
     if (_acceptor)
@@ -76,7 +77,7 @@ Kernel::~Kernel()
 
 void Kernel::run()
 {
-    weblog::logger.log(weblog::DEBUG, "Kernel::run()");
+    weblog::Logger::log(weblog::DEBUG, "Kernel::run()");
     _reactor->run();
 }
 
@@ -92,12 +93,12 @@ void Kernel::_registerListener(void)
         if (listen(fd, SOMAXCONN) < 0)
             throw std::runtime_error("listen() failed: " +
                                      std::string(strerror(errno)));
-        weblog::logger.log(weblog::INFO, "Listening on " +
-                                             servConfig.listen().first + ":" +
-                                             servConfig.listen().second);
+        weblog::Logger::log(weblog::INFO, "Listening on " +
+                                              servConfig.listen().first + ":" +
+                                              servConfig.listen().second);
         _reactor->registerHandler(fd, i, _acceptor, EPOLLIN);
-        weblog::logger.log(weblog::INFO, "Registered acceptor with fd: " +
-                                             utils::toString(fd));
+        weblog::Logger::log(weblog::INFO, "Registered acceptor with fd: " +
+                                              utils::toString(fd));
     }
 }
 

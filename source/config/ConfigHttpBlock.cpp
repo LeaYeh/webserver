@@ -62,17 +62,17 @@ std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
 
 void ConfigHttpBlock::printConfig(void) const
 {
-    weblog::logger.log(weblog::DEBUG, "HTTP scope:");
-    weblog::logger.log(weblog::DEBUG,
-                       "\tclient_max_body_size: " +
-                           utils::toString(_client_max_body_size));
-    weblog::logger.log(weblog::DEBUG,
-                       "\tdefault_type: " +
-                           utils::content_type_to_string(_default_type));
-    weblog::logger.log(weblog::DEBUG, "\terror_page:");
+    weblog::Logger::log(weblog::DEBUG, "HTTP scope:");
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tclient_max_body_size: " +
+                            utils::toString(_client_max_body_size));
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tdefault_type: " +
+                            utils::content_type_to_string(_default_type));
+    weblog::Logger::log(weblog::DEBUG, "\terror_page:");
     for (size_t i = 0; i < _error_page_list.size(); ++i)
     {
-        weblog::logger.log(
+        weblog::Logger::log(
             weblog::DEBUG,
             "\t\t" + utils::toString(_error_page_list[i].status_code) + " " +
                 _error_page_list[i].path);

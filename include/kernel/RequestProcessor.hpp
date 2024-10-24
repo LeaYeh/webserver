@@ -20,7 +20,7 @@ class RequestProcessor
     RequestProcessor& operator=(const RequestProcessor& other);
     ~RequestProcessor();
 
-    void analyze(const char* buffer, size_t size);
+    void analyze(std::string& buffer);
     bool isRequestComplete();
     void analyzeFinalize(int fd);
 

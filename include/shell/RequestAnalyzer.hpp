@@ -21,7 +21,7 @@ class RequestAnalyzer
     RequestAnalyzer();
     ~RequestAnalyzer();
 
-    void read(const char* buf, size_t chunk_size);
+    void feed(const char ch);
     bool isComplete(void) const;
     void reset(void);
     RequestAnalyzerState state(void) const;

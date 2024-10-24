@@ -12,10 +12,9 @@
 
 #pragma once
 #include "defines.hpp"
+#include "Singleton.hpp"
 #include <ctime>
 #include <fstream>
-#include <iostream>
-#include <iomanip>
 
 namespace weblog
 {
@@ -26,87 +25,34 @@ namespace weblog
  * The Logger class provides functionality to log messages to either the console
  * or a file with different log levels.
  */
-class Logger
+class Logger : public templates::Singleton<Logger, std::string>
 {
   public:
-    /**
-     * @brief Construct a new Logger object.
-     *
-     * Initializes the Logger to log messages to the console.
-     * The log level is set to INFO by default.
-     */
-    Logger();
-
-    /**
-     * @brief Construct a new Logger object with a file.
-     *
-     * Initializes the Logger to log messages to the specified file.
-     *
-     * @param filename The name of the file to log messages to.
-     */
-    Logger(const std::string& filename);
-
-    /**
-     * @brief Destroy the Logger object.
-     *
-     * Closes the file stream if it is open.
-     */
     ~Logger();
 
-    /**
-     * @brief Log a message with the specified log level.
-     *
-     * Logs a message with the given severity level to the console or file.
-     *
-     * @param level The severity level of the log message.
-     * @param message The message to log.
-     */
-    void log(LogLevel level, const std::string& message);
+    static Logger* createInstance();
+    static Logger* createInstance(const std::string& filename);
 
-    /**
-     * @brief Set the minimum log level for the Logger.
-     *
-     * Sets the minimum severity level for messages to be logged. Messages with
-     * a severity level below this will be ignored.
-     *
-     * @param level The minimum log level.
-     */
-    void set_level(LogLevel level);
-
-    void set_file_mode(const std::string& filename);
+    static void log(LogLevel level, const std::string& message);
+    void setLevel(LogLevel level);
+    void setFileMode(const std::string& filename);
+    bool isFileMode(void) const;
+    LogLevel level(void) const;
+    std::ofstream& fileStream(void);
+    std::string getLevelStr(LogLevel level) const;
+    std::string getColorLevelStr(LogLevel level) const;
+    std::string getCurrentTime() const;
 
   protected:
   private:
-    Logger(const Logger& other); ///< Copy constructor (deleted).
-    Logger&
-    operator=(const Logger& other); ///< Copy assignment operator (deleted).
+    Logger();
+    Logger(const std::string& filename);
+    Logger(const Logger& other);
+    Logger& operator=(const Logger& other);
 
-    std::ofstream _file_stream; ///< File stream for logging to a file.
-    bool _is_file_mode; ///< Flag indicating if the Logger is in file mode.
-    LogLevel _level;  ///< Minimum log level for messages.
-
-    /**
-     * @brief Get the string representation of a log level.
-     *
-     * Converts a LogLevel enum value to its corresponding string
-     * representation.
-     *
-     * @param level The log level to convert.
-     * @return The string representation of the log level.
-     */
-    std::string _get_level_str(LogLevel level);;
-    std::string _get_color_level_str(LogLevel level);;
-
-    /**
-     * @brief Get the current time as a string.
-     *
-     * Retrieves the current system time and formats it as a string.
-     *
-     * @return The current time as a string.
-     */
-    std::string _get_current_time();
+    std::ofstream _file_stream;
+    bool _is_file_mode;
+    LogLevel _level;
 };
-
-extern Logger logger;
 
 } // namespace weblog

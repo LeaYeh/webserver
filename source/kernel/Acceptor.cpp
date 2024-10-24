@@ -52,8 +52,7 @@ void Acceptor::handleEvent(int fd, uint32_t events)
                                      std::string(strerror(errno)));
         int server_id = _reactor->lookupServerId(fd);
         _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler,
-                                  EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLRDHUP |
-                                      EPOLLERR);
+                                  EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
         // _reactor->registerHandler(conn_fd, server_id, _reactor->conn_handler,
         // EPOLLIN);
         weblog::Logger::log(weblog::DEBUG,

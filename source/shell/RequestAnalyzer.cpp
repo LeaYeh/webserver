@@ -35,10 +35,9 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
     return (*this);
 }
 
-void RequestAnalyzer::read(const char* buf, size_t chunk_size)
+void RequestAnalyzer::feed(const char ch)
 {
-    (void)buf;
-    (void)chunk_size;
+    (void)ch;
 }
 
 bool RequestAnalyzer::isComplete(void) const

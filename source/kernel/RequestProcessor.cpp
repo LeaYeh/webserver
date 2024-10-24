@@ -34,19 +34,17 @@ RequestProcessor::~RequestProcessor()
 {
 }
 
-void RequestProcessor::analyze(const char* buffer, size_t size)
+// Analyze the buffer and feed to the request analyzer char by char to avoid
+// lossing data which belongs to the next request
+// TODO: How to test this function?
+void RequestProcessor::analyze(std::string& buffer)
 {
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < buffer.size(); i++)
     {
-        // NOTE: if we dont pass char by char, we will lost the remaining data
-        _analyzer.read(&buffer[i], 1);
-        if (_analyzer.isComplete())
+        _analyzer.feed(buffer[i]);
+        if (_analyzer.isComplete() && (i < buffer.size() - 1))
         {
-            if (i < size - 1)
-            {
-                // TODO: Extra data found after request is complete
-                // append back to the read buffer for next request
-            }
+            buffer.erase(0, i);
             break;
         }
     }

@@ -36,6 +36,7 @@ class ConnectionHandler : public IHandler
     RequestProcessor _processor;
     // TODO: Use _read_buffer to handle extra data which out of a request
     // TODO: Consider to use pair instead of map
+    std::map<int /*fd*/, std::string> _read_buffer;
     std::map<int /*fd*/, std::string> _write_buffer;
 
     ConnectionHandler();

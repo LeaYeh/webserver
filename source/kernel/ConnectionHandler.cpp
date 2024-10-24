@@ -95,14 +95,15 @@ void ConnectionHandler::_handleRead(int fd)
     {
         ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
 
+        _read_buffer[fd] += std::string(buffer, bytes_read);
         if (bytes_read > 0)
         {
             weblog::Logger::log(weblog::DEBUG,
                                 "Read " + utils::toString(bytes_read) +
                                     " bytes from fd: " + utils::toString(fd));
             weblog::Logger::log(weblog::DEBUG,
-                                "Buffer: \n" + std::string(buffer));
-            _processor.analyze(buffer, bytes_read);
+                                "Buffer: \n" + std::string(buffer, bytes_read));
+            _processor.analyze(_read_buffer[fd]);
             if (_processor.isRequestComplete())
             {
                 weblog::Logger::log(weblog::INFO, "Request is complete");

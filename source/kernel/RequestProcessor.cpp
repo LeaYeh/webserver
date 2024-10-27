@@ -9,12 +9,12 @@ namespace webkernel
 {
 
 RequestProcessor::RequestProcessor(ConnectionHandler* handler)
-    : _handler(handler), _analyzer(), _builder()
+    : _handler(handler), _analyzer_pool(), _builder()
 {
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other)
-    : _handler(other._handler), _analyzer(other._analyzer),
+    : _handler(other._handler), _analyzer_pool(other._analyzer_pool),
       _builder(other._builder)
 {
 }
@@ -24,7 +24,7 @@ RequestProcessor& RequestProcessor::operator=(const RequestProcessor& other)
     if (this != &other)
     {
         _handler = other._handler;
-        _analyzer = other._analyzer;
+        _analyzer_pool = other._analyzer_pool;
         _builder = other._builder;
     }
     return (*this);
@@ -37,44 +37,57 @@ RequestProcessor::~RequestProcessor()
 // Analyze the buffer and feed to the request analyzer char by char to avoid
 // lossing data which belongs to the next request
 // TODO: How to test this function?
-void RequestProcessor::analyze(std::string& buffer)
+// TODO: If there are multiple requests in the buffer, we need to handle them????? HOW?
+void RequestProcessor::analyze(int fd, std::string& buffer)
 {
-    for (size_t i = 0; i < buffer.size(); i++)
+    size_t i = 0;
+
+    if (_analyzer_pool.find(fd) == _analyzer_pool.end())
+        _analyzer_pool[fd] = webshell::RequestAnalyzer();
+    while (i < buffer.size())
     {
-        _analyzer.feed(buffer[i]);
-        if (_analyzer.isComplete() && (i < buffer.size() - 1))
+        _analyzer_pool[fd].feed(buffer[i]);
+        if (_analyzer_pool[fd].isComplete() && (i < buffer.size() - 1))
         {
-            buffer.erase(0, i);
+            analyzeFinalize(fd);
             break;
         }
+        i++;
     }
-}
-
-bool RequestProcessor::isRequestComplete()
-{
-    return (_analyzer.isComplete());
+    buffer.erase(0, i);
 }
 
 void RequestProcessor::analyzeFinalize(int fd)
 {
-    if (true || _analyzer.hasError())
+    // TODO: Handle invalid request by exception
+    if (true || _analyzer_pool[fd].hasError())
     {
         weblog::Logger::log(weblog::DEBUG,
                             "Error detected in request analyzer: " +
-                                _analyzer.statusInfo().second);
-        webshell::Response resp = _builder.buildErrorResponse(
-            _analyzer.statusInfo().first, _analyzer.statusInfo().second);
+                                _analyzer_pool[fd].statusInfo().second);
+        webshell::Response resp =
+            _builder.buildErrorResponse(_analyzer_pool[fd].statusInfo().first,
+                                        _analyzer_pool[fd].statusInfo().second);
         _handler->prepareWrite(fd, resp.serialize());
         return;
     }
-    if (_analyzer.request().method() == webshell::GET)
-        _processGet(_analyzer.request());
-    else if (_analyzer.request().method() == webshell::POST)
-        _processPost(_analyzer.request());
-    else if (_analyzer.request().method() == webshell::PUT)
-        _processPut(_analyzer.request());
-    else if (_analyzer.request().method() == webshell::DELETE)
-        _processDelete(_analyzer.request());
+    if (_analyzer_pool[fd].request().method() == webshell::GET)
+        _processGet(_analyzer_pool[fd].request());
+    else if (_analyzer_pool[fd].request().method() == webshell::POST)
+        _processPost(_analyzer_pool[fd].request());
+    else if (_analyzer_pool[fd].request().method() == webshell::PUT)
+        _processPut(_analyzer_pool[fd].request());
+    else if (_analyzer_pool[fd].request().method() == webshell::DELETE)
+        _processDelete(_analyzer_pool[fd].request());
+
+    // TODO: After processing the request, we need to reset the analyzer or when
+    // it is times out we need to remove it
+    // _analyzer_pool[fd].reset();
+}
+
+void RequestProcessor::removeAnalyzer(int fd)
+{
+    _analyzer_pool.erase(fd);
 }
 
 void RequestProcessor::_processGet(const webshell::Request& request)

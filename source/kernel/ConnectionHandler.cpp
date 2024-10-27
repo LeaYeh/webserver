@@ -62,6 +62,9 @@ void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
 {
     weblog::Logger::log(level, message + " on conn_fd: " + utils::toString(fd));
     _reactor->removeHandler(fd);
+    _processor.removeAnalyzer(fd);
+    _read_buffer.erase(fd);
+    _write_buffer.erase(fd);
 }
 
 void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
@@ -95,24 +98,25 @@ void ConnectionHandler::_handleRead(int fd)
     {
         ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
 
+        _read_buffer[fd] += std::string(buffer, bytes_read);
         if (bytes_read > 0)
         {
             weblog::Logger::log(weblog::DEBUG,
                                 "Read " + utils::toString(bytes_read) +
                                     " bytes from fd: " + utils::toString(fd));
             weblog::Logger::log(weblog::DEBUG,
-                                "Buffer: \n" + std::string(buffer));
-            _processor.analyze(buffer, bytes_read);
-            if (_processor.isRequestComplete())
-            {
-                weblog::Logger::log(weblog::INFO, "Request is complete");
-                _processor.analyzeFinalize(fd);
-                break;
-            }
+                                "Buffer: \n" + std::string(buffer, bytes_read));
+            _processor.analyze(fd, _read_buffer[fd]);
+            // if (_processor.isRequestComplete())
+            // {
+            //     weblog::Logger::log(weblog::INFO, "Request is complete");
+            //     _processor.analyzeFinalize(fd);
+            //     break;
+            // }
         }
         else if (bytes_read == 0)
         {
-            _processor.analyzeFinalize(fd);
+            _processor.analyze(fd, _read_buffer[fd]);
             closeConnection(fd, weblog::INFO,
                             "Read 0 bytes, client closing connection");
             break;

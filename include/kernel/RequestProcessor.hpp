@@ -4,6 +4,7 @@
 #include "RequestAnalyzer.hpp"
 #include "ResponseBuilder.hpp"
 #include "defines.hpp"
+#include <map>
 #include <string>
 #include <sys/epoll.h>
 
@@ -20,14 +21,14 @@ class RequestProcessor
     RequestProcessor& operator=(const RequestProcessor& other);
     ~RequestProcessor();
 
-    void analyze(const char* buffer, size_t size);
-    bool isRequestComplete();
+    void analyze(int fd, std::string& buffer);
     void analyzeFinalize(int fd);
+    void removeAnalyzer(int fd);
 
   private:
     RequestProcessor();
     ConnectionHandler* _handler;
-    webshell::RequestAnalyzer _analyzer;
+    std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     webshell::ResponseBuilder _builder;
 
     void _processGet(const webshell::Request& request);

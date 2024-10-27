@@ -26,7 +26,11 @@ $(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(INCFLAGS) -M -MP -MF $@ $<
 
--include $(DEPS)
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),fclean)
+    -include $(DEPS)
+endif
+endif
 
 clean:
 	rm -rf $(BUILD_DIR)

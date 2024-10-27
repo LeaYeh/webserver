@@ -21,7 +21,8 @@
 				"github.copilot",
 				"bierner.markdown-mermaid",
 				"ms-azuretools.vscode-docker",
-				"llvm-vs-code-extensions.vscode-clangd"
+				"llvm-vs-code-extensions.vscode-clangd",
+				"Gruntfuggly.todo-tree"
 			]
 		}
 	},

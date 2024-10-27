@@ -44,11 +44,13 @@ unsigned int ConfigGlobalBlock::workerConnections(void) const
 
 void ConfigGlobalBlock::printConfig(void) const
 {
-    weblog::logger.log(weblog::DEBUG, "Global scope:");
-    weblog::logger.log(weblog::DEBUG, "\tworker_processes: " +
-                                          utils::toString(_worker_processes));
-    weblog::logger.log(weblog::DEBUG, "\tworker_connections: " +
-                                          utils::toString(_worker_connections));
+    weblog::Logger::log(weblog::DEBUG, "Global scope:");
+    weblog::Logger::log(weblog::DEBUG,
+                           "\tworker_processes: " +
+                               utils::toString(_worker_processes));
+    weblog::Logger::log(weblog::DEBUG,
+                           "\tworker_connections: " +
+                               utils::toString(_worker_connections));
 }
 
 std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)

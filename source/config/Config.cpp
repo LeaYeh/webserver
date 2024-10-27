@@ -27,7 +27,7 @@ Config::Config() : _current_block_level(GLOBAL)
 
 Config::Config(const std::string& filename) : _current_block_level(GLOBAL)
 {
-     _filename = filename;
+    _filename = filename;
     _file_stream.open(_filename.c_str());
     if (!_file_stream.is_open() || !_file_stream.good())
         throw std::runtime_error("Failed to open file: " + _filename);
@@ -66,8 +66,8 @@ void Config::printConfig(void) const
     _http_block.printConfig();
     for (size_t i = 0; i < _server_block_list.size(); ++i)
     {
-        weblog::logger.log(weblog::DEBUG,
-                           "Server block [" + utils::toString(i) + "]:");
+        weblog::Logger::log(weblog::DEBUG,
+                            "Server block [" + utils::toString(i) + "]:");
         _server_block_list[i].printConfig();
     }
 }

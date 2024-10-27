@@ -32,14 +32,14 @@ ConnectionHandler& ConnectionHandler::operator=(const ConnectionHandler& other)
 
 ConnectionHandler::~ConnectionHandler()
 {
-    weblog::logger.log(weblog::DEBUG, "ConnectionHandler destroyed");
+    weblog::Logger::log(weblog::DEBUG, "ConnectionHandler destroyed");
     // TODO: Check the conn_fd is closed by the reactor
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
 void ConnectionHandler::handleEvent(int fd, uint32_t events)
 {
-    weblog::logger.log(
+    weblog::Logger::log(
         weblog::DEBUG,
         "ConnectionHandler::handleEvent() on fd: " + utils::toString(fd) +
             " with events: " + explainEpollEvent(events));
@@ -60,7 +60,7 @@ void ConnectionHandler::handleEvent(int fd, uint32_t events)
 void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
                                         std::string message)
 {
-    weblog::logger.log(level, message + " on conn_fd: " + utils::toString(fd));
+    weblog::Logger::log(level, message + " on conn_fd: " + utils::toString(fd));
     _reactor->removeHandler(fd);
 }
 
@@ -68,9 +68,9 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
 {
     struct epoll_event ev;
 
-    weblog::logger.log(weblog::DEBUG,
-                       "Prepare to write " + utils::toString(buffer.size()) +
-                           " bytes to fd: " + utils::toString(fd));
+    weblog::Logger::log(weblog::DEBUG,
+                        "Prepare to write " + utils::toString(buffer.size()) +
+                            " bytes to fd: " + utils::toString(fd));
     // Modify the fd to be write events to notify the reactor to trigger the
     // response is ready to send
     ev.events = EPOLLOUT;
@@ -97,15 +97,15 @@ void ConnectionHandler::_handleRead(int fd)
 
         if (bytes_read > 0)
         {
-            weblog::logger.log(weblog::DEBUG,
-                               "Read " + utils::toString(bytes_read) +
-                                   " bytes from fd: " + utils::toString(fd));
-            weblog::logger.log(weblog::DEBUG,
-                               "Buffer: \n" + std::string(buffer));
+            weblog::Logger::log(weblog::DEBUG,
+                                "Read " + utils::toString(bytes_read) +
+                                    " bytes from fd: " + utils::toString(fd));
+            weblog::Logger::log(weblog::DEBUG,
+                                "Buffer: \n" + std::string(buffer));
             _processor.analyze(buffer, bytes_read);
             if (_processor.isRequestComplete())
             {
-                weblog::logger.log(weblog::INFO, "Request is complete");
+                weblog::Logger::log(weblog::INFO, "Request is complete");
                 _processor.analyzeFinalize(fd);
                 break;
             }
@@ -126,41 +126,41 @@ void ConnectionHandler::_handleRead(int fd)
 
 void ConnectionHandler::_handleWrite(int fd)
 {
-    weblog::logger.log(weblog::DEBUG,
-                       "Write event on fd: " + utils::toString(fd));
+    weblog::Logger::log(weblog::DEBUG,
+                        "Write event on fd: " + utils::toString(fd));
     std::map<int, std::string>::iterator it = _write_buffer.find(fd);
 
     if (it == _write_buffer.end())
     {
-        weblog::logger.log(weblog::ERROR, "No write buffer found for fd: " +
-                                              utils::toString(fd));
+        weblog::Logger::log(weblog::ERROR, "No write buffer found for fd: " +
+                                               utils::toString(fd));
         return;
     }
     else
     {
-        weblog::logger.log(weblog::DEBUG,
-                           "Write buffer found for fd: " + utils::toString(fd));
+        weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +
+                                               utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
         if (bytes_sent < 0)
         {
-            weblog::logger.log(weblog::ERROR,
-                               "Error to write, send() failed: " +
-                                   std::string(strerror(errno)));
+            weblog::Logger::log(weblog::ERROR,
+                                "Error to write, send() failed: " +
+                                    std::string(strerror(errno)));
             closeConnection(fd, weblog::ERROR, "Error to write");
         }
         else if (bytes_sent == 0)
         {
-            weblog::logger.log(weblog::INFO,
-                               "Write 0 bytes, client closing connection");
+            weblog::Logger::log(weblog::INFO,
+                                "Write 0 bytes, client closing connection");
             // TODO: keep-alive?
             closeConnection(fd, weblog::INFO,
                             "Write 0 bytes, client closing connection");
         }
         else
         {
-            weblog::logger.log(weblog::DEBUG,
-                               "Sent " + utils::toString(bytes_sent) +
-                                   " bytes to fd: " + utils::toString(fd));
+            weblog::Logger::log(weblog::DEBUG,
+                                "Sent " + utils::toString(bytes_sent) +
+                                    " bytes to fd: " + utils::toString(fd));
             _write_buffer.erase(it);
 
             // Modify the fd to be read events to notify the reactor to trigger
@@ -180,7 +180,7 @@ void ConnectionHandler::_handleWrite(int fd)
 //     time_t now = time(0);
 //     double elapsed = difftime(now, _start_time);
 
-//     weblog::logger.log(weblog::DEBUG,
+//     weblog::Logger::log(weblog::DEBUG,
 //                        "Elapsed time: " + utils::toString(elapsed));
 //     // if (_request_parser.header_analyzer().connection_type() ==
 //     // webshell::CLOSE)

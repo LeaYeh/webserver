@@ -1,11 +1,13 @@
 #include "ConnectionHandler.hpp"
+#include "HttpException.hpp"
+#include "Logger.hpp"
+#include "Response.hpp"
+#include "ResponseBuilder.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
-#include <ctime>
+#include "utils.hpp"
+#include <exception>
 #include <sys/epoll.h>
-#include <sys/socket.h>
 
 namespace webkernel
 {
@@ -43,18 +45,22 @@ void ConnectionHandler::handleEvent(int fd, uint32_t events)
         weblog::DEBUG,
         "ConnectionHandler::handleEvent() on fd: " + utils::toString(fd) +
             " with events: " + explainEpollEvent(events));
-    if (events & EPOLLIN)
+    if (events & EPOLLOUT && events & EPOLLERR)
+        _handleError(fd);
+    else if (events & EPOLLIN)
         _handleRead(fd);
     else if (events & EPOLLOUT)
         _handleWrite(fd);
     else if (events & EPOLLHUP)
         closeConnection(fd, weblog::INFO, "Connection closed by client");
     else if (events & EPOLLERR)
-        closeConnection(fd, weblog::ERROR, "EPOLLERR received");
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "EPOLLERR event on fd: " +
+                                       utils::toString(fd));
     else
-        closeConnection(fd, weblog::ERROR,
-                        "Handler got unknown event: " +
-                            utils::toString(events));
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Unknown event on fd: " +
+                                       utils::toString(fd));
 }
 
 void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
@@ -79,8 +85,29 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
     ev.events = EPOLLOUT;
     // ev.events = EPOLLOUT | EPOLLIN;
     ev.data.fd = fd;
-    epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev);
+    if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "epoll_ctl() failed: " +
+                                       std::string(strerror(errno)));
     _write_buffer[fd] = buffer;
+}
+
+void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
+                                     const std::string& description)
+{
+    weblog::Logger::log(weblog::DEBUG,
+                        "Prepare to write error response to fd: " +
+                            utils::toString(fd));
+    webshell::Response err_response =
+        webshell::ResponseBuilder::buildErrorResponse(status_code, description);
+    struct epoll_event ev;
+
+    ev.events = EPOLLOUT | EPOLLERR;
+    ev.data.fd = fd;
+    if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
+        throw std::runtime_error("epoll_ctl() failed: " +
+                                 std::string(strerror(errno)));
+    _error_buffer[fd] = err_response.serialize();
 }
 
 /*
@@ -107,12 +134,6 @@ void ConnectionHandler::_handleRead(int fd)
             weblog::Logger::log(weblog::DEBUG,
                                 "Buffer: \n" + std::string(buffer, bytes_read));
             _processor.analyze(fd, _read_buffer[fd]);
-            // if (_processor.isRequestComplete())
-            // {
-            //     weblog::Logger::log(weblog::INFO, "Request is complete");
-            //     _processor.analyzeFinalize(fd);
-            //     break;
-            // }
         }
         else if (bytes_read == 0)
         {
@@ -122,9 +143,9 @@ void ConnectionHandler::_handleRead(int fd)
             break;
         }
         else
-            closeConnection(fd, weblog::WARNING,
-                            "Error to read, recv() failed: " +
-                                std::string(strerror(errno)));
+            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                       "recv() failed: " +
+                                           std::string(strerror(errno)));
     }
 }
 
@@ -146,12 +167,9 @@ void ConnectionHandler::_handleWrite(int fd)
                                                utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
         if (bytes_sent < 0)
-        {
-            weblog::Logger::log(weblog::ERROR,
-                                "Error to write, send() failed: " +
-                                    std::string(strerror(errno)));
-            closeConnection(fd, weblog::ERROR, "Error to write");
-        }
+            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                       "send() failed: " +
+                                           std::string(strerror(errno)));
         else if (bytes_sent == 0)
         {
             weblog::Logger::log(weblog::INFO,
@@ -172,9 +190,32 @@ void ConnectionHandler::_handleWrite(int fd)
             struct epoll_event ev;
             ev.events = EPOLLIN;
             ev.data.fd = fd;
-            epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev);
+            if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
+                throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                           "epoll_ctl() failed: " +
+                                               std::string(strerror(errno)));
         }
     }
+}
+
+void ConnectionHandler::_handleError(int fd)
+{
+    std::map<int, std::string>::iterator it = _error_buffer.find(fd);
+
+    if (it == _write_buffer.end())
+        throw std::runtime_error("No error buffer found for fd: " +
+                                 utils::toString(fd));
+    else
+    {
+        weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +
+                                               utils::toString(fd));
+        int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
+        if (bytes_sent < 0)
+            throw std::runtime_error("send() failed: " +
+                                     std::string(strerror(errno)));
+    }
+    closeConnection(fd, weblog::WARNING,
+                    "Handled error on fd:: " + utils::toString(fd));
 }
 
 // TODO: Consider implementing the keep-alive timeout in the processor, because

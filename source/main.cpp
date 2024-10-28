@@ -15,6 +15,7 @@
 #include "defines.hpp"
 #include "utils/Logger.hpp"
 #include <csignal>
+#include <cstdlib>
 
 volatile sig_atomic_t stop_flag = 0;
 
@@ -44,7 +45,7 @@ int main(int argc, char** argv)
     try
     {
         signal(SIGINT, handle_terminate_signal);
-        weblog::Logger *logger = weblog::Logger::instance();
+        weblog::Logger* logger = weblog::Logger::instance();
         logger->setLevel(weblog::DEBUG);
         // weblog::logger->setFileMode("webserver.log");
 

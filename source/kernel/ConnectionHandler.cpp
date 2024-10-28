@@ -105,8 +105,12 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     ev.events = EPOLLOUT | EPOLLERR;
     ev.data.fd = fd;
     if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
-        throw std::runtime_error("epoll_ctl() failed: " +
-                                 std::string(strerror(errno)));
+    {
+        weblog::Logger::log(weblog::ERROR, "epoll_ctl() failed: " +
+                                               std::string(strerror(errno)));
+        closeConnection(fd, weblog::ERROR, "epoll_ctl() failed");
+        return;
+    }
     _error_buffer[fd] = err_response.serialize();
 }
 
@@ -211,8 +215,9 @@ void ConnectionHandler::_handleError(int fd)
                                                utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
         if (bytes_sent < 0)
-            throw std::runtime_error("send() failed: " +
-                                     std::string(strerror(errno)));
+            weblog::Logger::log(weblog::ERROR,
+                                "send() failed: " +
+                                    std::string(strerror(errno)));
     }
     closeConnection(fd, weblog::WARNING,
                     "Handled error on fd:: " + utils::toString(fd));

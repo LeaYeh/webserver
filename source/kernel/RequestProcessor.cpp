@@ -1,6 +1,7 @@
 #include "RequestProcessor.hpp"
 #include "ConnectionHandler.hpp"
 #include "Response.hpp"
+#include "ResponseBuilder.hpp"
 #include "defines.hpp"
 #include "utils/Logger.hpp"
 #include <cstddef>
@@ -9,13 +10,12 @@ namespace webkernel
 {
 
 RequestProcessor::RequestProcessor(ConnectionHandler* handler)
-    : _handler(handler), _analyzer_pool(), _builder()
+    : _handler(handler), _analyzer_pool()
 {
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other)
-    : _handler(other._handler), _analyzer_pool(other._analyzer_pool),
-      _builder(other._builder)
+    : _handler(other._handler), _analyzer_pool(other._analyzer_pool)
 {
 }
 
@@ -25,7 +25,6 @@ RequestProcessor& RequestProcessor::operator=(const RequestProcessor& other)
     {
         _handler = other._handler;
         _analyzer_pool = other._analyzer_pool;
-        _builder = other._builder;
     }
     return (*this);
 }
@@ -37,7 +36,8 @@ RequestProcessor::~RequestProcessor()
 // Analyze the buffer and feed to the request analyzer char by char to avoid
 // lossing data which belongs to the next request
 // TODO: How to test this function?
-// TODO: If there are multiple requests in the buffer, we need to handle them????? HOW?
+// TODO: If there are multiple requests in the buffer, we need to handle
+// them????? HOW?
 void RequestProcessor::analyze(int fd, std::string& buffer)
 {
     size_t i = 0;
@@ -65,9 +65,9 @@ void RequestProcessor::analyzeFinalize(int fd)
         weblog::Logger::log(weblog::DEBUG,
                             "Error detected in request analyzer: " +
                                 _analyzer_pool[fd].statusInfo().second);
-        webshell::Response resp =
-            _builder.buildErrorResponse(_analyzer_pool[fd].statusInfo().first,
-                                        _analyzer_pool[fd].statusInfo().second);
+        webshell::Response resp = webshell::ResponseBuilder::buildErrorResponse(
+            _analyzer_pool[fd].statusInfo().first,
+            _analyzer_pool[fd].statusInfo().second);
         _handler->prepareWrite(fd, resp.serialize());
         return;
     }

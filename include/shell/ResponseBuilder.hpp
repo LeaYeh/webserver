@@ -10,13 +10,12 @@ namespace webshell
 class ResponseBuilder
 {
   public:
+    static Response buildErrorResponse(StatusCode status_code, const std::string& description);
+
+  private:
     ResponseBuilder();
     ResponseBuilder(const ResponseBuilder& other);
     ResponseBuilder& operator=(const ResponseBuilder& other);
     ~ResponseBuilder();
-
-    Response buildErrorResponse(StatusCode status_code, const std::string& description);
-
-  private:
 };
 } // namespace webshell

@@ -29,9 +29,17 @@ class RequestAnalyzer
 
   private:
     RequestAnalyzerState _state;
-    RequestLineAnalyzer _request_line_analyzer;
-    UriAnalyzer _uri_analyzer;
+    RequestLineAnalyzer _rl_analyzer;
+    // UriAnalyzer _uri_analyzer; //Should be inside RL analyzer!!
     HeaderAnalyzer _header_analyzer;
+    BodyAnalyzer _body_analyzer;
+
+    RequestMethod _method;
+    std::vector<unsigned char> _target;
+    float _version;
+    //How i fill a map with headers from inside??
+    //std::map<std::string, std::string> _headers;
+    std::vector<unsigned char> _body;
 };
 
 } // namespace webshell

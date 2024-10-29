@@ -27,7 +27,7 @@ class Request
     void setMethod(RequestMethod method);
     void setTarget(Uri& target);
     void setVersion(float version);
-    void setHeaders(std::map<std::string, std::string> headers);
+    // void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
 

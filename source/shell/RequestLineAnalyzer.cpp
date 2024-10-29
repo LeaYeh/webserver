@@ -59,10 +59,6 @@ RequestMethod RequestLineAnalyzer::method() const
 
 float RequestLineAnalyzer::version() const
 {
-    // unsigned char *str;
-    // _version.push_back('\0');
-    // str = reinterpret_cast<unsigned char*>(_version.data());
-    //TODO: would this leak? Do i need to free?
     return (atof(_version.c_str()));
 }
 

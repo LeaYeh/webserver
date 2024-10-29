@@ -14,9 +14,6 @@ namespace webshell
 class RequestAnalyzer
 {
   public:
-    // TODO: put the copy constructor and assignment operator in private
-    RequestAnalyzer(const RequestAnalyzer& other);
-    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
     RequestAnalyzer();
     ~RequestAnalyzer();
@@ -31,11 +28,15 @@ class RequestAnalyzer
     bool hasError();
 
   private:
+
+    RequestAnalyzer(const RequestAnalyzer& other);
+    RequestAnalyzer& operator=(const RequestAnalyzer& other);
+
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     // UriAnalyzer _uri_analyzer; //Should be inside RL analyzer!!
     HeaderAnalyzer _header_analyzer;
-    BodyAnalyzer _body_analyzer;
+    // BodyAnalyzer _body_analyzer;
     std::pair<StatusCode, std::string> _status_info;
 
     RequestMethod _method;

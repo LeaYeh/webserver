@@ -36,14 +36,48 @@ RequestLineAnalyzer::~RequestLineAnalyzer()
 {
 }
 
-std::string RequestLineAnalyzer::method() const
+RequestMethod RequestLineAnalyzer::method() const
 {
-    return (_method);
+    if (method == "GET")
+    {
+        return (RequestMethod::GET);
+    }
+    else if (method == "POST")
+    {
+        return (RequestMethod::POST);
+    }
+    else if (method == "DELETE")
+    {
+        return (RequestMethod::DELETE);
+    }
+    else
+    {
+        return (RequestMethod::UNKNOWN);
+    }
+    //TODO: handle HEAD and PUT here??
 }
 
-std::string RequestLineAnalyzer::version() const
+float RequestLineAnalyzer::version() const
 {
-    return (_version);
+    char *str;
+    vec.push_back('\0');
+    str = reinterpret_cast<char*>(vec.data());
+    //TODO: would this leak? Do i need to free?
+    return (atof(str));
+}
+
+std::vector<unsigned char> RequestLineAnalyzer::target() const
+{
+    return (_uri);
+}
+  
+void RequestLineAnalyzer::feed(unsigned char ch)
+{
+    (void)ch;
+}
+bool RequestLineAnalyzer::done(void) const
+{
+    return (_state == RequestLineState::END_REQUEST_PARSER);
 }
 
 void RequestLineAnalyzer::_parse_request_line(const std::string& line,

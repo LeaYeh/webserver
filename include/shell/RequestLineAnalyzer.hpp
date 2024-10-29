@@ -3,6 +3,8 @@
 #include "UriAnalyzer.hpp"
 #include "defines.hpp"
 #include <iostream>
+#include <cstdlib>
+#include <vector>
 
 namespace webshell
 {

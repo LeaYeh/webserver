@@ -12,7 +12,6 @@ class Request
   public:
     Request();
     Request(const Request&);
-    //TODO: implement deep copy
     Request& operator=(const Request&);
     ~Request();
 

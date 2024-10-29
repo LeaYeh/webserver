@@ -29,6 +29,9 @@ class HeaderAnalyzer
     ConnectionType connection_type() const;
     std::string content_length() const;
 
+    void feed(unsigned char ch);
+    bool done(void) const;
+
   private:
     // TODO: Seperate the variables name with prefix by different usage.
     RequestHeaderState _header_state;

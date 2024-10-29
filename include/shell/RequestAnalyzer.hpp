@@ -7,6 +7,7 @@
 #include "defines.hpp"
 
 #include <string>
+#include <vector>
 
 namespace webshell
 {
@@ -17,6 +18,8 @@ class RequestAnalyzer
 
     RequestAnalyzer();
     ~RequestAnalyzer();
+    RequestAnalyzer(const RequestAnalyzer& other);
+    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
     void feed(const char ch);
     bool isComplete(void) const;
@@ -26,8 +29,6 @@ class RequestAnalyzer
 
   private:
 
-    RequestAnalyzer(const RequestAnalyzer& other);
-    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;

@@ -10,13 +10,13 @@ namespace webshell
 {
 
 Request::Request()
-    : _method(UNKNOWN), _target(), _version(), _headers(), _body()
+    : _method(UNKNOWN), _target(), _version(), _headers()/*, _body()*/
 {
 }
 
 Request::Request(const Request& other)
     : _method(other._method), _target(other._target), _version(other._version),
-      _headers(other._headers), _body(other._body)
+      _headers(other._headers)/*, _body(other._body)*/
 {
 }
 
@@ -28,7 +28,7 @@ Request& Request::operator=(const Request& other)
         _target = other._target;
         _version = other._version;
         _headers = other._headers;
-        _body = other._body;
+        // _body = other._body;
     }
     return (*this);
 }
@@ -104,9 +104,9 @@ void Request::setVersion(float version)
     _version = version;
 }
 
-void Request::setBody(std::string& body)
-{
-    _body = body;
-}
+// void Request::setBody(std::string& body)
+// {
+//     _body = body;
+// }
 
 } // namespace webshell

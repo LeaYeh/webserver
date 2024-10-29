@@ -1,19 +1,20 @@
 #include "RequestAnalyzer.hpp"
 #include "defines.hpp"
+#include "ParseException.hpp"
 
 namespace webshell
 {
 
 RequestAnalyzer::RequestAnalyzer()
-    : _state(PARSING_REQUEST_LINE), _request_line_analyzer(), _uri_analyzer(),
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), /*_uri_analyzer(),*/
       _header_analyzer()
 {
 }
 
 // RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
 //     : _state(other._state),
-//       _request_line_analyzer(other._request_line_analyzer),
-//       _uri_analyzer(other._uri_analyzer),
+//       _rl_analyzer(other._rl_analyzer),
+//       /*_uri_analyzer(other._uri_analyzer),*/
 //       _header_analyzer(other._header_analyzer)
 // {
 // }
@@ -27,8 +28,8 @@ RequestAnalyzer::~RequestAnalyzer()
 //     if (this != &other)
 //     {
 //         _state = other._state;
-//         _request_line_analyzer = other._request_line_analyzer;
-//         _uri_analyzer = other._uri_analyzer;
+//         _rl_analyzer = other._rl_analyzer;
+//         // _uri_analyzer = other._uri_analyzer;
 //         _header_analyzer = other._header_analyzer;
 // //     }
 //     return (*this);
@@ -65,6 +66,8 @@ void RequestAnalyzer::feed(const char ch)
                     _header_analyzer.feed(ch);
                     break;
                 }
+            default:
+                break;
             //TODO: i cant do this lol what is the point of chunked then
             // case PARSING_REQUEST_BODY:
             //     if (_body_analyzer.done())
@@ -82,7 +85,7 @@ void RequestAnalyzer::feed(const char ch)
     catch (ParseException& e)
     {
         _status_info.first = e.code();
-        _status_info.second() = e.msg();
+        _status_info.second = e.msg();
         _state = ERROR;
     }
 }
@@ -111,7 +114,7 @@ Request RequestAnalyzer::request(void) const
     req.setMethod(_method);
     req.setTarget(_target);
     req.setVersion(_version);
-    req.setHeaders(_headers);
+    // req.setHeaders(_headers);
     return (req);
 }
 

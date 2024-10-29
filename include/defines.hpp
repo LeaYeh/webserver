@@ -49,6 +49,7 @@ enum RequestAnalyzerState
 {
     PARSING_REQUEST_LINE = 0,
     PARSING_REQUEST_HEADERS,
+    PARSING_REQUEST_BODY,
     COMPLETE
 };
 

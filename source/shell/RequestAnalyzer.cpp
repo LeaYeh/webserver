@@ -37,13 +37,53 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
 
 void RequestAnalyzer::feed(const char ch)
 {
-    (void)ch;
+    // (void)ch;
+    switch (_state)
+    {
+        case PARSING_REQUEST_LINE:
+            if (_rl_analyzer.done())
+            {
+                _state = PARSING_REQUEST_HEADERS;
+                _method = _rl_analyzer.method();
+                _target = _rl_analyzer.target();
+                _version = _rl_analyzer.version();
+            }
+            else
+            {
+                _rl_analyzer.feed(ch);
+                break;
+            }
+        case PARSING_REQUEST_HEADERS:
+            if (_header_analyzer.done())
+            {
+                //extract info from header here
+                _state = PARSING_REQUEST_BODY;
+            }
+            else
+            {
+                _header_analyzer.feed(ch);
+                break;
+            }
+        //TODO: i cant do this lol what is the point of chunked then
+        case PARSING_REQUEST_BODY:
+            if (_body_analyzer.done())
+            {
+                //extract info from header here
+                _state = COMPLETE;
+            }
+            else
+            {
+                _body_analyzer.feed(ch);
+                break;
+            }
+    }
 }
 
 bool RequestAnalyzer::isComplete(void) const
 {
     // TODO: check if received /r/n/r/n or 0 from chunked data or reached the Content-Length or ...
-    return (true);
+    //MKH - i dont really think we need that
+    return (_state = COMPLETE);
 }
 
 void RequestAnalyzer::reset(void)
@@ -59,6 +99,10 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 Request RequestAnalyzer::request(void) const
 {
     Request req;
+    req.setMethod(_method);
+    req.setTarget(_target);
+    req.setVersion(_version);
+    req.setHeaders(_headers);
     return (req);
 }
 

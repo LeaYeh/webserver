@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UriAnalyzer.hpp"
+#include "RLMachines.hpp"
 #include "defines.hpp"
 #include <iostream>
 #include <cstdlib>
@@ -30,6 +31,10 @@ class RequestLineAnalyzer
     void _parse_method(const std::string& line);
     void _parse_version(const std::string& line);
 
+    MethodMachine _method_machine;
+    URIMachine _uri_machine;
+    VersionMachine _version_machine;
+    
     RequestLineState _state;
     UriAnalyzer _uri_analyser;
     RequestMethod _request_method;

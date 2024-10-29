@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 12:32:49 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/29 21:58:26 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/10/29 22:19:27 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ ParseException::ParseException(webshell::StatusCode code, std::string msg)
 
 void ParseException::displayIssue() const
 {
-    std::cerr << "Parsing went wrong" << std::endl;
+    std::cerr << "Parsing went wrong: " << _msg << std::endl;
 }
 
 webshell::StatusCode ParseException::code() const

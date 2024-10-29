@@ -40,6 +40,7 @@ void RequestAnalyzer::feed(const char ch)
 {
     try
     {
+        // throw ParseException(NOT_FOUND, NOT_FOUND_MSG);
         switch (_state)
         {
             case PARSING_REQUEST_LINE:
@@ -88,6 +89,7 @@ void RequestAnalyzer::feed(const char ch)
         _status_info.first = e.code();
         _status_info.second = e.msg();
         _state = ERROR;
+        e.displayIssue(); //for debug purposes
     }
 }
 

@@ -22,9 +22,9 @@ class Request
     // std::string body();
 
     void setMethod(RequestMethod method);
-    void setTarget(std::string& target);
+    void setTarget(std::string target);
     void setVersion(float version);
-    void setHeaders(std::map<std::string, std::string> headers);
+    // void setHeaders(std::map<std::string, std::string> headers);
     // void setBody(std::string& body);
 
   private:

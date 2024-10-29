@@ -18,7 +18,7 @@ class RequestLineAnalyzer
     ~RequestLineAnalyzer();
 
     RequestMethod method(void) const;
-    std::vector<unsigned char> target() const;
+    std::string target() const;
     float version(void) const;
   
     void feed(unsigned char ch);
@@ -33,11 +33,11 @@ class RequestLineAnalyzer
     RequestLineState _state;
     UriAnalyzer _uri_analyser;
     RequestMethod _request_method;
-    std::vector<unsigned char> _method;
-    std::vector<unsigned char> _uri;
+    std::string _method;
+    std::string _uri;
 
     // HttpVersion _http_version;
-    std::vector<unsigned char> _version;
+    std::string _version;
     // std::string _version_digit;
 };
 

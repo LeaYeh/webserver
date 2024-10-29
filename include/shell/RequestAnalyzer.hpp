@@ -41,11 +41,11 @@ class RequestAnalyzer
     std::pair<StatusCode, std::string> _status_info;
 
     RequestMethod _method;
-    std::vector<unsigned char> _target;
+    std::string _target;
     float _version;
     //How i fill a map with headers from inside??
     //std::map<std::string, std::string> _headers;
-    std::vector<unsigned char> _body;
+    std::string _body;
 };
 
 } // namespace webshell

@@ -59,14 +59,14 @@ RequestMethod RequestLineAnalyzer::method() const
 
 float RequestLineAnalyzer::version() const
 {
-    unsigned char *str;
-    _version.push_back('\0');
-    str = reinterpret_cast<unsigned char*>(_version.data());
+    // unsigned char *str;
+    // _version.push_back('\0');
+    // str = reinterpret_cast<unsigned char*>(_version.data());
     //TODO: would this leak? Do i need to free?
-    return (atof((const char *)str));
+    return (atof(_version.c_str()));
 }
 
-std::vector<unsigned char> RequestLineAnalyzer::target() const
+std::string RequestLineAnalyzer::target() const
 {
     return (_uri);
 }
@@ -77,7 +77,7 @@ void RequestLineAnalyzer::feed(unsigned char ch)
 }
 bool RequestLineAnalyzer::done(void) const
 {
-    return (_state == RequestLineState::END_REQUEST_PARSER);
+    return (_state == END_REQUEST_PARSER);
 }
 
 void RequestLineAnalyzer::_parse_request_line(const std::string& line,

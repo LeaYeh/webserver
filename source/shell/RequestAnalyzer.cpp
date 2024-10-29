@@ -10,30 +10,30 @@ RequestAnalyzer::RequestAnalyzer()
 {
 }
 
-// RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
-//     : _state(other._state),
-//       _request_line_analyzer(other._request_line_analyzer),
-//       _uri_analyzer(other._uri_analyzer),
-//       _header_analyzer(other._header_analyzer), _status_info(other._status_info)
-// {
-// }
+RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
+    : _state(other._state),
+      _request_line_analyzer(other._request_line_analyzer),
+      _uri_analyzer(other._uri_analyzer),
+      _header_analyzer(other._header_analyzer), _status_info(other._status_info)
+{
+}
 
 RequestAnalyzer::~RequestAnalyzer()
 {
 }
 
-// RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
-// {
-//     if (this != &other)
-//     {
-//         _state = other._state;
-//         _request_line_analyzer = other._request_line_analyzer;
-//         _uri_analyzer = other._uri_analyzer;
-//         _header_analyzer = other._header_analyzer;
-//         _status_info = other._status_info;
-//     }
-//     return (*this);
-// }
+RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
+{
+    if (this != &other)
+    {
+        _state = other._state;
+        _request_line_analyzer = other._request_line_analyzer;
+        _uri_analyzer = other._uri_analyzer;
+        _header_analyzer = other._header_analyzer;
+        _status_info = other._status_info;
+    }
+    return (*this);
+}
 
 void RequestAnalyzer::feed(const char ch)
 {

@@ -10,8 +10,8 @@ RequestLineAnalyzer::RequestLineAnalyzer()
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
     : _state(other._state), _uri_analyser(other._uri_analyser),
       _request_method(other._request_method), _method(other._method),
-      _uri(other._uri), _http_version(other._http_version),
-      _version(other._version), _version_digit(other._version_digit)
+      _uri(other._uri), /*_http_version(other._http_version),*/
+      _version(other._version)/*, _version_digit(other._version_digit)*/
 {
 }
 
@@ -25,9 +25,9 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
         _request_method = other._request_method;
         _method = other._method;
         _uri = other._uri;
-        _http_version = other._http_version;
+        // _http_version = other._http_version;
         _version = other._version;
-        _version_digit = other._version_digit;
+        // _version_digit = other._version_digit;
     }
     return (*this);
 }
@@ -38,32 +38,32 @@ RequestLineAnalyzer::~RequestLineAnalyzer()
 
 RequestMethod RequestLineAnalyzer::method() const
 {
-    if (method == "GET")
+    if (_method == "GET")
     {
-        return (RequestMethod::GET);
+        return (GET);
     }
-    else if (method == "POST")
+    else if (_method == "POST")
     {
-        return (RequestMethod::POST);
+        return (POST);
     }
-    else if (method == "DELETE")
+    else if (_method == "DELETE")
     {
-        return (RequestMethod::DELETE);
+        return (DELETE);
     }
     else
     {
-        return (RequestMethod::UNKNOWN);
+        return (UNKNOWN);
     }
     //TODO: handle HEAD and PUT here??
 }
 
 float RequestLineAnalyzer::version() const
 {
-    char *str;
-    vec.push_back('\0');
-    str = reinterpret_cast<char*>(vec.data());
+    unsigned char *str;
+    _version.push_back('\0');
+    str = reinterpret_cast<unsigned char*>(_version.data());
     //TODO: would this leak? Do i need to free?
-    return (atof(str));
+    return (atof((const char *)str));
 }
 
 std::vector<unsigned char> RequestLineAnalyzer::target() const

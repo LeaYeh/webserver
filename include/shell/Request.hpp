@@ -12,6 +12,7 @@ class Request
   public:
     Request();
     Request(const Request&);
+    //TODO: implement deep copy
     Request& operator=(const Request&);
     ~Request();
 
@@ -26,6 +27,7 @@ class Request
     void setMethod(RequestMethod method);
     void setTarget(Uri& target);
     void setVersion(float version);
+    void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
 
@@ -34,7 +36,7 @@ class Request
     Uri _target;
     float _version;
     std::map<std::string, std::string> _headers;
-    std::string _body;
+    // std::string _body;
 };
 
 } // namespace webshell

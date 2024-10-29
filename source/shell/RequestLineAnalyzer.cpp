@@ -69,7 +69,49 @@ std::string RequestLineAnalyzer::target() const
   
 void RequestLineAnalyzer::feed(unsigned char ch)
 {
-    (void)ch;
+    switch (_state)
+        {
+            case METHOD:
+                if (_method_machine.done())
+                    _state = URI;
+                else
+                {
+                    _method_machine.feed(ch);
+                    if (!_method_machine.done())
+                        _method.push_back(ch);
+                    break;
+                }
+            /* fall through */
+            case URI:
+                if (_uri_machine.done())
+                    _state = VERSION;
+                else
+                {
+                    _uri_machine.feed(ch);
+                    if (!_uri_machine.done())
+                        _uri.push_back(ch);
+                    break;
+                }
+            /* fall through */
+            case VERSION:
+                if (_version_machine.done())
+                {
+                    // _state = END_RQLINE;
+                    _state = END_REQUEST_PARSER;
+                }
+                else
+                {
+                    _version_machine.feed(ch); //does it end with a null terminator?
+                    if (!_version_machine.done())
+                        _version.push_back(ch);
+                    break;
+                }
+            // case END_RQLINE:
+            //     //parse CRLF here?
+            //     break;
+            default:
+                break;
+        }
 }
 bool RequestLineAnalyzer::done(void) const
 {

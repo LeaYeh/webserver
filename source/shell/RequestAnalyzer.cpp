@@ -39,7 +39,6 @@ void RequestAnalyzer::feed(const char ch)
 {
     try
     {
-        // throw ParseException(NOT_FOUND, NOT_FOUND_MSG);
         switch (_state)
         {
             case PARSING_REQUEST_LINE:
@@ -55,6 +54,7 @@ void RequestAnalyzer::feed(const char ch)
                     _rl_analyzer.feed(ch);
                     break;
                 }
+            /* fall through */
             case PARSING_REQUEST_HEADERS:
                 if (_header_analyzer.done())
                 {

@@ -40,7 +40,8 @@ class ConnectionHandler : public IHandler
 
     void _handleRead(int fd);
     void _handleWrite(int fd);
-    void _handleError(int fd);
+    void _sendNormal(int fd);
+    void _sendError(int fd);
 
     // bool _keepAlive(void);
 };

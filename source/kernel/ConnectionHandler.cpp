@@ -50,14 +50,14 @@ void ConnectionHandler::handleEvent(int fd, uint32_t events)
                             " on fd: " + utils::toString(fd));
     if (events & EPOLLIN)
         _handleRead(fd);
-    // else if (events & EPOLLOUT)
-    //     _handleWrite(fd);
     else if (events & EPOLLHUP)
         closeConnection(fd, weblog::INFO, "Connection closed by client");
     else if (events & EPOLLERR)
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "EPOLLERR event on fd: " +
                                        utils::toString(fd));
+    else if (events & EPOLLOUT)
+        _handleWrite(fd);
     else
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Unknown event on fd: " +
@@ -76,22 +76,10 @@ void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
 
 void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
 {
-    struct epoll_event ev;
-
     weblog::Logger::log(weblog::DEBUG,
                         "Prepare to write " + utils::toString(buffer.size()) +
                             " bytes to fd: " + utils::toString(fd));
-    // Modify the fd to be write events to notify the reactor to trigger the
-    // response is ready to send
-    ev.events |= EPOLLOUT;
-    // ev.events = EPOLLOUT | EPOLLIN;
-    ev.data.fd = fd;
-    if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "epoll_ctl() failed: " +
-                                       std::string(strerror(errno)));
     _write_buffer[fd] = buffer;
-    _handleWrite(fd);
 }
 
 void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
@@ -102,19 +90,8 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
                             utils::toString(fd));
     webshell::Response err_response =
         webshell::ResponseBuilder::buildErrorResponse(status_code, description);
-    struct epoll_event ev;
 
-    ev.events |= EPOLLOUT;
-    ev.data.fd = fd;
-    if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
-    {
-        weblog::Logger::log(weblog::ERROR, "epoll_ctl() failed: " +
-                                               std::string(strerror(errno)));
-        closeConnection(fd, weblog::ERROR, "epoll_ctl() failed");
-        return;
-    }
     _error_buffer[fd] = err_response.serialize();
-    _handleError(fd);
 }
 
 /*
@@ -160,58 +137,51 @@ void ConnectionHandler::_handleWrite(int fd)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "Write event on fd: " + utils::toString(fd));
-    std::map<int, std::string>::iterator it = _write_buffer.find(fd);
 
-    if (it == _write_buffer.end())
-    {
-        weblog::Logger::log(weblog::ERROR, "No write buffer found for fd: " +
-                                               utils::toString(fd));
+    if (_error_buffer.find(fd) != _error_buffer.end())
+        _sendError(fd);
+    else if (_write_buffer.find(fd) != _write_buffer.end())
+        _sendNormal(fd);
+    else
+        weblog::Logger::log(weblog::DEBUG, "No write buffer found for fd: " +
+                                               utils::toString(fd) +
+                                               ", do nothing");
+}
+
+void ConnectionHandler::_sendNormal(int fd)
+{
+    weblog::Logger::log(weblog::DEBUG,
+                        "Write buffer found for fd: " + utils::toString(fd));
+
+    std::map<int, std::string>::iterator it = _write_buffer.find(fd);
+    int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
+
+    if (bytes_sent < 0)
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "No write buffer found for fd: " +
-                                       utils::toString(fd));
+                                   "send() failed: " +
+                                       std::string(strerror(errno)));
+    else if (bytes_sent == 0)
+    {
+        weblog::Logger::log(weblog::INFO,
+                            "Write 0 bytes, client closing connection");
+        // TODO: keep-alive?
+        closeConnection(fd, weblog::INFO,
+                        "Write 0 bytes, client closing connection");
     }
     else
     {
-        weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +
-                                               utils::toString(fd));
-        int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
-        if (bytes_sent < 0)
-            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "send() failed: " +
-                                           std::string(strerror(errno)));
-        else if (bytes_sent == 0)
-        {
-            weblog::Logger::log(weblog::INFO,
-                                "Write 0 bytes, client closing connection");
-            // TODO: keep-alive?
-            closeConnection(fd, weblog::INFO,
-                            "Write 0 bytes, client closing connection");
-        }
-        else
-        {
-            weblog::Logger::log(weblog::DEBUG,
-                                "Sent " + utils::toString(bytes_sent) +
-                                    " bytes to fd: " + utils::toString(fd));
-            _write_buffer.erase(it);
-
-            // Modify the fd to be read events to notify the reactor to trigger
-            // the next request
-            struct epoll_event ev;
-            ev.events = EPOLLIN;
-            ev.data.fd = fd;
-            if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
-                throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                           "epoll_ctl() failed: " +
-                                               std::string(strerror(errno)));
-        }
+        weblog::Logger::log(weblog::DEBUG,
+                            "Sent " + utils::toString(bytes_sent) +
+                                " bytes to fd: " + utils::toString(fd));
+        _write_buffer.erase(it);
     }
 }
 
-void ConnectionHandler::_handleError(int fd)
+void ConnectionHandler::_sendError(int fd)
 {
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
-    if (it == _write_buffer.end())
+    if (it == _error_buffer.end())
         throw std::runtime_error("No error buffer found for fd: " +
                                  utils::toString(fd));
     else
@@ -220,12 +190,11 @@ void ConnectionHandler::_handleError(int fd)
                                                utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
         if (bytes_sent < 0)
-            weblog::Logger::log(weblog::ERROR,
-                                "send() failed: " +
-                                    std::string(strerror(errno)));
+            throw std::runtime_error("send() failed: " +
+                                     std::string(strerror(errno)));
     }
     closeConnection(fd, weblog::WARNING,
-                    "Handled error on fd:: " + utils::toString(fd));
+                    "Close the connection after handled error on fd: " + utils::toString(fd));
 }
 
 // TODO: Consider implementing the keep-alive timeout in the processor, because

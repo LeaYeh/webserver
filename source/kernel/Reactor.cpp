@@ -114,7 +114,7 @@ void Reactor::run(void)
             {
                 // When an exception is thrown, should respond with an error and
                 // close the connection
-                weblog::Logger::log(weblog::ERROR, e.what());
+                weblog::Logger::log(weblog::WARNING, e.what());
                 conn_handler->prepareError(fd, e.statusCode(),
                                            e.reasonDetail());
             }

@@ -45,12 +45,13 @@ void ConnectionHandler::handleEvent(int fd, uint32_t events)
         weblog::DEBUG,
         "ConnectionHandler::handleEvent() on fd: " + utils::toString(fd) +
             " with events: " + explainEpollEvent(events));
-    if (events & EPOLLOUT && events & EPOLLERR)
-        _handleError(fd);
-    else if (events & EPOLLIN)
+    weblog::Logger::log(weblog::DEBUG,
+                        "Received events: " + explainEpollEvent(events) +
+                            " on fd: " + utils::toString(fd));
+    if (events & EPOLLIN)
         _handleRead(fd);
-    else if (events & EPOLLOUT)
-        _handleWrite(fd);
+    // else if (events & EPOLLOUT)
+    //     _handleWrite(fd);
     else if (events & EPOLLHUP)
         closeConnection(fd, weblog::INFO, "Connection closed by client");
     else if (events & EPOLLERR)
@@ -82,7 +83,7 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
                             " bytes to fd: " + utils::toString(fd));
     // Modify the fd to be write events to notify the reactor to trigger the
     // response is ready to send
-    ev.events = EPOLLOUT;
+    ev.events |= EPOLLOUT;
     // ev.events = EPOLLOUT | EPOLLIN;
     ev.data.fd = fd;
     if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
@@ -90,6 +91,7 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
                                    "epoll_ctl() failed: " +
                                        std::string(strerror(errno)));
     _write_buffer[fd] = buffer;
+    _handleWrite(fd);
 }
 
 void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
@@ -102,7 +104,7 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
         webshell::ResponseBuilder::buildErrorResponse(status_code, description);
     struct epoll_event ev;
 
-    ev.events = EPOLLOUT | EPOLLERR;
+    ev.events |= EPOLLOUT;
     ev.data.fd = fd;
     if (epoll_ctl(_reactor->epollFd(), EPOLL_CTL_MOD, fd, &ev) < 0)
     {
@@ -112,6 +114,7 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
         return;
     }
     _error_buffer[fd] = err_response.serialize();
+    _handleError(fd);
 }
 
 /*
@@ -163,7 +166,9 @@ void ConnectionHandler::_handleWrite(int fd)
     {
         weblog::Logger::log(weblog::ERROR, "No write buffer found for fd: " +
                                                utils::toString(fd));
-        return;
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "No write buffer found for fd: " +
+                                       utils::toString(fd));
     }
     else
     {

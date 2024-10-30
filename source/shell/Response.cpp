@@ -8,7 +8,8 @@ Response::Response() : _status_code(OK), _headers(), _body()
 }
 
 Response::Response(const Response& other)
-    : _status_code(other._status_code), _headers(other._headers), _body(other._body)
+    : _status_code(other._status_code), _headers(other._headers),
+      _body(other._body)
 {
 }
 
@@ -57,9 +58,25 @@ void Response::setBody(std::string body)
     _body = body;
 }
 
+/*
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Content-Length: 13
+Connection: close
+
+Hello, World!
+*/
 std::string Response::serialize()
 {
-    return ("");
+    std::string response;
+
+    response += "HTTP/1.1 200 OK\r\n";
+    response += "Content-Type: text/plain\r\n";
+    response += "Content-Length: 13\r\n";
+    response += "Connection: close\r\n\r\n";
+    response += "Hello, World!";
+
+    return (response);
 }
-    
+
 } // namespace webshell

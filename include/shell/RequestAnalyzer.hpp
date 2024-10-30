@@ -27,15 +27,11 @@ class RequestAnalyzer
     RequestAnalyzerState state(void) const;
     Request request(void) const;
 
-    std::pair<StatusCode, std::string> statusInfo();
-    bool hasError();
-
   private:
     RequestAnalyzerState _state;
     RequestLineAnalyzer _request_line_analyzer;
     UriAnalyzer _uri_analyzer;
     HeaderAnalyzer _header_analyzer;
-    std::pair<StatusCode, std::string> _status_info;
 };
 
 } // namespace webshell

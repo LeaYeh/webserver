@@ -1,5 +1,6 @@
 #include "RequestProcessor.hpp"
 #include "ConnectionHandler.hpp"
+#include "HttpException.hpp"
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
 #include "defines.hpp"
@@ -59,26 +60,17 @@ void RequestProcessor::analyze(int fd, std::string& buffer)
 
 void RequestProcessor::analyzeFinalize(int fd)
 {
-    // TODO: Handle invalid request by exception
-    if (true || _analyzer_pool[fd].hasError())
-    {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Error detected in request analyzer: " +
-                                _analyzer_pool[fd].statusInfo().second);
-        webshell::Response resp = webshell::ResponseBuilder::buildErrorResponse(
-            _analyzer_pool[fd].statusInfo().first,
-            _analyzer_pool[fd].statusInfo().second);
-        _handler->prepareWrite(fd, resp.serialize());
-        return;
-    }
     if (_analyzer_pool[fd].request().method() == webshell::GET)
-        _processGet(_analyzer_pool[fd].request());
+        _processGet(fd, _analyzer_pool[fd].request());
     else if (_analyzer_pool[fd].request().method() == webshell::POST)
-        _processPost(_analyzer_pool[fd].request());
+        _processPost(fd, _analyzer_pool[fd].request());
     else if (_analyzer_pool[fd].request().method() == webshell::PUT)
-        _processPut(_analyzer_pool[fd].request());
+        _processPut(fd, _analyzer_pool[fd].request());
     else if (_analyzer_pool[fd].request().method() == webshell::DELETE)
-        _processDelete(_analyzer_pool[fd].request());
+        _processDelete(fd, _analyzer_pool[fd].request());
+    else
+        throw utils::HttpException(webshell::NOT_IMPLEMENTED,
+                                   "Method not implemented");
 
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
@@ -90,23 +82,28 @@ void RequestProcessor::removeAnalyzer(int fd)
     _analyzer_pool.erase(fd);
 }
 
-void RequestProcessor::_processGet(const webshell::Request& request)
+void RequestProcessor::_processGet(int fd, const webshell::Request& request)
 {
+    (void)request;
+    webshell::Response dummy_response;
+    _handler->prepareWrite(fd, dummy_response.serialize());
+}
+
+void RequestProcessor::_processPost(int fd, const webshell::Request& request)
+{
+    (void)fd;
     (void)request;
 }
 
-void RequestProcessor::_processPost(const webshell::Request& request)
+void RequestProcessor::_processPut(int fd, const webshell::Request& request)
 {
+    (void)fd;
     (void)request;
 }
 
-void RequestProcessor::_processPut(const webshell::Request& request)
+void RequestProcessor::_processDelete(int fd, const webshell::Request& request)
 {
-    (void)request;
-}
-
-void RequestProcessor::_processDelete(const webshell::Request& request)
-{
+    (void)fd;
     (void)request;
 }
 

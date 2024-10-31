@@ -13,6 +13,24 @@ bool safeClose(int& fd)
     return (true);
 }
 
+bool isDirectory(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return (false);
+    return (S_ISDIR(file_stat.st_mode));
+}
+
+bool isFile(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return (false);
+    return (S_ISREG(file_stat.st_mode));
+}
+
 // bool setup_nonblocking(int fd)
 // {
 //     int flags = fcntl(fd, F_GETFL, 0);

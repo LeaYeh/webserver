@@ -16,6 +16,17 @@ class ConfigLocationBlock : public AConfigParser
     ConfigLocationBlock& operator=(const ConfigLocationBlock& other);
     ~ConfigLocationBlock();
 
+    std::string route(void) const;
+    std::vector<webshell::RequestMethod> limitExcept(void) const;
+    std::string root(void) const;
+    std::string index(void) const;
+    std::string redirect(void) const;
+    bool autoindex(void) const;
+    std::string cgiExtension(void) const;
+    std::string cgiPath(void) const;
+    bool enableUpload(void) const;
+    std::string uploadPath(void) const;
+
     std::string parse(std::ifstream& file_stream);
     void printConfig(void) const;
 

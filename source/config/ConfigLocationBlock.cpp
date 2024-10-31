@@ -8,7 +8,7 @@ namespace webconfig
 {
 
 ConfigLocationBlock::ConfigLocationBlock()
-    : AConfigParser(LOCATION), _route("/"), _root(""), _index("index.html"),
+    : AConfigParser(LOCATION), _route("/"), _root("./www/html"), _index("index.html"),
       _redirect(""), _autoindex(false), _cgi_extension(""), _cgi_path(""),
       _enable_upload(false), _upload_path("")
 {
@@ -58,6 +58,56 @@ ConfigLocationBlock::operator=(const ConfigLocationBlock& other)
 
 ConfigLocationBlock::~ConfigLocationBlock()
 {
+}
+
+std::string ConfigLocationBlock::route(void) const
+{
+    return (_route);
+}
+
+std::vector<webshell::RequestMethod> ConfigLocationBlock::limitExcept(void) const
+{
+    return (_limit_except);
+}
+
+std::string ConfigLocationBlock::root(void) const
+{
+    return (_root);
+}
+
+std::string ConfigLocationBlock::index(void) const
+{
+    return (_index);
+}
+
+std::string ConfigLocationBlock::redirect(void) const
+{
+    return (_redirect);
+}
+
+bool ConfigLocationBlock::autoindex(void) const
+{
+    return (_autoindex);
+}
+
+std::string ConfigLocationBlock::cgiExtension(void) const
+{
+    return (_cgi_extension);
+}
+
+std::string ConfigLocationBlock::cgiPath(void) const
+{
+    return (_cgi_path);
+}
+
+bool ConfigLocationBlock::enableUpload(void) const
+{
+    return (_enable_upload);
+}
+
+std::string ConfigLocationBlock::uploadPath(void) const
+{
+    return (_upload_path);
 }
 
 std::string ConfigLocationBlock::parse(std::ifstream& file_stream)

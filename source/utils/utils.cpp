@@ -2,6 +2,9 @@
 
 namespace utils
 {
+
+const std::string EMPTY_STRING = "";
+
 bool safeClose(int& fd)
 {
     if (fd != -1)

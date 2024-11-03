@@ -1,11 +1,16 @@
 #include "Request.hpp"
+#include "Uri.hpp"
 #include "defines.hpp"
-#include <utility>
+#include "shellUtils.hpp"
+#include "utils.hpp"
+#include <iterator>
+#include <string>
 
 namespace webshell
 {
 
-Request::Request() : _method(UNKNOWN), _target(), _version(), _headers(), _body()
+Request::Request()
+    : _method(UNKNOWN), _target(), _version(), _headers(), _body()
 {
 }
 
@@ -32,24 +37,56 @@ Request::~Request()
 {
 }
 
-RequestMethod Request::method()
+const RequestMethod& Request::method() const
 {
     return (_method);
 }
 
-std::string Request::target()
+const Uri& Request::target() const
 {
     return (_target);
 }
 
-float Request::version()
+float Request::version() const
 {
     return (_version);
 }
 
-std::string Request::body()
+const std::map<std::string, std::string>& Request::headers() const
+{
+    return (_headers);
+}
+
+const std::string& Request::header(const std::string& name) const
+{
+    std::map<std::string, std::string>::const_iterator it = _headers.find(name);
+
+    if (it == _headers.end())
+        return (utils::EMPTY_STRING);
+    return (it->second);
+}
+
+const std::string& Request::body() const
 {
     return (_body);
+}
+
+const std::string Request::serialize() const
+{
+    std::string serialized;
+
+    // serialize request line
+    serialized += requestMethodToString(_method) + " " + _target.raw +
+                  " HTTP/" + utils::toString(_version) + "\r\n";
+    // serialize headers
+    for (std::map<std::string, std::string>::const_iterator it =
+             _headers.begin();
+         it != _headers.end(); ++it)
+        serialized += it->first + ": " + it->second + "\r\n";
+    // serialize body
+    serialized += "\r\n" + _body;
+
+    return (serialized);
 }
 
 void Request::setMethod(RequestMethod method)
@@ -57,7 +94,7 @@ void Request::setMethod(RequestMethod method)
     _method = method;
 }
 
-void Request::setTarget(std::string& target)
+void Request::setTarget(Uri& target)
 {
     _target = target;
 }

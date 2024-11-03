@@ -39,6 +39,11 @@ ConnectionHandler::~ConnectionHandler()
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
+const Reactor* ConnectionHandler::reactor(void) const
+{
+    return (_reactor);
+}
+
 void ConnectionHandler::handleEvent(int fd, uint32_t events)
 {
     weblog::Logger::log(

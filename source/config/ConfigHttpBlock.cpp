@@ -1,7 +1,8 @@
 #include "ConfigHttpBlock.hpp"
 #include "defines.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
+#include "Logger.hpp"
+#include "utils.hpp"
+#include "shellUtils.hpp"
 #include <cstddef>
 
 namespace webconfig
@@ -68,7 +69,7 @@ void ConfigHttpBlock::printConfig(void) const
                             utils::toString(_client_max_body_size));
     weblog::Logger::log(weblog::DEBUG,
                         "\tdefault_type: " +
-                            utils::content_type_to_string(_default_type));
+                            webshell::contentTypeToString(_default_type));
     weblog::Logger::log(weblog::DEBUG, "\terror_page:");
     for (size_t i = 0; i < _error_page_list.size(); ++i)
     {
@@ -99,7 +100,7 @@ unsigned int ConfigHttpBlock::_parseClientMaxBodySize(const std::string& line)
     std::string directive = _getDirectiveName(line);
     std::string value = extract_directive_value(line, directive);
 
-    return (utils::convert_to_size(value));
+    return (utils::convertToSize(value));
 }
 
 webshell::ContentType

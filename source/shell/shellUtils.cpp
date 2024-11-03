@@ -50,4 +50,48 @@ std::string statusReasonPhase(const StatusCode& statusCode)
     }
 }
 
+std::string requestMethodToString(webshell::RequestMethod method)
+{
+    switch (method)
+    {
+    case webshell::GET:
+        return ("GET");
+    case webshell::HEAD:
+        return ("HEAD");
+    case webshell::POST:
+        return ("POST");
+    case webshell::PUT:
+        return ("PUT");
+    case webshell::DELETE:
+        return ("DELETE");
+    default:
+        return ("UNKNOWN");
+    }
+}
+
+std::string contentTypeToString(webshell::ContentType type)
+{
+    switch (type)
+    {
+    case webshell::TEXT_HTML:
+        return ("text/html");
+    case webshell::TEXT_CSS:
+        return ("text/css");
+    case webshell::TEXT_PLAIN:
+        return ("text/plain");
+    case webshell::IMAGE_JPEG:
+        return ("image/jpeg");
+    case webshell::IMAGE_PNG:
+        return ("image/png");
+    case webshell::IMAGE_GIF:
+        return ("image/gif");
+    case webshell::APPLICATION_OCTET_STREAM:
+        return ("application/octet-stream");
+    case webshell::APPLICATION_JSON:
+        return ("application/json");
+    default:
+        return ("UNKNOWN");
+    }
+}
+
 } // namespace webshell

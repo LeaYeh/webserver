@@ -1,8 +1,8 @@
 #pragma once
+#include "Uri.hpp"
 #include "defines.hpp"
-#include <string>
 #include <map>
-#include <utility>
+#include <string>
 
 namespace webshell
 {
@@ -15,19 +15,23 @@ class Request
     Request& operator=(const Request&);
     ~Request();
 
-    RequestMethod method();
-    std::string target();
-    float version();
-    std::string body();
+    const RequestMethod& method() const;
+    const Uri& target() const;
+    float version() const;
+    const std::map<std::string, std::string>& headers() const;
+    const std::string& header(const std::string& name) const;
+    const std::string& body() const;
+    const std::string serialize() const;
 
     void setMethod(RequestMethod method);
-    void setTarget(std::string& target);
+    void setTarget(Uri& target);
     void setVersion(float version);
     void setBody(std::string& body);
+    void addHeader(std::string& name, std::string& value);
 
   private:
     RequestMethod _method;
-    std::string _target;
+    Uri _target;
     float _version;
     std::map<std::string, std::string> _headers;
     std::string _body;

@@ -1,5 +1,6 @@
 #include "ConfigLocationBlock.hpp"
 #include "defines.hpp"
+#include "shellUtils.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
 
@@ -7,7 +8,7 @@ namespace webconfig
 {
 
 ConfigLocationBlock::ConfigLocationBlock()
-    : AConfigParser(LOCATION), _route("/"), _root(""), _index("index.html"),
+    : AConfigParser(LOCATION), _route("/"), _root("./www/html"), _index("index.html"),
       _redirect(""), _autoindex(false), _cgi_extension(""), _cgi_path(""),
       _enable_upload(false), _upload_path("")
 {
@@ -59,6 +60,56 @@ ConfigLocationBlock::~ConfigLocationBlock()
 {
 }
 
+std::string ConfigLocationBlock::route(void) const
+{
+    return (_route);
+}
+
+std::vector<webshell::RequestMethod> ConfigLocationBlock::limitExcept(void) const
+{
+    return (_limit_except);
+}
+
+std::string ConfigLocationBlock::root(void) const
+{
+    return (_root);
+}
+
+std::string ConfigLocationBlock::index(void) const
+{
+    return (_index);
+}
+
+std::string ConfigLocationBlock::redirect(void) const
+{
+    return (_redirect);
+}
+
+bool ConfigLocationBlock::autoindex(void) const
+{
+    return (_autoindex);
+}
+
+std::string ConfigLocationBlock::cgiExtension(void) const
+{
+    return (_cgi_extension);
+}
+
+std::string ConfigLocationBlock::cgiPath(void) const
+{
+    return (_cgi_path);
+}
+
+bool ConfigLocationBlock::enableUpload(void) const
+{
+    return (_enable_upload);
+}
+
+std::string ConfigLocationBlock::uploadPath(void) const
+{
+    return (_upload_path);
+}
+
 std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 {
     std::string line;
@@ -83,9 +134,9 @@ void ConfigLocationBlock::printConfig(void) const
     weblog::Logger::log(weblog::DEBUG, "\troute: " + _route);
     weblog::Logger::log(weblog::DEBUG, "\tlimit_except:");
     for (std::size_t i = 0; i < _limit_except.size(); ++i)
-        weblog::Logger::log(
-            weblog::DEBUG,
-            "\t\t" + utils::request_method_to_string(_limit_except[i]));
+        weblog::Logger::log(weblog::DEBUG,
+                            "\t\t" +
+                                webshell::requestMethodToString(_limit_except[i]));
     weblog::Logger::log(weblog::DEBUG, "\troot: " + _root);
     weblog::Logger::log(weblog::DEBUG, "\tindex: " + _index);
     weblog::Logger::log(weblog::DEBUG,

@@ -13,10 +13,12 @@ namespace webkernel
 RequestProcessor::RequestProcessor(ConnectionHandler* handler)
     : _handler(handler), _analyzer_pool()
 {
+    _reactor = handler->reactor();
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other)
-    : _handler(other._handler), _analyzer_pool(other._analyzer_pool)
+    : _handler(other._handler), _reactor(other._reactor),
+      _analyzer_pool(other._analyzer_pool)
 {
 }
 
@@ -26,6 +28,8 @@ RequestProcessor& RequestProcessor::operator=(const RequestProcessor& other)
     {
         _handler = other._handler;
         _analyzer_pool = other._analyzer_pool;
+        _handler = other._handler;
+        _reactor = other._reactor;
     }
     return (*this);
 }

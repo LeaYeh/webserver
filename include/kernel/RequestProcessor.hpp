@@ -1,4 +1,5 @@
 #pragma once
+#include "Reactor.hpp"
 #include "Request.hpp"
 #include "RequestAnalyzer.hpp"
 #include <map>
@@ -25,6 +26,7 @@ class RequestProcessor
   private:
     RequestProcessor();
     ConnectionHandler* _handler;
+    const Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
 
     void _processGet(int fd, const webshell::Request& request);

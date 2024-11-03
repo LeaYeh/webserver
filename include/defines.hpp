@@ -28,6 +28,8 @@
 #define STY_GRA_BG "\e[100m"
 #define STY_WHI_BRI_BG "\e[107m"
 
+#define MAX_PATH_LENGTH 128
+
 namespace weblog
 {
 

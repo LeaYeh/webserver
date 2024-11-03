@@ -2,6 +2,9 @@
 
 namespace utils
 {
+
+const std::string EMPTY_STRING = "";
+
 bool safeClose(int& fd)
 {
     if (fd != -1)
@@ -13,12 +16,24 @@ bool safeClose(int& fd)
     return (true);
 }
 
-bool safe_close_pipe(int (&pipe_fd)[2])
+bool isDirectory(const std::string& path)
 {
-    if (!safeClose(pipe_fd[0]) || !safeClose(pipe_fd[1]))
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
         return (false);
-    return (true);
+    return (S_ISDIR(file_stat.st_mode));
 }
+
+bool isFile(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return (false);
+    return (S_ISREG(file_stat.st_mode));
+}
+
 // bool setup_nonblocking(int fd)
 // {
 //     int flags = fcntl(fd, F_GETFL, 0);
@@ -62,7 +77,7 @@ int stoi(const std::string& str)
     return (result);
 }
 
-unsigned int convert_to_size(const std::string& str)
+unsigned int convertToSize(const std::string& str)
 {
     std::string::size_type pos = str.find_last_not_of("0123456789");
     std::string size_str = str.substr(0, pos + 1);
@@ -87,50 +102,6 @@ std::vector<std::string> split(const std::string& str, char delimiter)
         tokens.push_back(token);
 
     return (tokens);
-}
-
-std::string request_method_to_string(webshell::RequestMethod method)
-{
-    switch (method)
-    {
-    case webshell::GET:
-        return ("GET");
-    case webshell::HEAD:
-        return ("HEAD");
-    case webshell::POST:
-        return ("POST");
-    case webshell::PUT:
-        return ("PUT");
-    case webshell::DELETE:
-        return ("DELETE");
-    default:
-        return ("UNKNOWN");
-    }
-}
-
-std::string content_type_to_string(webshell::ContentType type)
-{
-    switch (type)
-    {
-    case webshell::TEXT_HTML:
-        return ("text/html");
-    case webshell::TEXT_CSS:
-        return ("text/css");
-    case webshell::TEXT_PLAIN:
-        return ("text/plain");
-    case webshell::IMAGE_JPEG:
-        return ("image/jpeg");
-    case webshell::IMAGE_PNG:
-        return ("image/png");
-    case webshell::IMAGE_GIF:
-        return ("image/gif");
-    case webshell::APPLICATION_OCTET_STREAM:
-        return ("application/octet-stream");
-    case webshell::APPLICATION_JSON:
-        return ("application/json");
-    default:
-        return ("UNKNOWN");
-    }
 }
 
 } // namespace utils

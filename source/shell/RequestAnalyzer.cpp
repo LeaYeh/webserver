@@ -11,29 +11,29 @@ RequestAnalyzer::RequestAnalyzer()
 {
 }
 
-// RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
-//     : _state(other._state),
-//       _rl_analyzer(other._rl_analyzer),
-//       /*_uri_analyzer(other._uri_analyzer),*/
-//       _header_analyzer(other._header_analyzer)
-// {
-// }
+RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
+    : _state(other._state),
+      _rl_analyzer(other._rl_analyzer),
+      /*_uri_analyzer(other._uri_analyzer),*/
+      _header_analyzer(other._header_analyzer)
+{
+}
 
 RequestAnalyzer::~RequestAnalyzer()
 {
 }
 
-// RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
-// {
-//     if (this != &other)
-//     {
-//         _state = other._state;
-//         _rl_analyzer = other._rl_analyzer;
-//         // _uri_analyzer = other._uri_analyzer;
-//         _header_analyzer = other._header_analyzer;
-// //     }
-//     return (*this);
-// }
+RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
+{
+    if (this != &other)
+    {
+        _state = other._state;
+        _rl_analyzer = other._rl_analyzer;
+        // _uri_analyzer = other._uri_analyzer;
+        _header_analyzer = other._header_analyzer;
+    }
+    return (*this);
+}
 
 void RequestAnalyzer::feed(const char ch)
 {
@@ -85,8 +85,8 @@ void RequestAnalyzer::feed(const char ch)
     }
     catch (ParseException& e)
     {
-        _status_info.first = e.code();
-        _status_info.second = e.msg();
+        // _status_info.first = e.code();
+        // _status_info.second = e.msg();
         _state = ERROR;
         e.displayIssue(); //for debug purposes
     }

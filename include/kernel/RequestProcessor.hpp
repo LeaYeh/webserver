@@ -1,9 +1,6 @@
 #pragma once
-#include "Config.hpp"
 #include "Request.hpp"
 #include "RequestAnalyzer.hpp"
-#include "ResponseBuilder.hpp"
-#include "defines.hpp"
 #include <map>
 #include <string>
 #include <sys/epoll.h>
@@ -29,11 +26,10 @@ class RequestProcessor
     RequestProcessor();
     ConnectionHandler* _handler;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
-    webshell::ResponseBuilder _builder;
 
-    void _processGet(const webshell::Request& request);
-    void _processPost(const webshell::Request& request);
-    void _processPut(const webshell::Request& request);
-    void _processDelete(const webshell::Request& request);
+    void _processGet(int fd, const webshell::Request& request);
+    void _processPost(int fd, const webshell::Request& request);
+    void _processPut(int fd, const webshell::Request& request);
+    void _processDelete(int fd, const webshell::Request& request);
 };
 } // namespace webkernel

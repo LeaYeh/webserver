@@ -1,6 +1,6 @@
 #include "Reactor.hpp"
-#include "Config.hpp"
 #include "ConnectionHandler.hpp"
+#include "HttpException.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils/Logger.hpp"
@@ -63,11 +63,7 @@ Reactor::~Reactor()
     utils::safeClose(_epoll_fd);
     for (std::map<int, IHandler*>::iterator it = _handlers.begin();
          it != _handlers.end(); it++)
-    {
         close(it->first);
-        // TODO: here is only one ConnectionHandler in the map, the delete here
-        // will occur segmentation fault delete it->second;
-    }
     if (conn_handler)
         delete conn_handler;
 }
@@ -108,12 +104,20 @@ void Reactor::run(void)
             int fd = events[i].data.fd;
 
             if (_handlers.find(fd) == _handlers.end())
+                throw std::runtime_error("Handler not found for fd: " +
+                                         utils::toString(fd));
+            try
             {
-                weblog::Logger::log(weblog::ERROR, "No handler found for fd: " +
-                                                       utils::toString(fd));
-                continue;
+                _handlers[fd]->handleEvent(fd, events[i].events);
             }
-            _handlers[fd]->handleEvent(fd, events[i].events);
+            catch (utils::HttpException& e)
+            {
+                // When an exception is thrown, should respond with an error and
+                // close the connection
+                weblog::Logger::log(weblog::WARNING, e.what());
+                conn_handler->prepareError(fd, e.statusCode(),
+                                           e.reasonDetail());
+            }
         }
     }
     weblog::Logger::log(weblog::DEBUG, "Reactor is shutting down");

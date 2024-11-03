@@ -88,6 +88,8 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     weblog::Logger::log(weblog::DEBUG,
                         "Prepare to write error response to fd: " +
                             utils::toString(fd));
+    // TODO: Here might occour OOM, need to consider closing the connection
+    // directly. ref: PR#65
     webshell::Response err_response =
         webshell::ResponseBuilder::buildErrorResponse(status_code, description);
 
@@ -182,24 +184,33 @@ void ConnectionHandler::_sendError(int fd)
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
     if (it == _error_buffer.end())
-        throw std::runtime_error("No error buffer found for fd: " +
-                                 utils::toString(fd));
+        closeConnection(fd, weblog::ERROR,
+                        "Error buffer not found for fd: " +
+                            utils::toString(fd));
     else
     {
         weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +
                                                utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
+
+        _error_buffer.erase(it);
         if (bytes_sent < 0)
-            throw std::runtime_error("send() failed: " +
-                                     std::string(strerror(errno)));
+        {
+            closeConnection(fd, weblog::ERROR,
+                            "send() failed: " + std::string(strerror(errno)));
+        }
+        else
+        {
+            closeConnection(fd, weblog::WARNING,
+                            "Close the connection after handled error on fd: " +
+                                utils::toString(fd));
+        }
     }
-    closeConnection(fd, weblog::WARNING,
-                    "Close the connection after handled error on fd: " + utils::toString(fd));
 }
 
-// TODO: Consider implementing the keep-alive timeout in the processor, because
-// we need the request headers to determine the connection type
-// bool ConnectionHandler::_keepAlive(void)
+// TODO: Consider implementing the keep-alive timeout in the processor,
+// because we need the request headers to determine the connection type bool
+// ConnectionHandler::_keepAlive(void)
 // {
 //     time_t now = time(0);
 //     double elapsed = difftime(now, _start_time);

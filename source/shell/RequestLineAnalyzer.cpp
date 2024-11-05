@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:34:00 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 20:08:11 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ RequestLineAnalyzer::RequestLineAnalyzer()
 }
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
-    : _state(other._state), _uri_analyser(other._uri_analyser),
+    : _machine(other._machine), _state(other._state), _uri_analyser(other._uri_analyser),
       _method(other._method), _uri(other._uri), _version(other._version)
 {
 }
@@ -138,6 +138,7 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
+        _machine = other._machine;
     }
     return (*this);
 }

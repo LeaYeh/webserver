@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:27:27 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/31 22:46:33 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 19:59:59 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@
 #include <map>
 #include <set>
 
-template <class TState> class StateMachine
+template <class TState>
+class StateMachine
 {
     typedef void (*transitionFunction)();
     typedef bool (*actionFunction)(unsigned char c);
@@ -25,6 +26,8 @@ template <class TState> class StateMachine
   public:
     StateMachine();
     ~StateMachine();
+    StateMachine(const StateMachine& other);
+    StateMachine& operator=(const StateMachine& other);
 
     void addState(const TState& state);
     void addTransition(const TState& startState, const TState& finalState,
@@ -38,8 +41,6 @@ template <class TState> class StateMachine
     // virtual void SetupTransitions(void);
 
   private:
-    StateMachine(const StateMachine& other);
-    StateMachine& operator=(const StateMachine& other);
 
   protected:
     // unsigned char _ch;

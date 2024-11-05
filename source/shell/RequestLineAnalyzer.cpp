@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:06:52 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 17:34:00 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ static bool is_tchar(unsigned char c)
         return (true);
     if (c == '-' || c == '.' || c == '^' || c == '_')
         return (true);
-    if (c == '|' || c == '~') //TODO: ‘ is not even in ascii table
+    if (c == '|' || c == '~' || c == '\'')
         return (true);
     return (false);
 }
@@ -123,8 +123,7 @@ RequestLineAnalyzer::RequestLineAnalyzer()
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
     : _state(other._state), _uri_analyser(other._uri_analyser),
-      _request_method(other._request_method), _method(other._method),
-      _uri(other._uri), _version(other._version)
+      _method(other._method), _uri(other._uri), _version(other._version)
 {
 }
 
@@ -136,7 +135,6 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
     {
         _state = other._state;
         _uri_analyser = other._uri_analyser;
-        _request_method = other._request_method;
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
@@ -224,23 +222,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
 bool RequestLineAnalyzer::done(void) const
 {
     return (_state == END_RQLINE);
-}
-
-void RequestLineAnalyzer::_parse_request_line(const std::string& line,
-                                              RequestLineState current_state)
-{
-    (void)line;
-    (void)current_state;
-}
-
-void RequestLineAnalyzer::_parse_method(const std::string& line)
-{
-    (void)line;
-}
-
-void RequestLineAnalyzer::_parse_version(const std::string& line)
-{
-    (void)line;
 }
 
 } // namespace webshell

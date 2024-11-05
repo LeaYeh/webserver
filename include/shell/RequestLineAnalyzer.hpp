@@ -26,20 +26,12 @@ class RequestLineAnalyzer
     bool done(void) const;
 
   private:
-    void _parse_request_line(const std::string& line,
-                             RequestLineState current_state);
-    void _parse_method(const std::string& line);
-    void _parse_version(const std::string& line);
-
-    // MethodMachine _method_machine;
-    // URIMachine _uri_machine;
-    // VersionMachine _version_machine;
 
     StateMachine<RequestLineState> _machine;
-    
     RequestLineState _state;
     UriAnalyzer _uri_analyser;
-    RequestMethod _request_method;
+
+    // RequestMethod _request_method;
     std::string _method;
     std::string _uri;
     std::string _version;

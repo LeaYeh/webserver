@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestAnalyzer.cpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
+/*   Updated: 2024/11/05 17:37:55 by mhuszar          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "RequestAnalyzer.hpp"
 #include "defines.hpp"
 #include "ParseException.hpp"
@@ -6,7 +18,7 @@ namespace webshell
 {
 
 RequestAnalyzer::RequestAnalyzer()
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), /*_uri_analyzer(),*/
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(),
       _header_analyzer()
 {
 }
@@ -14,7 +26,6 @@ RequestAnalyzer::RequestAnalyzer()
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
     : _state(other._state),
       _rl_analyzer(other._rl_analyzer),
-      /*_uri_analyzer(other._uri_analyzer),*/
       _header_analyzer(other._header_analyzer)
 {
 }
@@ -29,7 +40,6 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
     {
         _state = other._state;
         _rl_analyzer = other._rl_analyzer;
-        // _uri_analyzer = other._uri_analyzer;
         _header_analyzer = other._header_analyzer;
     }
     return (*this);
@@ -37,59 +47,31 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
 
 void RequestAnalyzer::feed(const char ch)
 {
-    try
+    switch (_state)
     {
-        switch (_state)
-        {
-            case PARSING_REQUEST_LINE:
-                if (_rl_analyzer.done())
-                {
-                    _state = PARSING_REQUEST_HEADERS;
-                    _method = _rl_analyzer.method();
-                    _target = _rl_analyzer.target();
-                    _version = _rl_analyzer.version();
-                }
-                else
-                {
-                    _rl_analyzer.feed(ch);
-                    break;
-                }
-            /* fall through */
-            case PARSING_REQUEST_HEADERS:
-                if (_header_analyzer.done())
-                {
-                    // _state = PARSING_REQUEST_BODY;
-                    //TODO: extract info from header here
-                    _state = COMPLETE;
-                }
-                else
-                {
-                    _header_analyzer.feed(ch);
-                    break;
-                }
-            default:
-                break;
-            //TODO: i cant do this lol what is the point of chunked then
-            // case PARSING_REQUEST_BODY:
-            //     if (_body_analyzer.done())
-            //     {
-            //         //extract info from header here
-            //         _state = COMPLETE;
-            //     }
-            //     else
-            //     {
-            //         _body_analyzer.feed(ch);
-            //         break;
-            //     }
-        }
+        case PARSING_REQUEST_LINE:
+            _rl_analyzer.feed(ch);
+            if (_rl_analyzer.done())
+            {
+                _state = PARSING_REQUEST_HEADERS;
+                _method = _rl_analyzer.method();
+                _target = _rl_analyzer.target();
+                _version = _rl_analyzer.version();
+            }
+            break ;
+        case PARSING_REQUEST_HEADERS:
+            _header_analyzer.feed(ch);
+            if (_header_analyzer.done())
+            {
+                // _state = PARSING_REQUEST_BODY;
+                //TODO: extract info from header here
+                _state = COMPLETE;
+            }
+            break;
+        default:
+            throw std::runtime_error("Request parse error");
     }
-    catch (ParseException& e)
-    {
-        // _status_info.first = e.code();
-        // _status_info.second = e.msg();
-        _state = ERROR;
-        e.displayIssue(); //for debug purposes
-    }
+    //TODO: how to handle body??
 }
 
 bool RequestAnalyzer::isComplete(void) const

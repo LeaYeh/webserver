@@ -88,15 +88,15 @@ enum RequestMethod
 
 enum RequestLineState
 {
-    START = 0,
+    RQLINE_ERROR = -1,
+    RQLINE_START = 0,
     METHOD,
-    SPACE_BEFORE_URI,
+    // SPACE_BEFORE_URI,
     URI,
     // SPACE_BEFORE_VERSION,
     VERSION,
-    END_RQLINE,
-    ERROR_STATE,
-    END_REQUEST_PARSER
+    END_RQLINE
+    // END_REQUEST_PARSER
 };
 
 enum URIState

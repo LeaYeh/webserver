@@ -112,7 +112,8 @@ enum URIState
 
 enum VersionState
 {
-    VSTATE_START = 0,
+    VERSION_ERROR = -1,
+    VERSION_START = 0,
     VERSION_H,
     VERSION_T1,
     VERSION_T2,
@@ -121,10 +122,9 @@ enum VersionState
     VERSION_MAJOR,
     VERSION_DOT,
     VERSION_MINOR,
-    VERSION_ERROR,
+    RQLINE_CRLF,
     END_VERSION_PARSER
 };
-
 
 enum RequestHeaderState
 {

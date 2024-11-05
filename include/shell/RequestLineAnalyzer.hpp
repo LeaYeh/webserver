@@ -28,7 +28,6 @@ class RequestLineAnalyzer
   private:
 
     StateMachine<RequestLineState> _machine;
-    RequestLineState _state;
     UriAnalyzer _uri_analyser;
 
     // RequestMethod _request_method;

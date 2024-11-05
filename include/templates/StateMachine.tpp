@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:31:24 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 20:03:29 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 20:41:24 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ void StateMachine<TState>::addAction(const TState& state, actionFunction lambda)
     std::pair<TState, actionFunction> new_action;
     new_action.first = state;
     new_action.second = lambda;
-    std::cerr << "Inserted pair" << std::endl;
     _actions.insert(new_action);
 }
 

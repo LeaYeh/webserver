@@ -6,9 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 14:36:25 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 17:06:04 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef RLMACHINES_HPP
+# define RLMACHINES_HPP
 
 #include "defines.hpp"
 #include "StateMachine.hpp"
@@ -18,10 +21,10 @@
 namespace webshell
 {
 
-bool validate_start(unsigned char c);
-bool analyze_method(unsigned char c);
-void generic_transition_function(void);
-bool is_tchar(unsigned char c);
+// bool validate_start(unsigned char c);
+// bool analyze_method(unsigned char c);
+// void generic_transition_function(void);
+// bool is_tchar(unsigned char c);
 
 class MethodMachine
 {
@@ -73,3 +76,5 @@ class VersionMachine
 };
 
 } // namespace webshell
+
+#endif

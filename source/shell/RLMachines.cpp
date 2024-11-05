@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 15:08:29 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 17:06:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 namespace webshell
 {
     
-bool is_tchar(unsigned char c)
+static bool is_tchar(unsigned char c)
 {
     if (isdigit(c) || isalpha(c))
         return (true);
@@ -60,15 +60,15 @@ bool validate_start(unsigned char c)
 
 MethodMachine::MethodMachine()
 {
-    _machine.addState(START);
+    _machine.addState(RQLINE_START);
     _machine.addState(METHOD);
-    _machine.addState(SPACE_BEFORE_URI);
-    _machine.setFinalState(SPACE_BEFORE_URI);
-    _machine.addTransition(START, METHOD,
+    // _machine.addState(SPACE_BEFORE_URI);
+    // _machine.setFinalState(SPACE_BEFORE_URI);
+    _machine.addTransition(RQLINE_START, METHOD,
                 generic_transition_function);
-    _machine.addTransition(METHOD, SPACE_BEFORE_URI,
-                generic_transition_function);
-    _machine.addAction(START, validate_start);
+    // _machine.addTransition(METHOD, SPACE_BEFORE_URI,
+    //             generic_transition_function);
+    _machine.addAction(RQLINE_START, validate_start);
     _machine.addAction(METHOD, analyze_method);
 }
 
@@ -80,12 +80,12 @@ void MethodMachine::feed(unsigned char c)
     {
         switch (_machine.getCurrentState())
         {
-            case START:
+            case RQLINE_START:
                 _machine.transitionTo(METHOD);
                 break;
-            case METHOD:
-                _machine.transitionTo(SPACE_BEFORE_URI);
-                break;
+            // case METHOD:
+            //     _machine.transitionTo(SPACE_BEFORE_URI);
+            //     break;
             default:
                 break;
         }
@@ -114,113 +114,31 @@ bool URIMachine::done()
     return (_machine.done());
 }
 
-static bool parse_h(unsigned char c)
-{
-    if (c == 'H')
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
+// static bool analyze_version(unsigned char c)
+// {
+//     static int pos = 0;
 
-static bool parse_ts(unsigned char c)
-{
-    static int ctr = 1;
-    
-    if (c == 'T' && ctr++ == 1)
-        return (false);
-    else if (c == 'T' && ctr == 2)
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-static bool parse_p(unsigned char c)
-{
-    if (c == 'P')
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-static bool parse_slash(unsigned char c)
-{
-    if (c == '/')
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-static bool parse_digit(unsigned char c)
-{
-    if (isdigit(c))
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-static bool parse_dot(unsigned char c)
-{
-    if (c == '.')
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-static bool parse_crlf(unsigned char c)
-{
-    static int ctr = 1;
-    
-    if (c == '\r' && ctr++ == 1)
-        return (false);
-    else if (c == '\n' && ctr == 2)
-        return (true);
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
-}
-
-VersionMachine::VersionMachine()
-{
-    _machine.addState(VERSION_H);
-    _machine.addState(VERSION_T);
-    // _machine.addState(VERSION_T2);
-    _machine.addState(VERSION_P);
-    _machine.addState(VERSION_SLASH);
-    _machine.addState(VERSION_MAJOR);
-    _machine.addState(VERSION_DOT);
-    _machine.addState(VERSION_MINOR);
-    _machine.addState(RQLINE_CRLF);
-
-    _machine.addTransition(VERSION_H, VERSION_T,
-                generic_transition_function);
-    _machine.addTransition(VERSION_T, VERSION_P,
-                generic_transition_function);
-    _machine.addTransition(VERSION_P, VERSION_SLASH,
-                generic_transition_function);
-    _machine.addTransition(VERSION_SLASH, VERSION_MAJOR,
-                generic_transition_function);
-    _machine.addTransition(VERSION_MAJOR, VERSION_DOT,
-                generic_transition_function);
-    _machine.addTransition(VERSION_DOT, VERSION_MINOR,
-                generic_transition_function);
-    _machine.addTransition(VERSION_MINOR, RQLINE_CRLF,
-                generic_transition_function);
-    
-    _machine.addAction(VERSION_H, parse_h);
-    _machine.addAction(VERSION_T, parse_ts);
-    _machine.addAction(VERSION_P, parse_p);
-    _machine.addAction(VERSION_SLASH, parse_slash);
-    _machine.addAction(VERSION_MAJOR, parse_digit);
-    _machine.addAction(VERSION_DOT, parse_dot);
-    _machine.addAction(VERSION_MINOR, parse_digit);
-    _machine.addAction(RQLINE_CRLF, parse_crlf);
-}
+//     pos++;
+//     if (c == 'H' && pos == 1)
+//         return (false);
+//     else if (c == 'T' && (pos == 2 || pos == 3))
+//         return (false);
+//     else if (c == 'P' && pos == 4)
+//         return (false);
+//     else if (c == '/' && pos == 5)
+//         return (false);
+//     else if (isdigit(c) && (pos == 6 || pos == 8))
+//         return (false);
+//     else if (c == '.' && pos == 7)
+//         return (false);
+//     else if (c == '\r' && pos == 9)
+//         return (false);
+//     else if (c == '\n' && pos == 10)
+//         return (pos = 0, true);
+//     else
+//         throw utils::HttpException(webshell::BAD_REQUEST,
+//                 BAD_REQUEST_MSG);    
+// }
 
 VersionMachine::~VersionMachine() {}
 

@@ -31,19 +31,18 @@ class RequestLineAnalyzer
     void _parse_method(const std::string& line);
     void _parse_version(const std::string& line);
 
-    MethodMachine _method_machine;
-    URIMachine _uri_machine;
-    VersionMachine _version_machine;
+    // MethodMachine _method_machine;
+    // URIMachine _uri_machine;
+    // VersionMachine _version_machine;
+
+    StateMachine<RequestLineState> _machine;
     
     RequestLineState _state;
     UriAnalyzer _uri_analyser;
     RequestMethod _request_method;
     std::string _method;
     std::string _uri;
-
-    // HttpVersion _http_version;
     std::string _version;
-    // std::string _version_digit;
 };
 
 } // namespace webshell

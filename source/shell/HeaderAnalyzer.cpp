@@ -64,7 +64,8 @@ void HeaderAnalyzer::feed(unsigned char ch)
 
 bool HeaderAnalyzer::done(void) const
 {
-    return (_header_state == END_HEADERS);
+    // return (_header_state == END_HEADERS);
+    return (true);
 }
 
 std::string HeaderAnalyzer::host() const

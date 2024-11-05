@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:37:55 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 19:31:03 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,8 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    Request req;
+    std::cerr << "Request Line parsed. Method: " << _method << "Target: " << _target << "Version: " << _version << std::endl;
+    Request req; 
     req.setMethod(_method);
     req.setTarget(_target);
     req.setVersion(_version);

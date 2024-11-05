@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:31:24 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/31 22:46:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 20:03:29 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ void StateMachine<TState>::addAction(const TState& state, actionFunction lambda)
     std::pair<TState, actionFunction> new_action;
     new_action.first = state;
     new_action.second = lambda;
+    std::cerr << "Inserted pair" << std::endl;
     _actions.insert(new_action);
 }
 
@@ -114,6 +115,9 @@ bool StateMachine<TState>::feed(unsigned char c)
 {
     if (_actions.find(_current_state) == _actions.end())
     {
+        std::cerr << "Map size: " << _actions.size() << std::endl;
+        std::cerr << "Right pos holds: " << _actions.end()->first;
+        std::cerr << "For state: " << _current_state << " char: " << c << " : " << std::endl;
         throw std::runtime_error("Action error: no action for current state");
     }
     return (_actions[_current_state](c));
@@ -135,6 +139,27 @@ template <class TState>
 bool StateMachine<TState>::done(void)
 {
     return (_current_state == _final_state);
+}
+
+template <class TState>
+StateMachine<TState>::StateMachine(const StateMachine& other) : _current_state(other._current_state),
+    _final_state(other._final_state), _states(other._states), _transitions(other._transitions),
+    _actions(other._actions), _setup(other._setup)
+{
+}
+
+template <class TState>
+StateMachine<TState>& StateMachine<TState>::operator=(const StateMachine& other)
+{
+    if (this == &other)
+        return (*this);
+    _current_state = other._current_state;
+    _final_state = other._final_state;
+    _states = other._states;
+    _transitions = other._transitions;
+    _actions = other._actions;
+    _setup = other._setup;
+    return (*this);
 }
 
 template <class TState>

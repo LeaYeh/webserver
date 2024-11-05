@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:34:45 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 19:29:21 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,12 +41,9 @@ class RequestAnalyzer
 
   private:
 
-
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
-    // UriAnalyzer _uri_analyzer; //Should be inside RL analyzer!!
     HeaderAnalyzer _header_analyzer;
-    // BodyAnalyzer _body_analyzer;
 
     RequestMethod _method;
     std::string _target;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UriAnalyzer.hpp"
-#include "RLMachines.hpp"
+#include "URIMachine.hpp"
 #include "defines.hpp"
 #include <iostream>
 #include <cstdlib>

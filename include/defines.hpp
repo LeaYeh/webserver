@@ -110,22 +110,6 @@ enum URIState
     END_URI_PARSER
 };
 
-enum VersionState
-{
-    VERSION_ERROR = -1,
-    VERSION_START = 0,
-    VERSION_H,
-    VERSION_T,
-    // VERSION_T2,
-    VERSION_P,
-    VERSION_SLASH,
-    VERSION_MAJOR,
-    VERSION_DOT,
-    VERSION_MINOR,
-    RQLINE_CRLF,
-    END_VERSION_PARSER
-};
-
 enum RequestHeaderState
 {
     START_HEADER,

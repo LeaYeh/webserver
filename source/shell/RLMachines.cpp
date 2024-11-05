@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:06:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 17:08:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ static bool is_tchar(unsigned char c)
         return (true);
     if (c == '-' || c == '.' || c == '^' || c == '_')
         return (true);
-    if (c == '|' || c == '~') //TODO: ‘ is not even in ascii table
+    if (c == '|' || c == '~' || c == '\'')
         return (true);
     return (false);
 }

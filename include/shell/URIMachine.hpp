@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RLMachines.hpp                                     :+:      :+:    :+:   */
+/*   URIMachine.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 17:06:04 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 21:00:01 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef RLMACHINES_HPP
-# define RLMACHINES_HPP
+#ifndef URIMACHINE_HPP
+# define URIMACHINE_HPP
 
 #include "defines.hpp"
 #include "StateMachine.hpp"
@@ -20,27 +20,6 @@
 
 namespace webshell
 {
-
-// bool validate_start(unsigned char c);
-// bool analyze_method(unsigned char c);
-// void generic_transition_function(void);
-// bool is_tchar(unsigned char c);
-
-class MethodMachine
-{
-    public:
-        MethodMachine();
-        ~MethodMachine();
-
-        void feed(unsigned char c);
-        bool done(void);
-
-    private:
-        MethodMachine(const MethodMachine& other);
-        MethodMachine& operator=(const MethodMachine& other);
-
-        StateMachine<RequestLineState> _machine;
-};
 
 class URIMachine
 {
@@ -56,23 +35,6 @@ class URIMachine
         URIMachine& operator=(const URIMachine& other);
 
         StateMachine<URIState> _machine;
-};
-
-class VersionMachine
-{
-    public:
-        VersionMachine();
-        ~VersionMachine();
-
-        void feed(unsigned char c);
-        bool done(void);
-        VersionState get_current_state(void);
-
-    private:
-        VersionMachine(const VersionMachine& other);
-        VersionMachine& operator=(const VersionMachine& other);
-
-        StateMachine<VersionState> _machine;
 };
 
 } // namespace webshell

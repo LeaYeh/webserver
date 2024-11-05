@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/01 18:24:24 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 14:37:14 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,6 +128,11 @@ void VersionMachine::feed(unsigned char c)
 bool VersionMachine::done()
 {
     return (_machine.done());
+}
+
+VersionState VersionMachine::get_current_state(void)
+{
+    return (_machine.getCurrentState());
 }
 
 

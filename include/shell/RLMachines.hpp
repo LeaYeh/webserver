@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 21:10:19 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/01 18:19:23 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/05 14:36:25 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ class VersionMachine
 
         void feed(unsigned char c);
         bool done(void);
+        VersionState get_current_state(void);
 
     private:
         VersionMachine(const VersionMachine& other);

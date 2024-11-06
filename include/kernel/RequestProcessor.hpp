@@ -19,7 +19,7 @@ class RequestProcessor
     RequestProcessor& operator=(const RequestProcessor& other);
     ~RequestProcessor();
 
-    void analyze(int fd, std::string& buffer);
+    bool analyze(int fd, std::string& buffer);
     void analyzeFinalize(int fd);
     void removeAnalyzer(int fd);
 

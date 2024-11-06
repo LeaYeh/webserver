@@ -98,6 +98,8 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     webshell::Response err_response =
         webshell::ResponseBuilder::buildErrorResponse(status_code, description);
 
+    weblog::Logger::log(weblog::CRITICAL,
+                        "Error response: \n" + err_response.serialize());
     _error_buffer[fd] = err_response.serialize();
 }
 
@@ -124,7 +126,8 @@ void ConnectionHandler::_handleRead(int fd)
                                     " bytes from fd: " + utils::toString(fd));
             weblog::Logger::log(weblog::DEBUG,
                                 "Buffer: \n" + std::string(buffer, bytes_read));
-            _processor.analyze(fd, _read_buffer[fd]);
+            if (_processor.analyze(fd, _read_buffer[fd]))
+                break;
         }
         else if (bytes_read == 0)
         {

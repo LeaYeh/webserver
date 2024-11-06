@@ -89,7 +89,9 @@ enum RequestMethod
 enum RequestLineState
 {
     RQLINE_ERROR = -1,
-    RQLINE_START = 0,
+    PRE_CR = 0,
+    PRE_LF,
+    // RQLINE_START,
     METHOD,
     // SPACE_BEFORE_URI,
     URI,

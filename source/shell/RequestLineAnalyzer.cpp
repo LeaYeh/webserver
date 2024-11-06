@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 16:48:35 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 17:39:06 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,15 @@ static bool analyze_uri(unsigned char c)
         return (false);
 }
 
+static bool check_lf(unsigned char c)
+{
+    if (c == '\n')
+        return (true);
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                BAD_REQUEST_MSG);  
+}
+
 static bool analyze_version(unsigned char c)
 {
     static int pos = 0;
@@ -98,7 +107,9 @@ static bool analyze_version(unsigned char c)
 
 RequestLineAnalyzer::RequestLineAnalyzer()
 {
-    _machine.addState(RQLINE_START);
+    _machine.addState(PRE_CR);
+    _machine.addState(PRE_LF);
+    // _machine.addState(RQLINE_START);
     _machine.addState(METHOD);
     _machine.addState(URI);
     _machine.addState(VERSION);
@@ -106,7 +117,13 @@ RequestLineAnalyzer::RequestLineAnalyzer()
 
     _machine.setFinalState(END_RQLINE);
 
-    _machine.addTransition(RQLINE_START, METHOD,
+    // _machine.addTransition(RQLINE_START, METHOD,
+    //             generic_transition_function);
+    _machine.addTransition(PRE_CR, METHOD,
+                generic_transition_function);
+    _machine.addTransition(PRE_CR, PRE_LF,
+                generic_transition_function);
+    _machine.addTransition(PRE_LF, PRE_CR,
                 generic_transition_function);
     _machine.addTransition(METHOD, URI,
                 generic_transition_function);
@@ -115,7 +132,8 @@ RequestLineAnalyzer::RequestLineAnalyzer()
     _machine.addTransition(VERSION, END_RQLINE,
                 generic_transition_function);
 
-    _machine.addAction(RQLINE_START, validate_start);
+    _machine.addAction(PRE_CR, validate_start);
+    _machine.addAction(PRE_LF, check_lf);
     _machine.addAction(METHOD, analyze_method);
     _machine.addAction(URI, analyze_uri);
     _machine.addAction(VERSION, analyze_version);
@@ -184,13 +202,31 @@ void RequestLineAnalyzer::feed(unsigned char ch)
 {
     switch (_machine.getCurrentState())
     {
-        case RQLINE_START:
+        case PRE_CR:
         {
-            _machine.feed(ch);
-            _method.push_back(ch);
-            _machine.transitionTo(METHOD);
+            if (ch == '\r')
+                _machine.transitionTo(PRE_LF);
+            else
+            {
+                _machine.feed(ch);
+                _method.push_back(ch);
+                _machine.transitionTo(METHOD);
+            }
             break;
         }
+        case PRE_LF:
+        {
+            _machine.feed(ch);
+            _machine.transitionTo(PRE_CR);
+            break;
+        }
+        // case RQLINE_START:
+        // {
+        //     _machine.feed(ch);
+        //     _method.push_back(ch);
+        //     _machine.transitionTo(METHOD);
+        //     break;
+        // }
         case METHOD:
         {
             if (_machine.feed(ch))
@@ -227,7 +263,7 @@ bool RequestLineAnalyzer::done(void) const
 
 void RequestLineAnalyzer::reset(void)
 {
-    _machine.setCurrentState(RQLINE_START);
+    _machine.setCurrentState(PRE_CR);
     _method = "";
     _uri = "";
     _version = "";

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 20:42:20 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 15:47:19 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,10 @@ RequestMethod RequestLineAnalyzer::method() const
 
 float RequestLineAnalyzer::version() const
 {
-    return (atof(_version.c_str()));
+    if (_version.size() < 3)
+        return (0.0);
+    else
+        return (atof(_version.substr(_version.length() - 3, 3).c_str()));
 }
 
 std::string RequestLineAnalyzer::target() const
@@ -183,11 +186,9 @@ void RequestLineAnalyzer::feed(unsigned char ch)
     {
         case RQLINE_START:
         {
-            if (_machine.feed(ch))
-            {
-                _method.push_back(ch);
-                _machine.transitionTo(METHOD);
-            }
+            _machine.feed(ch);
+            _method.push_back(ch);
+            _machine.transitionTo(METHOD);
             break;
         }
         case METHOD:
@@ -211,7 +212,7 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             if (_machine.feed(ch))
                 _machine.transitionTo(END_RQLINE);
             else if (ch != '\r')
-                _method.push_back(ch);
+                _version.push_back(ch);
             break;
         }
         default:

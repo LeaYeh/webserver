@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 15:45:03 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 16:43:57 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,10 @@ void RequestAnalyzer::feed(const char ch)
             }
             break;
         default:
+        {
+            std::cerr << "State received: " << _state << std::endl;
             throw std::runtime_error("Request parse error");
+        }
     }
     //TODO: how to handle body??
 }
@@ -84,6 +87,10 @@ bool RequestAnalyzer::isComplete(void) const
 
 void RequestAnalyzer::reset(void)
 {
+    _method = UNKNOWN;
+    _target = "";
+    _version = -0.0;
+    _rl_analyzer.reset();
     _state = PARSING_REQUEST_LINE;
 }
 

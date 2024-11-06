@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 15:47:19 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 16:48:35 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,14 @@ void RequestLineAnalyzer::feed(unsigned char ch)
 bool RequestLineAnalyzer::done(void) const
 {
     return (_machine.getCurrentState() == END_RQLINE);
+}
+
+void RequestLineAnalyzer::reset(void)
+{
+    _machine.setCurrentState(RQLINE_START);
+    _method = "";
+    _uri = "";
+    _version = "";
 }
 
 } // namespace webshell

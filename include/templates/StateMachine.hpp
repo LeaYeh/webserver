@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:27:27 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 19:59:59 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 16:49:54 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class StateMachine
     bool done(void);
     bool feed(unsigned char c);
     TState getCurrentState(void) const;
+    void setCurrentState(TState state);
     // virtual void SetupTransitions(void);
 
   private:

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:31:24 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/05 20:41:24 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 16:49:48 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,6 +126,12 @@ template <class TState>
 TState StateMachine<TState>::getCurrentState() const
 {
     return (_current_state);
+}
+
+template <class TState>
+void StateMachine<TState>::setCurrentState(TState state)
+{
+    _current_state = state;
 }
 
 template <class TState>

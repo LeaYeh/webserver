@@ -127,7 +127,10 @@ void ConnectionHandler::_handleRead(int fd)
             weblog::Logger::log(weblog::DEBUG,
                                 "Buffer: \n" + std::string(buffer, bytes_read));
             if (_processor.analyze(fd, _read_buffer[fd]))
+            {
+                // _analyzer_pool[fd].reset();
                 break;
+            }
         }
         else if (bytes_read == 0)
         {

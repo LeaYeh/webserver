@@ -55,7 +55,8 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         if (_analyzer_pool[fd].isComplete() && (i < buffer.size() - 1))
         {
             analyzeFinalize(fd);
-            break;
+            buffer.erase(0, i);
+            return (true);
         }
         i++;
     }
@@ -79,7 +80,7 @@ void RequestProcessor::analyzeFinalize(int fd)
 
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
-    // _analyzer_pool[fd].reset();
+    _analyzer_pool[fd].reset();
 }
 
 void RequestProcessor::removeAnalyzer(int fd)

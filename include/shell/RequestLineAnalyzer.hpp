@@ -24,6 +24,7 @@ class RequestLineAnalyzer
   
     void feed(unsigned char ch);
     bool done(void) const;
+    void reset(void);
 
   private:
 

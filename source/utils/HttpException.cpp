@@ -1,5 +1,8 @@
 #include "HttpException.hpp"
+#include "defines.hpp"
 #include "shellUtils.hpp"
+#include "utils.hpp"
+#include "Logger.hpp"
 
 namespace utils
 {
@@ -8,6 +11,7 @@ HttpException::HttpException(const webshell::StatusCode& statusCode,
                              const std::string& reasonDetail)
     : _statusCode(statusCode), _reasonDetail(reasonDetail)
 {
+    weblog::Logger::log(weblog::CRITICAL, "status code: " + toString(statusCode) + ", reason detail: " + reasonDetail);
 }
 
 HttpException::~HttpException() throw()

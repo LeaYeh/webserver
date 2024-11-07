@@ -23,12 +23,12 @@ ResponseBuilder::~ResponseBuilder()
 {
 }
 
-Response ResponseBuilder::buildErrorResponse(StatusCode status_code, const std::string& message)
+Response ResponseBuilder::buildErrorResponse(StatusCode status_code,
+                                             const std::string& message)
 {
     Response response;
 
     response.setStatusCode(status_code);
-    response.setHeader("Content-Length", utils::toString(message.size()));
     response.setHeader("Content-Type", "text/plain");
     response.setBody(message);
 

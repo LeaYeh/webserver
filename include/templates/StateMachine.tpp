@@ -6,13 +6,11 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:31:24 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/31 22:46:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/10/23 20:47:56 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <exception>
-#include <stdexcept>
-#include "ParseException.hpp"
 
 template <class TState> StateMachine<TState>::StateMachine()
 {
@@ -63,12 +61,6 @@ void StateMachine<TState>::addTransition(const TState& startState,
     }
 }
 
-// template <class TState>
-// void StateMachine<TState>::SetupTransitions(void)
-// {
-    
-// }
-
 template <class TState>
 void StateMachine<TState>::addAction(const TState& state, actionFunction lambda)
 {
@@ -109,8 +101,7 @@ void StateMachine<TState>::transitionTo(const TState& state)
         state; // i cant put this before the previous line lol im stupid
 }
 
-template <class TState>
-bool StateMachine<TState>::feed(unsigned char c)
+template <class TState> bool StateMachine<TState>::update(unsigned char c)
 {
     if (_actions.find(_current_state) == _actions.end())
     {
@@ -119,40 +110,7 @@ bool StateMachine<TState>::feed(unsigned char c)
     return (_actions[_current_state](c));
 }
 
-template <class TState>
-TState StateMachine<TState>::getCurrentState() const
+template <class TState> TState StateMachine<TState>::getCurrentState() const
 {
     return (_current_state);
-}
-
-template <class TState>
-void StateMachine<TState>::setFinalState(const TState& state)
-{
-    _final_state = state;
-}
-
-template <class TState>
-bool StateMachine<TState>::done(void)
-{
-    return (_current_state == _final_state);
-}
-
-template <class TState>
-void StateMachine<TState>::_analyze_method(unsigned char c)
-{
-    (void)c;
-    // if (c == ' ')
-    //     transitionTo(SPACE_BEFORE_URI);
-    // else if (!is_tchar(c))
-    //     throw (ParseException(BAD_REQUEST, BAD_REQUEST_MSG));
-}
-
-template <class TState>
-void StateMachine<TState>::_validate_start(unsigned char c)
-{
-    (void)c;
-    // if (!is_tchar(c))
-    //     throw (ParseException(BAD_REQUEST, BAD_REQUEST_MSG));
-    // else
-    //     transitionTo(METHOD);
 }

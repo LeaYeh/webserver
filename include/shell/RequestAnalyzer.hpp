@@ -7,6 +7,7 @@
 #include "defines.hpp"
 
 #include <string>
+#include <vector>
 
 namespace webshell
 {
@@ -14,12 +15,11 @@ namespace webshell
 class RequestAnalyzer
 {
   public:
-    // TODO: put the copy constructor and assignment operator in private
-    RequestAnalyzer(const RequestAnalyzer& other);
-    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
     RequestAnalyzer();
     ~RequestAnalyzer();
+    RequestAnalyzer(const RequestAnalyzer& other);
+    RequestAnalyzer& operator=(const RequestAnalyzer& other);
 
     void feed(const char ch);
     bool isComplete(void) const;
@@ -28,10 +28,20 @@ class RequestAnalyzer
     Request request(void) const;
 
   private:
+
+
     RequestAnalyzerState _state;
-    RequestLineAnalyzer _request_line_analyzer;
-    UriAnalyzer _uri_analyzer;
+    RequestLineAnalyzer _rl_analyzer;
+    // UriAnalyzer _uri_analyzer; //Should be inside RL analyzer!!
     HeaderAnalyzer _header_analyzer;
+    // BodyAnalyzer _body_analyzer;
+
+    RequestMethod _method;
+    std::string _target;
+    float _version;
+    //How i fill a map with headers from inside??
+    //std::map<std::string, std::string> _headers;
+    std::string _body;
 };
 
 } // namespace webshell

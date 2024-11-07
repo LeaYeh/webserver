@@ -57,6 +57,16 @@ void HeaderAnalyzer::parse_headers(const std::string& line,
     (void)current_state;
 }
 
+void HeaderAnalyzer::feed(unsigned char ch)
+{
+    (void)ch;
+}
+
+bool HeaderAnalyzer::done(void) const
+{
+    return (_header_state == END_HEADERS);
+}
+
 std::string HeaderAnalyzer::host() const
 {
     return (_host);

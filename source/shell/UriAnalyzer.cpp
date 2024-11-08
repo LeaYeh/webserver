@@ -8,11 +8,14 @@ UriAnalyzer::UriAnalyzer()
 {
     _idx = 0;
     _state = URI_START;
+    _path = "";
+    _host = "";
+    _port = "";
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
-    : _scheme(other._scheme), _directory(other._directory), _query(other._query),
-        _state(other._state), _idx(other._idx)
+    : _host(other._host), _port(other._port), _path(other._path),
+        _query(other._query), _state(other._state), _idx(other._idx)
 {
 }
 
@@ -20,8 +23,9 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
 {
     if (this != &other)
     {
-        _scheme = other._scheme;
-        _directory = other._directory;
+        _host = other._host;
+        _port = other._port;
+        _path = other._path;
         _query = other._query;
         _state = other._state;
         _idx = other._idx;
@@ -47,15 +51,94 @@ void UriAnalyzer::parse_uri(std::string& uri)
         _feed(*iter);
         iter++;
     }
+    _state = END_URI_PARSER;
+}
+
+void UriAnalyzer::_uri_start(unsigned char c)
+{
+    if (c == 'h' || c == 'H')
+        _state = URI_SCHEME;
+    else if (c == '/') //path-empty already covered
+    {
+        _path.push_back(c);
+        _state = URI_REL_START;
+    }
+    else if (_is_pchar(c))
+    {
+        _path.push_back(c);
+        _state = URI_PATH;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+        BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_rel_start(unsigned char c)
+{
+    if (c == '/')
+    {
+        _path.erase(_path.size() - 1);
+        _state = URI_HOST;
+    }
+    else if (_is_pchar(c))
+    {
+        _path.push_back(c);
+        _state = URI_PATH;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+        BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_scheme(unsigned char c)
+{
+    _idx++;
+    if ((_idx == 1 || _idx == 2) && (c == 't' || c == 'T')) 
+        return ;
+    if (_idx == 3 && (c == 'p' || c == 'P')) 
+        return ;
+    if (_idx == 4 && c == ':') 
+        return ;
+    if (_idx == 5 && c == '/') 
+        return ;
+    if (_idx == 6 && c == '/') 
+    {
+        _idx = 0;
+        _state = URI_HOST;
+        return;
+    }
+    throw utils::HttpException(webshell::BAD_REQUEST,
+        BAD_REQUEST_MSG);
 }
 
 void UriAnalyzer::_feed(unsigned char c)
 {
-    (void)c;
-    // switch (_state)
-    // {
-
-    // }
+    //TODO: handle percent-encoding first!!
+    switch (_state)
+    {
+        case URI_START:
+            _uri_start(c);
+            break;
+        case URI_REL_START:
+            _uri_rel_start(c);
+            break;
+        case URI_SCHEME:
+            _uri_scheme(c);
+            break;
+        case URI_HOST:
+            break;
+        case URI_PORT:
+            break;
+        case URI_PATH:
+            break;
+        case URI_QUERY:
+            break;
+        case URI_FRAGMENT:
+            break; 
+        default:
+            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                "Feed at URIAnalyzer failed");
+    }
 }
 
 void UriAnalyzer::reset()
@@ -65,15 +148,15 @@ void UriAnalyzer::reset()
     //set strings to empty here
 }
 
-std::string UriAnalyzer::scheme() const
-{
-    return (_scheme);
-}
+// std::string UriAnalyzer::scheme() const
+// {
+//     return (_scheme);
+// }
 
-std::string UriAnalyzer::directory() const
-{
-    return (_directory);
-}
+// std::string UriAnalyzer::directory() const
+// {
+//     return (_directory);
+// }
 
 std::string UriAnalyzer::query() const
 {
@@ -112,7 +195,7 @@ bool UriAnalyzer::_is_gen_delim(unsigned char c)
     return (false);
 }
 
-bool UriAnalyzer::_is_pchar(unsigned char c, bool userinfo)
+bool UriAnalyzer::_is_pchar(unsigned char c/*, bool userinfo*/)
 {
     if (_is_unreserved(c))
         return (true);
@@ -121,14 +204,14 @@ bool UriAnalyzer::_is_pchar(unsigned char c, bool userinfo)
         return (true);
     if (c == ':')
         return (true);
-    if (c == '@' && !userinfo)
-        return (true);
+    // if (c == '@' && !userinfo)
+    //     return (true);
     return (false);
 }
 
 bool UriAnalyzer::_is_query_or_fragment_part(unsigned char c)
 {
-    if (_is_pchar(c, false))
+    if (_is_pchar(c))
         return (true);
     if (c == '/' || c == '?')
         return (true);

@@ -21,6 +21,13 @@ class UriAnalyzer
     std::string query(void) const;
 
   private:
+
+    bool _is_gen_delim(unsigned char c);
+    bool _is_sub_delim(unsigned char c);
+    bool _is_unreserved(unsigned char c);
+    bool _is_pchar(unsigned char c, bool userinfo);
+    bool _is_query_or_fragment_part(unsigned char c);
+
     std::string _scheme;
     std::string _directory;
     std::string _query;

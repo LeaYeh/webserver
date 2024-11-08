@@ -28,9 +28,12 @@ class UriAnalyzer
     void _uri_start(unsigned char c);
     void _uri_rel_start(unsigned char c);
     void _uri_scheme(unsigned char c);
+    void _uri_port(unsigned char c);
+    void _uri_path_trial(unsigned char c);
     void _uri_path(unsigned char c);
     void _uri_query(unsigned char c);
     void _uri_fragment(unsigned char c);
+    void _uri_host_trial(unsigned char c);
     
     bool _is_gen_delim(unsigned char c);
     bool _is_sub_delim(unsigned char c);
@@ -38,7 +41,12 @@ class UriAnalyzer
     bool _is_pchar(unsigned char c/*, bool userinfo*/);
     bool _is_query_or_fragment_part(unsigned char c);
 
+    unsigned char _decode_percent();
+    unsigned char _hexval(unsigned char c);
+    bool _valid_hexdigit(unsigned char c);
+
     // std::string _scheme; //we dont really need this for anything
+    std::string _uri;
     std::string _host;
     std::string _port;
     std::string _path;
@@ -48,7 +56,9 @@ class UriAnalyzer
     std::string _fragment;
 
     URIState _state;
-    int _idx;
+    unsigned int _idx;
+    // int _max;
+    int _sidx;
     int _percent_idx;
     int _percent_val;
 };

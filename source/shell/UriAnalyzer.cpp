@@ -7,6 +7,7 @@ namespace webshell
 UriAnalyzer::UriAnalyzer()
 {
     _idx = 0;
+    _sidx = 0;
     _state = URI_START;
     _path = "";
     _host = "";
@@ -48,13 +49,15 @@ void UriAnalyzer::parse_uri(std::string& uri)
     if (uri.empty())
         throw utils::HttpException(webshell::NOT_FOUND,
                 NOT_FOUND_MSG);
-    std::string::const_iterator iter = uri.begin();
-    while (iter < uri.end())
+    // std::string::const_iterator iter = uri.begin();
+    //Need to kill this iterator because erase() inside of the nest would ivalidate
+    _uri = uri;
+    while (_idx < _uri.size())
     {
-        _feed(*iter);
-        iter++;
+        _feed(_uri[_idx]);
+        _idx++;
     }
-    if (_state < URI_PATH)
+    if (_state < URI_REL_START) //TODO: is it host? or which state? always consider abempty
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
     _state = END_URI_PARSER;
@@ -74,6 +77,12 @@ void UriAnalyzer::_uri_start(unsigned char c)
         _path.push_back(c);
         _state = URI_PATH;
     }
+    else if (c == '%')
+    {
+        _path.push_back(_decode_percent());
+        _state = URI_PATH;
+        return;
+    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
         BAD_REQUEST_MSG);
@@ -84,12 +93,18 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
     if (c == '/')
     {
         _path.erase(_path.size() - 1);
-        _state = URI_HOST;
+        _state = URI_HOST_TRIAL;
     }
     else if (_is_pchar(c))
     {
         _path.push_back(c);
         _state = URI_PATH;
+    }
+    else if (c == '%')
+    {
+        _path.push_back(_decode_percent());
+        _state = URI_PATH;
+        return;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -98,19 +113,19 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
 
 void UriAnalyzer::_uri_scheme(unsigned char c)
 {
-    _idx++;
-    if ((_idx == 1 || _idx == 2) && (c == 't' || c == 'T')) 
+    _sidx++;
+    if ((_sidx == 1 || _sidx == 2) && (c == 't' || c == 'T')) 
         return ;
-    if (_idx == 3 && (c == 'p' || c == 'P')) 
+    if (_sidx == 3 && (c == 'p' || c == 'P')) 
         return ;
-    if (_idx == 4 && c == ':') 
+    if (_sidx == 4 && c == ':') 
         return ;
-    if (_idx == 5 && c == '/') 
+    if (_sidx == 5 && c == '/') 
         return ;
-    if (_idx == 6 && c == '/') 
+    if (_sidx == 6 && c == '/') 
     {
-        _idx = 0;
-        _state = URI_HOST;
+        _sidx = 0;
+        _state = URI_HOST_TRIAL;
         return;
     }
     throw utils::HttpException(webshell::BAD_REQUEST,
@@ -125,6 +140,11 @@ void UriAnalyzer::_uri_path(unsigned char c)
     if (c == '/' || _is_pchar(c))
     {
         _path.push_back(c);
+        return;
+    }
+    else if (c == '%')
+    {
+        _path.push_back(_decode_percent());
         return;
     }
     if (c == '?')
@@ -143,6 +163,11 @@ void UriAnalyzer::_uri_query(unsigned char c)
         _query.push_back(c);
         return;
     }
+    else if (c == '%')
+    {
+        _query.push_back(_decode_percent());
+        return;
+    }
     else if (c == '#')
         _state = URI_FRAGMENT;
     else
@@ -156,6 +181,102 @@ void UriAnalyzer::_uri_fragment(unsigned char c)
     {
         _fragment.push_back(c);
         return;
+    }
+    else if (c == '%')
+    {
+        _fragment.push_back(_decode_percent());
+        return;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_path_trial(unsigned char c)
+{
+    if (_is_pchar(c))
+    {
+        _path.push_back(c);
+        _state = URI_PATH;
+    }
+    else if (c == '%')
+    {
+        _path.push_back(_decode_percent());
+        _state = URI_PATH;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_port(unsigned char c)
+{
+    if (isdigit(c))
+    {
+        _port.push_back(c);
+        return;
+    }
+    else if (c == '/')
+    {
+        _path.push_back(c);
+        _state = URI_PATH_TRIAL;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+bool UriAnalyzer::_valid_hexdigit(unsigned char c)
+{
+    if (isdigit(c))
+        return (true);
+    if (c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f')
+        return (true);
+    if (c == 'A' || c == 'B' || c == 'C' || c == 'D' || c == 'E' || c == 'F')
+        return (true);
+    return (false);
+}
+
+unsigned char UriAnalyzer::_hexval(unsigned char c)
+{
+    if (isdigit(c))
+        return (c - 48);
+    if (c > 96)
+        return (c - 'a' + 10);
+    return (c - 'A' + 10);
+}
+
+unsigned char UriAnalyzer::_decode_percent()
+{
+    if (_idx > _uri.size() - 3)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+
+    unsigned char first = _uri[_idx + 1];
+    unsigned char second = _uri[_idx + 2];
+    if (!_valid_hexdigit(first) || !_valid_hexdigit(second))
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+
+    _idx += 3;
+    //TODO: is %FF a problem? would turn to 256
+    return (_hexval(first) * 16 + _hexval(second));
+}
+
+void UriAnalyzer::_uri_host_trial(unsigned char c)
+{
+    if (c == '%')
+        c = _decode_percent();
+    if (isdigit(c))
+    {
+        _host.push_back(c);
+        _state = URI_HOST_IPV4;
+        return;
+    }
+    else if (_is_unreserved(c) || _is_sub_delim(c))
+    {
+        _host.push_back(c);
+        _state = URI_HOST_REGNAME;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -176,9 +297,15 @@ void UriAnalyzer::_feed(unsigned char c)
         case URI_SCHEME:
             _uri_scheme(c);
             break;
-        case URI_HOST:
+        case URI_HOST_IPV4:
+            break;
+        case URI_HOST_REGNAME:
             break;
         case URI_PORT:
+            _uri_port(c);
+            break;
+        case URI_PATH_TRIAL:
+            _uri_path_trial(c);
             break;
         case URI_PATH:
             _uri_path(c);

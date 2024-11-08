@@ -126,11 +126,8 @@ void UriAnalyzer::_uri_path(unsigned char c)
     //except for the beginning which is reserved to signal authority, but i cover
     //that at URI_REL_START
     if (c == '/' || _is_pchar(c))
-    {
         _path.push_back(c);
-        return;
-    }
-    if (c == '?')
+    else if (c == '?')
         _state = URI_QUERY;
     else if (c == '#')
         _state = URI_FRAGMENT;
@@ -142,10 +139,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
 void UriAnalyzer::_uri_query(unsigned char c)
 {
     if (c == '/' || c == '?' || _is_pchar(c))
-    {
         _query.push_back(c);
-        return;
-    }
     else if (c == '#')
         _state = URI_FRAGMENT;
     else
@@ -158,7 +152,6 @@ void UriAnalyzer::_uri_fragment(unsigned char c)
     if (c == '/' || c == '?' || _is_pchar(c))
     {
         _fragment.push_back(c);
-        return;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -180,10 +173,7 @@ void UriAnalyzer::_uri_path_trial(unsigned char c)
 void UriAnalyzer::_uri_port(unsigned char c)
 {
     if (isdigit(c))
-    {
         _port.push_back(c);
-        return;
-    }
     else if (c == '/')
     {
         _path.push_back(c);
@@ -233,17 +223,11 @@ unsigned char UriAnalyzer::_decode_percent()
 
 void UriAnalyzer::_uri_host_trial(unsigned char c)
 {
+    _host.push_back(c);
     if (isdigit(c))
-    {
-        _host.push_back(c);
         _state = URI_HOST_IPV4;
-        return;
-    }
     else if (_is_unreserved(c) || _is_sub_delim(c))
-    {
-        _host.push_back(c);
         _state = URI_HOST_REGNAME;
-    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);

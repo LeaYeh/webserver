@@ -14,7 +14,8 @@ class UriAnalyzer
     UriAnalyzer& operator=(const UriAnalyzer& other);
     ~UriAnalyzer();
 
-    void parse_uri(const std::string& uri);
+    void parse_uri(std::string& uri);
+    void reset();
 
     std::string scheme(void) const;
     std::string directory(void) const;
@@ -22,6 +23,8 @@ class UriAnalyzer
 
   private:
 
+    void _feed(unsigned char c);
+    
     bool _is_gen_delim(unsigned char c);
     bool _is_sub_delim(unsigned char c);
     bool _is_unreserved(unsigned char c);
@@ -31,5 +34,10 @@ class UriAnalyzer
     std::string _scheme;
     std::string _directory;
     std::string _query;
+
+    URIState _state;
+    int _idx;
+    int _percent_idx;
+    int _percent_val;
 };
 } // namespace webshell

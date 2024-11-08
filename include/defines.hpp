@@ -103,12 +103,17 @@ enum RequestLineState
 
 enum URIState
 {
-    URISTATE_START = 0,
+    URI_ERROR = -1,
+    URI_START = 0,
     URI_SCHEME,
-    URI_DIRECTORY_SLASH,
-    URI_CLOSE_SSLASH,
+    URI_HOST,
+    URI_PORT,
+    URI_REL_START,
+    URI_PATH,
+    // URI_DIRECTORY_SLASH,
+    // URI_CLOSE_SSLASH,
     URI_QUERY,
-    URI_ERROR,
+    URI_FRAGMENT,
     END_URI_PARSER
 };
 

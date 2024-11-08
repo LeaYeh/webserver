@@ -1,14 +1,18 @@
 #include "UriAnalyzer.hpp"
+#include "HttpException.hpp"
 
 namespace webshell
 {
 
 UriAnalyzer::UriAnalyzer()
 {
+    _idx = 0;
+    _state = URI_START;
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
-    : _scheme(other._scheme), _directory(other._directory), _query(other._query)
+    : _scheme(other._scheme), _directory(other._directory), _query(other._query),
+        _state(other._state), _idx(other._idx)
 {
 }
 
@@ -19,6 +23,8 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
         _scheme = other._scheme;
         _directory = other._directory;
         _query = other._query;
+        _state = other._state;
+        _idx = other._idx;
     }
     return (*this);
 }
@@ -27,9 +33,36 @@ UriAnalyzer::~UriAnalyzer()
 {
 }
 
-void UriAnalyzer::parse_uri(const std::string& uri)
+void UriAnalyzer::parse_uri(std::string& uri)
 {
-    (void)uri;
+    //received path_empty. This is not a bad request but can't be processed.
+    //TODO: if i throw not found here, i need to analyze everything else before
+    //as bad_request should take precedence.
+    if (uri.empty())
+        throw utils::HttpException(webshell::NOT_FOUND,
+                NOT_FOUND_MSG);
+    std::string::const_iterator iter = uri.begin();
+    while (iter < uri.end())
+    {
+        _feed(*iter);
+        iter++;
+    }
+}
+
+void UriAnalyzer::_feed(unsigned char c)
+{
+    (void)c;
+    // switch (_state)
+    // {
+
+    // }
+}
+
+void UriAnalyzer::reset()
+{
+    _idx = _percent_idx = _percent_val = 0;
+    _state = URI_START;
+    //set strings to empty here
 }
 
 std::string UriAnalyzer::scheme() const

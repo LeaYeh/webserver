@@ -8,6 +8,8 @@ UriAnalyzer::UriAnalyzer()
 {
     _idx = 0;
     _sidx = 0;
+    _ipv_digit = 0;
+    _ipv_dot = 0;
     _state = URI_START;
     _path = "";
     _host = "";
@@ -123,7 +125,7 @@ void UriAnalyzer::_uri_scheme(unsigned char c)
 void UriAnalyzer::_uri_path(unsigned char c)
 {
     //segment is 0 or more pchar, so we could in theory keep receiving just slashes,
-    //except for the beginning which is reserved to signal authority, but i cover
+    //except for the beginning which is reserved to signal authority start, but i cover
     //that at URI_REL_START
     if (c == '/' || _is_pchar(c))
         _path.push_back(c);
@@ -233,8 +235,63 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
             BAD_REQUEST_MSG);
 }
 
+void UriAnalyzer::_uri_host_ipv4(unsigned char c)
+{
+    if (isdigit(c))
+    {
+        _ipv_digit = true;
+        _host.push_back(c);
+    }
+    else if (c == '.')
+    {
+        if (!_ipv_digit)
+            goto except;
+        else
+            _ipv_digit = false;
+        _ipv_dot++;
+        _host.push_back(c);
+    }
+    else if (c == ':')
+        _state = URI_PORT;
+    else if (c == '/')
+    {
+        _path.push_back(c);
+        _state = URI_PATH_TRIAL;
+    }
+    else
+        goto except;
+    if (_ipv_dot > 3)
+        goto except;
+    
+    return;
+
+    except:
+
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_host_regname(unsigned char c)
+{
+    if (_is_unreserved(c) || _is_sub_delim(c))
+        _host.push_back(c);
+    else if (c == '/')
+    {
+        _path.push_back(c);
+        _state = URI_PATH_TRIAL;
+    }
+    else if (c == ':')
+        _state = URI_PORT;
+    else if (c == '%')
+        _path.push_back(_decode_percent());
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
 void UriAnalyzer::_feed(unsigned char c)
 {
+    //TODO: this is not good!!! I interpret metachars!! Gotta place it back into functions!!!
     if (c == '%')
         c = _decode_percent();
     switch (_state)
@@ -249,8 +306,10 @@ void UriAnalyzer::_feed(unsigned char c)
             _uri_scheme(c);
             break;
         case URI_HOST_IPV4:
+            _uri_host_ipv4(c);
             break;
         case URI_HOST_REGNAME:
+            _uri_host_regname(c);
             break;
         case URI_PORT:
             _uri_port(c);
@@ -275,7 +334,10 @@ void UriAnalyzer::_feed(unsigned char c)
 
 void UriAnalyzer::reset()
 {
-    _idx = _percent_idx = _percent_val = 0;
+    _idx = 0;
+    _sidx = 0;
+    _ipv_digit = false;
+    _ipv_dot = 0;
     _state = URI_START;
     //set strings to empty here
 }

@@ -28,6 +28,8 @@ class UriAnalyzer
     void _uri_start(unsigned char c);
     void _uri_rel_start(unsigned char c);
     void _uri_scheme(unsigned char c);
+    void _uri_host_ipv4(unsigned char c);
+    void _uri_host_regname(unsigned char c);
     void _uri_port(unsigned char c);
     void _uri_path_trial(unsigned char c);
     void _uri_path(unsigned char c);
@@ -59,7 +61,8 @@ class UriAnalyzer
     unsigned int _idx;
     // int _max;
     int _sidx;
-    int _percent_idx;
-    int _percent_val;
+
+    bool _ipv_digit;
+    int _ipv_dot;
 };
 } // namespace webshell

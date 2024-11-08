@@ -282,8 +282,8 @@ void UriAnalyzer::_uri_host_regname(unsigned char c)
     }
     else if (c == ':')
         _state = URI_PORT;
-    else if (c == '%')
-        _path.push_back(_decode_percent());
+    // else if (c == '%')
+    //     _path.push_back(_decode_percent()); //TODO: need to parse!!
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
@@ -294,6 +294,8 @@ void UriAnalyzer::_feed(unsigned char c)
     //TODO: this is not good!!! I interpret metachars!! Gotta place it back into functions!!!
     if (c == '%')
         c = _decode_percent();
+    //BUT i still need to parse it after decoding...
+    //fuckk this loll
     switch (_state)
     {
         case URI_START:

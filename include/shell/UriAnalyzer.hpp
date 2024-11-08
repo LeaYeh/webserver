@@ -28,6 +28,9 @@ class UriAnalyzer
     void _uri_start(unsigned char c);
     void _uri_rel_start(unsigned char c);
     void _uri_scheme(unsigned char c);
+    void _uri_path(unsigned char c);
+    void _uri_query(unsigned char c);
+    void _uri_fragment(unsigned char c);
     
     bool _is_gen_delim(unsigned char c);
     bool _is_sub_delim(unsigned char c);
@@ -42,6 +45,7 @@ class UriAnalyzer
     
     // std::string _directory;
     std::string _query;
+    std::string _fragment;
 
     URIState _state;
     int _idx;

@@ -11,11 +11,13 @@ UriAnalyzer::UriAnalyzer()
     _path = "";
     _host = "";
     _port = "";
+    _query = "";
+    _fragment = "";
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
     : _host(other._host), _port(other._port), _path(other._path),
-        _query(other._query), _state(other._state), _idx(other._idx)
+        _query(other._query), _fragment(other._fragment), _state(other._state), _idx(other._idx)
 {
 }
 
@@ -27,6 +29,7 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
         _port = other._port;
         _path = other._path;
         _query = other._query;
+        _fragment = other._fragment;
         _state = other._state;
         _idx = other._idx;
     }
@@ -51,6 +54,9 @@ void UriAnalyzer::parse_uri(std::string& uri)
         _feed(*iter);
         iter++;
     }
+    if (_state < URI_PATH)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
     _state = END_URI_PARSER;
 }
 
@@ -111,6 +117,51 @@ void UriAnalyzer::_uri_scheme(unsigned char c)
         BAD_REQUEST_MSG);
 }
 
+void UriAnalyzer::_uri_path(unsigned char c)
+{
+    //segment is 0 or more pchar, so we could in theory keep receiving just slashes,
+    //except for the beginning which is reserved to signal authority, but i cover
+    //that at URI_REL_START
+    if (c == '/' || _is_pchar(c))
+    {
+        _path.push_back(c);
+        return;
+    }
+    if (c == '?')
+        _state = URI_QUERY;
+    else if (c == '#')
+        _state = URI_FRAGMENT;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_query(unsigned char c)
+{
+    if (c == '/' || c == '?' || _is_pchar(c))
+    {
+        _query.push_back(c);
+        return;
+    }
+    else if (c == '#')
+        _state = URI_FRAGMENT;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void UriAnalyzer::_uri_fragment(unsigned char c)
+{
+    if (c == '/' || c == '?' || _is_pchar(c))
+    {
+        _fragment.push_back(c);
+        return;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
 void UriAnalyzer::_feed(unsigned char c)
 {
     //TODO: handle percent-encoding first!!
@@ -130,11 +181,14 @@ void UriAnalyzer::_feed(unsigned char c)
         case URI_PORT:
             break;
         case URI_PATH:
+            _uri_path(c);
             break;
-        case URI_QUERY:
+        case URI_QUERY: //str does not contain ?
+            _uri_query(c);
             break;
-        case URI_FRAGMENT:
-            break; 
+        case URI_FRAGMENT: //str does not contain #
+            _uri_fragment(c);
+            break;
         default:
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");

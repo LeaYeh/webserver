@@ -77,12 +77,6 @@ void UriAnalyzer::_uri_start(unsigned char c)
         _path.push_back(c);
         _state = URI_PATH;
     }
-    else if (c == '%')
-    {
-        _path.push_back(_decode_percent());
-        _state = URI_PATH;
-        return;
-    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
         BAD_REQUEST_MSG);
@@ -99,12 +93,6 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
     {
         _path.push_back(c);
         _state = URI_PATH;
-    }
-    else if (c == '%')
-    {
-        _path.push_back(_decode_percent());
-        _state = URI_PATH;
-        return;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -142,11 +130,6 @@ void UriAnalyzer::_uri_path(unsigned char c)
         _path.push_back(c);
         return;
     }
-    else if (c == '%')
-    {
-        _path.push_back(_decode_percent());
-        return;
-    }
     if (c == '?')
         _state = URI_QUERY;
     else if (c == '#')
@@ -163,11 +146,6 @@ void UriAnalyzer::_uri_query(unsigned char c)
         _query.push_back(c);
         return;
     }
-    else if (c == '%')
-    {
-        _query.push_back(_decode_percent());
-        return;
-    }
     else if (c == '#')
         _state = URI_FRAGMENT;
     else
@@ -182,11 +160,6 @@ void UriAnalyzer::_uri_fragment(unsigned char c)
         _fragment.push_back(c);
         return;
     }
-    else if (c == '%')
-    {
-        _fragment.push_back(_decode_percent());
-        return;
-    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
@@ -197,11 +170,6 @@ void UriAnalyzer::_uri_path_trial(unsigned char c)
     if (_is_pchar(c))
     {
         _path.push_back(c);
-        _state = URI_PATH;
-    }
-    else if (c == '%')
-    {
-        _path.push_back(_decode_percent());
         _state = URI_PATH;
     }
     else
@@ -265,8 +233,6 @@ unsigned char UriAnalyzer::_decode_percent()
 
 void UriAnalyzer::_uri_host_trial(unsigned char c)
 {
-    if (c == '%')
-        c = _decode_percent();
     if (isdigit(c))
     {
         _host.push_back(c);
@@ -285,7 +251,8 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
 
 void UriAnalyzer::_feed(unsigned char c)
 {
-    //TODO: handle percent-encoding first!!
+    if (c == '%')
+        c = _decode_percent();
     switch (_state)
     {
         case URI_START:

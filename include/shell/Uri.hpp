@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Uri.hpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/09 18:18:11 by mhuszar           #+#    #+#             */
+/*   Updated: 2024/11/09 18:20:03 by mhuszar          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 #include <string>
 
@@ -14,7 +26,7 @@ struct Uri
     std::string path;
     std::string query;
     std::string fragment;
-    std::string userinfo;
+    // std::string userinfo;
 };
 
 } // namespace webshell

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 17:39:06 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/09 19:12:22 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ RequestLineAnalyzer::RequestLineAnalyzer()
 }
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
-    : _machine(other._machine), _uri_analyser(other._uri_analyser),
+    : _machine(other._machine), _uri_analyzer(other._uri_analyzer),
       _method(other._method), _uri(other._uri), _version(other._version)
 {
 }
@@ -151,7 +151,7 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
 {
     if (this != &other)
     {
-        _uri_analyser = other._uri_analyser;
+        _uri_analyzer = other._uri_analyzer;
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
@@ -193,9 +193,14 @@ float RequestLineAnalyzer::version() const
         return (atof(_version.substr(_version.length() - 3, 3).c_str()));
 }
 
-std::string RequestLineAnalyzer::target() const
+// std::string RequestLineAnalyzer::target() const
+// {
+//     return (_uri);
+// }
+
+Uri RequestLineAnalyzer::uri() const
 {
-    return (_uri);
+    return (_uri_analyzer.take_uri());
 }
 
 void RequestLineAnalyzer::feed(unsigned char ch)
@@ -220,13 +225,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             _machine.transitionTo(PRE_CR);
             break;
         }
-        // case RQLINE_START:
-        // {
-        //     _machine.feed(ch);
-        //     _method.push_back(ch);
-        //     _machine.transitionTo(METHOD);
-        //     break;
-        // }
         case METHOD:
         {
             if (_machine.feed(ch))
@@ -238,7 +236,10 @@ void RequestLineAnalyzer::feed(unsigned char ch)
         case URI:
         {
             if (_machine.feed(ch))
+            {
+                _uri_analyzer.parse_uri(_uri);
                 _machine.transitionTo(VERSION);
+            }
             else
                 _uri.push_back(ch);
             break;
@@ -264,6 +265,7 @@ bool RequestLineAnalyzer::done(void) const
 void RequestLineAnalyzer::reset(void)
 {
     _machine.setCurrentState(PRE_CR);
+    _uri_analyzer.reset();
     _method = "";
     _uri = "";
     _version = "";

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 18:31:05 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/09 18:46:14 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,35 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
 
 UriAnalyzer::~UriAnalyzer()
 {
+}
+
+void UriAnalyzer::reset()
+{
+    _idx = 0;
+    _sidx = 0;
+    _ipv_digit = false;
+    _ipv_dot = 0;
+    _state = URI_START;
+    _uri = "";
+    _path = "";
+    _host = "";
+    _port = "";
+    _query = "";
+    _fragment = "";
+}
+
+Uri UriAnalyzer::take_uri() const
+{
+    Uri ret;
+    ret.raw = _uri;
+    ret.scheme = "http://";
+    ret.authority = _host + _port;
+    ret.host = _host;
+    ret.port = _port;
+    ret.path = _path;
+    ret.query = _query;
+    ret.fragment = _fragment;
+    return (ret);
 }
 
 void UriAnalyzer::parse_uri(std::string& uri)
@@ -126,35 +155,6 @@ void UriAnalyzer::_feed(unsigned char c)
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");
     }
-}
-
-void UriAnalyzer::reset()
-{
-    _idx = 0;
-    _sidx = 0;
-    _ipv_digit = false;
-    _ipv_dot = 0;
-    _state = URI_START;
-    _uri = "";
-    _path = "";
-    _host = "";
-    _port = "";
-    _query = "";
-    _fragment = "";
-}
-
-Uri UriAnalyzer::take_uri() const
-{
-    Uri ret;
-    ret.raw = _uri;
-    ret.scheme = "http://";
-    ret.authority = _host + _port;
-    ret.host = _host;
-    ret.port = _port;
-    ret.path = _path;
-    ret.query = _query;
-    ret.fragment = _fragment;
-    return (ret);
 }
 
 void UriAnalyzer::_uri_start(unsigned char c)
@@ -324,7 +324,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
 
 void UriAnalyzer::_uri_query(unsigned char c)
 {
-    if (c == '/' || c == '?' || _is_pchar(c))
+    if (_is_query_or_fragment_part(c))
         _query.push_back(c);
     else if (c == '#')
         _state = URI_FRAGMENT;
@@ -335,10 +335,8 @@ void UriAnalyzer::_uri_query(unsigned char c)
 
 void UriAnalyzer::_uri_fragment(unsigned char c)
 {
-    if (c == '/' || c == '?' || _is_pchar(c))
-    {
+    if (_is_query_or_fragment_part(c))
         _fragment.push_back(c);
-    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);

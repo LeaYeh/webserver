@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 16:43:57 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/09 19:11:52 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,8 @@ void RequestAnalyzer::feed(const char ch)
             {
                 _state = PARSING_REQUEST_HEADERS;
                 _method = _rl_analyzer.method();
-                _target = _rl_analyzer.target();
+                // _target = _rl_analyzer.target();
+                _uri = _rl_analyzer.uri();
                 _version = _rl_analyzer.version();
             }
             break ;
@@ -88,7 +89,14 @@ bool RequestAnalyzer::isComplete(void) const
 void RequestAnalyzer::reset(void)
 {
     _method = UNKNOWN;
-    _target = "";
+    _uri.raw = "";
+    _uri.scheme = "";
+    _uri.authority = "";
+    _uri.host = "";
+    _uri.port = "";
+    _uri.path = "";
+    _uri.query = "";
+    _uri.fragment = "";
     _version = -0.0;
     _rl_analyzer.reset();
     _state = PARSING_REQUEST_LINE;
@@ -101,10 +109,10 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    std::cerr << "Request Line parsed. Method: " << _method << "Target: " << _target << "Version: " << _version << std::endl;
+    std::cerr << "Request Line parsed. Method: " << _method << "Target: " << _uri.raw << "Version: " << _version << std::endl;
     Request req; 
     req.setMethod(_method);
-    req.setTarget(_target);
+    req.setUri(_uri);
     req.setVersion(_version);
     // req.setHeaders(_headers);
     return (req);

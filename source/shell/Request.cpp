@@ -10,13 +10,13 @@ namespace webshell
 {
 
 Request::Request()
-    : _method(UNKNOWN), _target(), _version(), _headers(), _body()
+    : _method(UNKNOWN), _target(), _version(), _headers()/*, _body()*/
 {
 }
 
 Request::Request(const Request& other)
     : _method(other._method), _target(other._target), _version(other._version),
-      _headers(other._headers), _body(other._body)
+      _headers(other._headers)/*, _body(other._body)*/
 {
 }
 
@@ -28,7 +28,7 @@ Request& Request::operator=(const Request& other)
         _target = other._target;
         _version = other._version;
         _headers = other._headers;
-        _body = other._body;
+        // _body = other._body;
     }
     return (*this);
 }
@@ -42,7 +42,7 @@ const RequestMethod& Request::method() const
     return (_method);
 }
 
-const Uri& Request::target() const
+const std::string Request::target() const
 {
     return (_target);
 }
@@ -76,7 +76,7 @@ const std::string Request::serialize() const
     std::string serialized;
 
     // serialize request line
-    serialized += requestMethodToString(_method) + " " + _target.raw +
+    serialized += requestMethodToString(_method) + " " + _target +
                   " HTTP/" + utils::toString(_version) + "\r\n";
     // serialize headers
     for (std::map<std::string, std::string>::const_iterator it =
@@ -94,7 +94,7 @@ void Request::setMethod(RequestMethod method)
     _method = method;
 }
 
-void Request::setTarget(Uri& target)
+void Request::setTarget(std::string target)
 {
     _target = target;
 }
@@ -104,9 +104,9 @@ void Request::setVersion(float version)
     _version = version;
 }
 
-void Request::setBody(std::string& body)
-{
-    _body = body;
-}
+// void Request::setBody(std::string& body)
+// {
+//     _body = body;
+// }
 
 } // namespace webshell

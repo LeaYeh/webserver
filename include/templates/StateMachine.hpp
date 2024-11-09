@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:27:27 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/23 20:46:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/06 16:49:54 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@
 #include <map>
 #include <set>
 
-template <class TState> class StateMachine
+template <class TState>
+class StateMachine
 {
     typedef void (*transitionFunction)();
     typedef bool (*actionFunction)(unsigned char c);
@@ -25,24 +26,34 @@ template <class TState> class StateMachine
   public:
     StateMachine();
     ~StateMachine();
+    StateMachine(const StateMachine& other);
+    StateMachine& operator=(const StateMachine& other);
 
     void addState(const TState& state);
     void addTransition(const TState& startState, const TState& finalState,
                        transitionFunction lambda);
     void addAction(const TState& state, actionFunction lambda);
     void transitionTo(const TState& state);
-    bool update(unsigned char c);
-    TState getCurrentState() const;
+    void setFinalState(const TState& state);
+    bool done(void);
+    bool feed(unsigned char c);
+    TState getCurrentState(void) const;
+    void setCurrentState(TState state);
+    // virtual void SetupTransitions(void);
 
   private:
-    StateMachine(const StateMachine& other);
-    StateMachine& operator=(const StateMachine& other);
 
+  protected:
+    // unsigned char _ch;
     TState _current_state;
+    TState _final_state;
     std::set<TState> _states;
     std::map<TState, t_options> _transitions;
     std::map<TState, actionFunction> _actions;
     bool _setup;
+
+    virtual void _validate_start(unsigned char c);
+    virtual void _analyze_method(unsigned char c);
 };
 
 #include "StateMachine.tpp"

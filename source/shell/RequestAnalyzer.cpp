@@ -1,19 +1,31 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestAnalyzer.cpp                                :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
+/*   Updated: 2024/11/06 16:43:57 by mhuszar          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "RequestAnalyzer.hpp"
 #include "defines.hpp"
+#include "ParseException.hpp"
 
 namespace webshell
 {
 
 RequestAnalyzer::RequestAnalyzer()
-    : _state(PARSING_REQUEST_LINE), _request_line_analyzer(), _uri_analyzer(),
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(),
       _header_analyzer()
 {
 }
 
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
     : _state(other._state),
-      _request_line_analyzer(other._request_line_analyzer),
-      _uri_analyzer(other._uri_analyzer),
+      _rl_analyzer(other._rl_analyzer),
       _header_analyzer(other._header_analyzer)
 {
 }
@@ -27,8 +39,7 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
     if (this != &other)
     {
         _state = other._state;
-        _request_line_analyzer = other._request_line_analyzer;
-        _uri_analyzer = other._uri_analyzer;
+        _rl_analyzer = other._rl_analyzer;
         _header_analyzer = other._header_analyzer;
     }
     return (*this);
@@ -36,18 +47,50 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
 
 void RequestAnalyzer::feed(const char ch)
 {
-    (void)ch;
+    switch (_state)
+    {
+        case PARSING_REQUEST_LINE:
+            _rl_analyzer.feed(ch);
+            if (_rl_analyzer.done())
+            {
+                _state = PARSING_REQUEST_HEADERS;
+                _method = _rl_analyzer.method();
+                _target = _rl_analyzer.target();
+                _version = _rl_analyzer.version();
+            }
+            break ;
+        case PARSING_REQUEST_HEADERS:
+            _header_analyzer.feed(ch);
+            if (_header_analyzer.done())
+            {
+                // _state = PARSING_REQUEST_BODY;
+                //TODO: extract info from header here
+                _state = COMPLETE;
+            }
+            break;
+        default:
+        {
+            std::cerr << "State received: " << _state << std::endl;
+            throw std::runtime_error("Request parse error");
+        }
+    }
+    //TODO: how to handle body??
 }
 
 bool RequestAnalyzer::isComplete(void) const
 {
     // TODO: check if received /r/n/r/n or 0 from chunked data or reached the
     // Content-Length or ...
-    return (true);
+    //MKH - i dont really think we need that
+    return (_state == COMPLETE);
 }
 
 void RequestAnalyzer::reset(void)
 {
+    _method = UNKNOWN;
+    _target = "";
+    _version = -0.0;
+    _rl_analyzer.reset();
     _state = PARSING_REQUEST_LINE;
 }
 
@@ -58,7 +101,12 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    Request req;
+    std::cerr << "Request Line parsed. Method: " << _method << "Target: " << _target << "Version: " << _version << std::endl;
+    Request req; 
+    req.setMethod(_method);
+    req.setTarget(_target);
+    req.setVersion(_version);
+    // req.setHeaders(_headers);
     return (req);
 }
 

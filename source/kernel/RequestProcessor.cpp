@@ -43,7 +43,7 @@ RequestProcessor::~RequestProcessor()
 // TODO: How to test this function?
 // TODO: If there are multiple requests in the buffer, we need to handle
 // them????? HOW?
-void RequestProcessor::analyze(int fd, std::string& buffer)
+bool RequestProcessor::analyze(int fd, std::string& buffer)
 {
     size_t i = 0;
 
@@ -55,11 +55,13 @@ void RequestProcessor::analyze(int fd, std::string& buffer)
         if (_analyzer_pool[fd].isComplete() && (i < buffer.size() - 1))
         {
             analyzeFinalize(fd);
-            break;
+            buffer.erase(0, i);
+            return (true);
         }
         i++;
     }
     buffer.erase(0, i);
+    return (_analyzer_pool[fd].isComplete());
 }
 
 void RequestProcessor::analyzeFinalize(int fd)
@@ -78,7 +80,7 @@ void RequestProcessor::analyzeFinalize(int fd)
 
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
-    // _analyzer_pool[fd].reset();
+    _analyzer_pool[fd].reset();
 }
 
 void RequestProcessor::removeAnalyzer(int fd)
@@ -90,6 +92,9 @@ void RequestProcessor::_processGet(int fd, const webshell::Request& request)
 {
     (void)request;
     webshell::Response dummy_response;
+
+    dummy_response.setStatusCode(webshell::OK);
+    dummy_response.setBody("Hello, World!");
     _handler->prepareWrite(fd, dummy_response.serialize());
 }
 

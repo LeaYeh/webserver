@@ -30,6 +30,26 @@
 
 #define MAX_PATH_LENGTH 128
 
+#define OK_MSG "OK"
+#define CREATED_MSG "Created"
+#define ACCEPTED_MSG "Accepted"
+#define NO_CONTENT_MSG "No Content"
+#define MOVED_PERMANENTLY_MSG "Moved Permanently"
+#define FOUND_MSG "Found"
+#define SEE_OTHER_MSG "See Other"
+#define NOT_MODIFIED_MSG "Not Modified"
+#define BAD_REQUEST_MSG "Bad Request"
+#define UNAUTHORIZED_MSG "Unauthorized"
+#define FORBIDDEN_MSG "Forbidden"
+#define NOT_FOUND_MSG "Not Found"
+#define METHOD_NOT_ALLOWED_MSG "Method Not Allowed"
+#define REQUEST_TIMEOUT_MSG "Request Timeout"
+#define NO_CONTENT_LENGTH_MSG "No Content Length"
+#define INTERNAL_SERVER_ERROR_MSG "Internal Server Errror"
+#define NOT_IMPLEMENTED_MSG "Not Implemented"
+#define BAD_GATEWAY_MSG "Bad Gateway"
+#define SERVICE_UNAVAILABLE_MSG "Service Unavaliable"
+
 namespace weblog
 {
 
@@ -51,7 +71,9 @@ enum RequestAnalyzerState
 {
     PARSING_REQUEST_LINE = 0,
     PARSING_REQUEST_HEADERS,
-    COMPLETE
+    PARSING_REQUEST_BODY,
+    COMPLETE,
+    ERROR
 };
 
 enum RequestMethod
@@ -66,23 +88,28 @@ enum RequestMethod
 
 enum RequestLineState
 {
-    START = 0,
+    RQLINE_ERROR = -1,
+    PRE_CR = 0,
+    PRE_LF,
+    // RQLINE_START,
     METHOD,
-    SPACE_BEFORE_URI,
+    // SPACE_BEFORE_URI,
     URI,
+    // SPACE_BEFORE_VERSION,
+    VERSION,
+    END_RQLINE
+    // END_REQUEST_PARSER
+};
+
+enum URIState
+{
+    URISTATE_START = 0,
     URI_SCHEME,
     URI_DIRECTORY_SLASH,
     URI_CLOSE_SSLASH,
     URI_QUERY,
-    SPACE_BEFORE_VERSION,
-    VERSION_HTTP,
-    VERSION_SLASH,
-    VERSION_DIGIT,
-    END_LINE_1,
-    HEADER_FIELD,
-    END_LINE_2,
-    ERROR_STATE,
-    END_REQUEST_PARSER
+    URI_ERROR,
+    END_URI_PARSER
 };
 
 enum RequestHeaderState

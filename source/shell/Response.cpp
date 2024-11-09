@@ -1,4 +1,6 @@
 #include "Response.hpp"
+#include "utils.hpp"
+#include "shellUtils.hpp"
 
 namespace webshell
 {
@@ -70,11 +72,12 @@ std::string Response::serialize()
 {
     std::string response;
 
-    response += "HTTP/1.1 200 OK\r\n";
+    response += "HTTP/1.1 " + utils::toString(_status_code) + " " +
+                statusReasonPhase(_status_code) + "\r\n";
     response += "Content-Type: text/plain\r\n";
-    response += "Content-Length: 13\r\n";
+    // response += "Content-Length: 13\r\n";
     response += "Connection: close\r\n\r\n";
-    response += "Hello, World!";
+    // response += "Hello, World!";
 
     return (response);
 }

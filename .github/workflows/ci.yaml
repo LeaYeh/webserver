@@ -18,6 +18,15 @@ jobs:
     name: Check Commit Message
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install is-verb
+        run: npm install is-verb
       - name: Check Title Format
         uses: gsactions/commit-message-checker@v2
         with:
@@ -27,11 +36,11 @@ jobs:
           excludeTitle: 'false'  # Do not exclude the title
           checkAllCommitMessages: 'false'  # Check only the PR title, assuming it's the first commit
         if: github.event_name == 'pull_request' && !contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch')
-      - name: Check Commit Type and Verb
+      - name: Check Commit Type Format
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): (Add|Remove|Update|Fix|Refactor|Improve|Test|Chore).*|^Merge pull request #[0-9]+ from [\w\-]+\/[\w\-].*'
-          error: 'Commit message must follow the format "<type>: <verb>. <description>". Valid types: feat, fix, docs, style, refactor, perf, test, chore. Valid verbs: Add, Remove, Update, Fix, Refactor, Improve, Test.'
+          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): .*|^Merge pull request #[0-9]+ from [\w\-]+\/[\w\-].*'
+          error: 'Commit message must follow the format "<type>: <description>". Valid types: feat, fix, docs, style, refactor, perf, test, chore.'
           excludeDescription: 'true' # optional: this excludes the description body of a pull request
           excludeTitle: 'true' # optional: this excludes the title of a pull request
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
@@ -46,6 +55,14 @@ jobs:
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
           accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
         if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch'))
+      - name: Check Verb
+        run: .github/scripts/is_verb.sh
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch'))
+
   compilation_test:
     name: Compilation Test
     runs-on: ubuntu-latest
@@ -61,6 +78,7 @@ jobs:
         uses: ./.github/actions/setup
       - name: 🔨 Compile with Makefile
         run: make CXX="${{ matrix.compiler }}"
+
   combine_compilation_test_results:
     name: Combine Compilation Test Results
     needs: compilation_test

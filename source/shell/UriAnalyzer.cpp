@@ -80,8 +80,8 @@ Uri UriAnalyzer::take_uri() const
 {
     Uri ret;
     ret.raw = _uri;
-    ret.scheme = "http://";
-    ret.authority = _host + _port;
+    // ret.scheme = "http://";
+    ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;
     ret.path = _path;

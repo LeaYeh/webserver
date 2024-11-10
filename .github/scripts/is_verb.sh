@@ -19,7 +19,7 @@ fi
 # Check each commit message
 echo "$COMMITS" | while read -r commit; do
   # Skip merge commits
-  if [[ $commit == Merge* ]]; then
+  if [[ $commit == Merge* || -z $commit ]]; then
     continue
   fi
 

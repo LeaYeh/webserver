@@ -11,15 +11,15 @@ is_verb() {
 
 # Get all commit messages if it's a PR, otherwise just the latest commit
 if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-  COMMITS=$(git log --format=%B "$BASE_SHA..$HEAD_SHA")
+  COMMITS=$(git log --format=%s "$BASE_SHA..$HEAD_SHA")
 else
-  COMMITS=$(git log -1 --format=%B)
+  COMMITS=$(git log -1 --format=%s)
 fi
 
 # Check each commit message
 echo "$COMMITS" | while read -r commit; do
   # Skip merge commits
-  if [[ $commit == Merge* || -z $commit ]]; then
+  if [[ $commit == Merge* ]]; then
     continue
   fi
 

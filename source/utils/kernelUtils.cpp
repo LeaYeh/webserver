@@ -1,6 +1,4 @@
 #include "kernelUtils.hpp"
-#include "Config.hpp"
-#include "ConfigServerBlock.hpp"
 
 namespace webkernel
 {

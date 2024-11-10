@@ -1,6 +1,4 @@
 #pragma once
-#include "AConfigParser.hpp"
-#include "ConfigLocationBlock.hpp"
 #include "Request.hpp"
 #include "RequestConfig.hpp"
 #include "Response.hpp"

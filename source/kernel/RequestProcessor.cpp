@@ -2,7 +2,6 @@
 #include "Config.hpp"
 #include "ConfigHttpBlock.hpp"
 #include "ConnectionHandler.hpp"
-#include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "RequestHandlerManager.hpp"

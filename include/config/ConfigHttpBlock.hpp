@@ -3,7 +3,6 @@
 #include "AConfigParser.hpp"
 #include "ErrorPage.hpp"
 #include "defines.hpp"
-#include <set>
 #include <vector>
 
 namespace webconfig

@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '18'
       - name: Install is-verb
-        run: npm install https://github.com/wearereasonablepeople/is-verb
+        run: npm install is-verb
       - name: Check Title Format
         uses: gsactions/commit-message-checker@v2
         with:

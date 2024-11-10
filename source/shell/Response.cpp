@@ -1,6 +1,6 @@
 #include "Response.hpp"
-#include "utils.hpp"
 #include "shellUtils.hpp"
+#include "utils.hpp"
 
 namespace webshell
 {
@@ -57,7 +57,8 @@ void Response::setHeader(std::string key, std::string value)
 
 void Response::setBody(std::string body)
 {
-    _body = body;
+    _body = body + "\r\n";
+    _headers["Content-Length"] = utils::toString(body.size());
 }
 
 /*
@@ -74,9 +75,16 @@ std::string Response::serialize()
 
     response += "HTTP/1.1 " + utils::toString(_status_code) + " " +
                 statusReasonPhase(_status_code) + "\r\n";
-    response += "Content-Type: text/plain\r\n";
+    for (std::map<std::string, std::string>::iterator it = _headers.begin();
+         it != _headers.end(); ++it)
+    {
+        response += it->first + ": " + it->second + "\r\n";
+    }
+    response += "\r\n";
+    response += _body;
+    // response += "Content-Type: text/plain\r\n";
     // response += "Content-Length: 13\r\n";
-    response += "Connection: close\r\n\r\n";
+    // response += "Connection: close\r\n\r\n";
     // response += "Hello, World!";
 
     return (response);

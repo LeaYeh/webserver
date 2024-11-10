@@ -98,7 +98,7 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     webshell::Response err_response =
         webshell::ResponseBuilder::buildErrorResponse(status_code, description);
 
-    weblog::Logger::log(weblog::CRITICAL,
+    weblog::Logger::log(weblog::WARNING,
                         "Error response: \n" + err_response.serialize());
     _error_buffer[fd] = err_response.serialize();
 }
@@ -113,36 +113,16 @@ state
 void ConnectionHandler::_handleRead(int fd)
 {
     char buffer[CHUNKED_SIZE];
+    ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
 
-    while (true)
+    if (bytes_read < 0)
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "recv() failed: " +
+                                       std::string(strerror(errno)));
+    else
     {
-        ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
-
         _read_buffer[fd] += std::string(buffer, bytes_read);
-        if (bytes_read > 0)
-        {
-            weblog::Logger::log(weblog::DEBUG,
-                                "Read " + utils::toString(bytes_read) +
-                                    " bytes from fd: " + utils::toString(fd));
-            weblog::Logger::log(weblog::DEBUG,
-                                "Buffer: \n" + std::string(buffer, bytes_read));
-            if (_processor.analyze(fd, _read_buffer[fd]))
-            {
-                // _analyzer_pool[fd].reset();
-                break;
-            }
-        }
-        else if (bytes_read == 0)
-        {
-            _processor.analyze(fd, _read_buffer[fd]);
-            closeConnection(fd, weblog::INFO,
-                            "Read 0 bytes, client closing connection");
-            break;
-        }
-        else
-            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "recv() failed: " +
-                                           std::string(strerror(errno)));
+        _processor.analyze(fd, _read_buffer[fd]);
     }
 }
 
@@ -167,6 +147,8 @@ void ConnectionHandler::_sendNormal(int fd)
                         "Write buffer found for fd: " + utils::toString(fd));
 
     std::map<int, std::string>::iterator it = _write_buffer.find(fd);
+
+    weblog::Logger::log(weblog::DEBUG, "Write content: \n" + it->second);
     int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
     if (bytes_sent < 0)

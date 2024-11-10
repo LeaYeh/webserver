@@ -51,6 +51,9 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         _analyzer_pool[fd] = webshell::RequestAnalyzer();
     while (i < buffer.size())
     {
+        weblog::Logger::log(weblog::CRITICAL,
+                            "Feed char: " + utils::toString(buffer[i]) +
+                                " to analyzer on fd: " + utils::toString(fd));
         _analyzer_pool[fd].feed(buffer[i]);
         if (_analyzer_pool[fd].isComplete() && (i < buffer.size() - 1))
         {

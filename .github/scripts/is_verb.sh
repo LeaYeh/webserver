@@ -1,16 +1,5 @@
 #!/bin/bash
 
-is_verb() {
-  node -e "
-    const isVerb = require('is-verb').default;
-    const word = process.argv[1];
-    if (!isVerb(word)) {
-      console.error('Error: First word after type must be a verb. Found: ' + word);
-      process.exit(1);
-    }
-  " "$1"
-}
-
 # Get all commit messages if it's a PR, otherwise just the latest commit
 if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
   COMMITS=$(git log --format=%B "$BASE_SHA..$HEAD_SHA")
@@ -35,5 +24,7 @@ echo "$COMMITS" | while read -r commit; do
   fi
 
   # Check if the word is a verb
-  is_verb "$FIRST_WORD"
+  if ! node .github/scripts/is_verb.js "$FIRST_WORD"; then
+    exit 1
+  fi
 done

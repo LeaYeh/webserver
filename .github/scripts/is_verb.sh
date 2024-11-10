@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to check if a string is a capitalized verb using is-verb
+is_verb() {
+  node -e "
+    const capitalized = require('is-verb').capitalized;
+    const word = process.argv[1];
+    process.exit(capitalized(word) ? 0 : 1);
+  " "$1"
+}
+
 # Get all commit messages if it's a PR, otherwise just the latest commit
 if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
   COMMITS=$(git log --format=%B "$BASE_SHA..$HEAD_SHA")
@@ -23,8 +32,11 @@ echo "$COMMITS" | while read -r commit; do
     continue
   fi
 
-  # Check if the word is a verb
-  if ! node .github/scripts/is_verb.js "$FIRST_WORD"; then
+  echo "Checking word: $FIRST_WORD"
+
+  # Check if the word is a capitalized verb
+  if ! is_verb "$FIRST_WORD"; then
+    echo "Error: '$FIRST_WORD' is not a capitalized verb."
     exit 1
   fi
 done

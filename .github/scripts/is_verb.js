@@ -1,5 +1,5 @@
 // .github/scripts/check_verb.js
-const isVerb = require('is-verb').default;
+const capitalized = require('is-verb').capitalized;
 
 const word = process.argv[2];
 if (!word) {
@@ -7,8 +7,8 @@ if (!word) {
   process.exit(1);
 }
 
-if (!isVerb(word.toLowerCase())) {
-  console.error(`Error: Word "${word}" is not a verb`);
+if (!capitalized(word)) {
+  console.error(`Error: Word "${word}" is not a capizalized verb`);
   process.exit(1);
 }
 

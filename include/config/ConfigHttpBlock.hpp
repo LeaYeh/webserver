@@ -19,6 +19,9 @@ class ConfigHttpBlock : public AConfigParser
 
     std::string parse(std::ifstream& file_stream);
     void printConfig(void) const;
+    unsigned int clientMaxBodySize(void) const;
+    webshell::ContentType defaultType(void) const;
+    std::vector<ErrorPage> errorPages(void) const;
 
   private:
     unsigned int _client_max_body_size;

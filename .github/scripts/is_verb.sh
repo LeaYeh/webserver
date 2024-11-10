@@ -2,7 +2,7 @@
 
 is_verb() {
   node -e "
-    const isVerb = require('is-verb');
+    const isVerb = require('is-verb').default;
     const word = process.argv[1];
     if (!isVerb(word)) {
       console.error('Error: First word after type must be a verb. Found: ' + word);

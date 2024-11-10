@@ -28,7 +28,7 @@ RequestHandlerManager& RequestHandlerManager::getInstance()
 
 webshell::Response
 RequestHandlerManager::handleRequest(webshell::RequestMethod method,
-                                     const webconfig::AConfigParser* config,
+                                     const webconfig::RequestConfig& config,
                                      const webshell::Request& request) const
 {
     std::map<webshell::RequestMethod, const ARequestHandler*>::const_iterator

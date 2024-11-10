@@ -1,5 +1,6 @@
 #pragma once
 #include "ARequestHandler.hpp"
+#include "RequestConfig.hpp"
 #include "defines.hpp"
 
 namespace webkernel
@@ -10,7 +11,7 @@ class RequestHandlerManager
     static RequestHandlerManager& getInstance();
 
     webshell::Response handleRequest(webshell::RequestMethod method,
-                                     const webconfig::AConfigParser* config,
+                                     const webconfig::RequestConfig& config,
                                      const webshell::Request& request) const;
 
   private:

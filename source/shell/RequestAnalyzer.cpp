@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 19:11:52 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/10 16:09:53 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,6 @@ void RequestAnalyzer::reset(void)
 {
     _method = UNKNOWN;
     _uri.raw = "";
-    _uri.scheme = "";
     _uri.authority = "";
     _uri.host = "";
     _uri.port = "";

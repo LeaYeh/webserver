@@ -29,9 +29,9 @@ class RequestProcessor
     const Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
 
-    void _processGet(int fd, const webshell::Request& request);
-    void _processPost(int fd, const webshell::Request& request);
-    void _processPut(int fd, const webshell::Request& request);
-    void _processDelete(int fd, const webshell::Request& request);
+    // void _processGet(int fd, const webshell::Request& request);
+    // void _processPost(int fd, const webshell::Request& request);
+    // void _processPut(int fd, const webshell::Request& request);
+    // void _processDelete(int fd, const webshell::Request& request);
 };
 } // namespace webkernel

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "UriAnalyzer.hpp"
-#include "URIMachine.hpp"
+#include "StateMachine.hpp"
+#include "Uri.hpp"
 #include "defines.hpp"
 #include <iostream>
 #include <cstdlib>
@@ -19,7 +20,8 @@ class RequestLineAnalyzer
     ~RequestLineAnalyzer();
 
     RequestMethod method(void) const;
-    std::string target() const;
+    // std::string target() const;
+    Uri uri() const;
     float version(void) const;
   
     void feed(unsigned char ch);
@@ -29,7 +31,7 @@ class RequestLineAnalyzer
   private:
 
     StateMachine<RequestLineState> _machine;
-    UriAnalyzer _uri_analyser;
+    UriAnalyzer _uri_analyzer;
 
     // RequestMethod _request_method;
     std::string _method;

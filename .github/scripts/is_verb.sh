@@ -27,11 +27,6 @@ echo "$COMMITS" | while read -r commit; do
   AFTER_COLON=$(echo "$commit" | sed 's/^[^:]*: //')
   FIRST_WORD=$(echo "$AFTER_COLON" | awk '{print $1}')
 
-  # Skip empty messages
-  if [ -z "$FIRST_WORD" ]; then
-    continue
-  fi
-
   echo "Checking word: $FIRST_WORD"
 
   # Check if the word is a capitalized verb

@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+
+// TODO: Need to support alias but not just root
+// TODO: Consider to change the format to be more like nginx?
 namespace webconfig
 {
 

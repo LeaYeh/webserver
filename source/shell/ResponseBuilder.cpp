@@ -1,23 +1,7 @@
 #include "ResponseBuilder.hpp"
-#include "utils/utils.hpp"
 
 namespace webshell
 {
-
-ResponseBuilder::ResponseBuilder()
-{
-}
-
-ResponseBuilder::ResponseBuilder(const ResponseBuilder& other)
-{
-    (void)other;
-}
-
-ResponseBuilder& ResponseBuilder::operator=(const ResponseBuilder& other)
-{
-    (void)other;
-    return (*this);
-}
 
 ResponseBuilder::~ResponseBuilder()
 {
@@ -31,6 +15,19 @@ Response ResponseBuilder::buildErrorResponse(StatusCode status_code,
     response.setStatusCode(status_code);
     response.setHeader("Content-Type", "text/plain");
     response.setBody(message);
+
+    return (response);
+}
+
+Response ResponseBuilder::buildResponse(
+    StatusCode status_code, const std::map<std::string, std::string>& headers,
+    const std::string& body)
+{
+    Response response;
+
+    response.setStatusCode(status_code);
+    response.setHeaders(headers);
+    response.setBody(body);
 
     return (response);
 }

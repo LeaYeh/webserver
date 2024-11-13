@@ -201,16 +201,6 @@ enum HttpVersion // we only support HTTP/1.1
     HTTP_3_0
 };
 
-enum Encoding
-{
-    GZIP,
-    DEFLATE,
-    BR,
-    IDENTITY,
-    CHUNKED,
-    COMPRESS
-};
-
 } // namespace webshell
 
 namespace webconfig
@@ -250,6 +240,13 @@ enum EventType
     COMMUNICATION,
     DATA_RECEIVED,
     DATA_SENT
+};
+
+enum EncodingMode
+{
+    IDENTITY = 0,
+    CHUNKED = 0b00000001,
+    GZIP = 0b00000010,
 };
 
 } // namespace webkernel

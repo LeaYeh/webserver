@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "Logger.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
 
@@ -50,6 +51,13 @@ void Response::setStatusCode(StatusCode status_code)
     _status_code = status_code;
 }
 
+void Response::setHeaders(std::map<std::string, std::string> headers)
+{
+    if (_headers.size() > 0)
+        weblog::Logger::log(weblog::WARNING, "Overwrite headers");
+    _headers = headers;
+}
+
 void Response::setHeader(std::string key, std::string value)
 {
     _headers[key] = value;
@@ -82,10 +90,6 @@ std::string Response::serialize()
     }
     response += "\r\n";
     response += _body;
-    // response += "Content-Type: text/plain\r\n";
-    // response += "Content-Length: 13\r\n";
-    // response += "Connection: close\r\n\r\n";
-    // response += "Hello, World!";
 
     return (response);
 }

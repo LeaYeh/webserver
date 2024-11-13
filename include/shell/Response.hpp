@@ -18,6 +18,7 @@ class Response
     std::string header(std::string key);
     std::string body();
     void setStatusCode(StatusCode statusCode);
+    void setHeaders(std::map<std::string, std::string> headers);
     void setHeader(std::string key, std::string value);
     void setBody(std::string body);
     void setVersion(float version);

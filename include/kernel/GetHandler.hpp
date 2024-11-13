@@ -9,12 +9,15 @@ class GetHandler : public ARequestHandler
 {
   public:
     webshell::Response handle(const webconfig::RequestConfig& config,
-                              const webshell::Request& request) const;
-    std::map<std::string, std::string> responseHeaders(void) const;
+                              const webshell::Request& request);
 
   private:
-    void _postProcess(const webconfig::RequestConfig& config,
-                      const webshell::Request& request);
+    void _handle_standard(const std::string& target_path,
+                          std::stringstream& content);
+    void _handle_autoindex(const webconfig::RequestConfig& config,
+                           const std::string& target_path);
+    void _handle_chunked(const webconfig::RequestConfig& config,
+                         const std::string& target_path);
 };
 
 } // namespace webkernel

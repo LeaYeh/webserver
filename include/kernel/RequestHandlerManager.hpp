@@ -12,7 +12,7 @@ class RequestHandlerManager
 
     webshell::Response handleRequest(webshell::RequestMethod method,
                                      const webconfig::RequestConfig& config,
-                                     const webshell::Request& request) const;
+                                     const webshell::Request& request);
 
   private:
     RequestHandlerManager();
@@ -20,7 +20,7 @@ class RequestHandlerManager
     RequestHandlerManager(const RequestHandlerManager&);
     RequestHandlerManager& operator=(const RequestHandlerManager&);
 
-    std::map<webshell::RequestMethod, const ARequestHandler*> _handlers;
+    std::map<webshell::RequestMethod, ARequestHandler*> _handlers;
 };
 
 } // namespace webkernel

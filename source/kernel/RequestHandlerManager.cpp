@@ -12,8 +12,8 @@ RequestHandlerManager::RequestHandlerManager()
 
 RequestHandlerManager::~RequestHandlerManager()
 {
-    for (std::map<webshell::RequestMethod, const ARequestHandler*>::iterator
-             it = _handlers.begin();
+    for (std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
+             _handlers.begin();
          it != _handlers.end(); ++it)
     {
         delete it->second;
@@ -29,10 +29,10 @@ RequestHandlerManager& RequestHandlerManager::getInstance()
 webshell::Response
 RequestHandlerManager::handleRequest(webshell::RequestMethod method,
                                      const webconfig::RequestConfig& config,
-                                     const webshell::Request& request) const
+                                     const webshell::Request& request)
 {
-    std::map<webshell::RequestMethod, const ARequestHandler*>::const_iterator
-        it = _handlers.find(method);
+    std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
+        _handlers.find(method);
     if (it != _handlers.end())
     {
         return it->second->handle(config, request);

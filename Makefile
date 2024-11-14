@@ -13,6 +13,8 @@ DEPS		= $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(SRCS))
 
 INCFLAGS	= $(shell find $(INC_DIR) -type d -exec echo -I{} \;)
 
+MAKEFLAGS	= -j
+
 all: $(NAME)
 
 $(NAME): $(OBJS) $(DEPS)
@@ -38,7 +40,8 @@ clean:
 fclean: clean
 	rm -f $(NAME)
 
-re: fclean all
+re: fclean
+	$(MAKE) all
 
 .PHONY: all clean fclean re
 

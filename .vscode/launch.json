@@ -7,7 +7,6 @@
             "request": "launch",
             "program": "${workspaceFolder}/webserv",
             "args": ["${workspaceFolder}/configs/default.conf"],
-            "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,

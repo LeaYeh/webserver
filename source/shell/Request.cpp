@@ -3,7 +3,6 @@
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
-#include <iterator>
 #include <string>
 
 namespace webshell

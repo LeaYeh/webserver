@@ -1,8 +1,8 @@
 #include "ConfigHttpBlock.hpp"
-#include "defines.hpp"
 #include "Logger.hpp"
-#include "utils.hpp"
+#include "defines.hpp"
 #include "shellUtils.hpp"
+#include "utils.hpp"
 #include <cstddef>
 
 namespace webconfig
@@ -78,6 +78,21 @@ void ConfigHttpBlock::printConfig(void) const
             "\t\t" + utils::toString(_error_page_list[i].status_code) + " " +
                 _error_page_list[i].path);
     }
+}
+
+unsigned int ConfigHttpBlock::clientMaxBodySize(void) const
+{
+    return (_client_max_body_size);
+}
+
+webshell::ContentType ConfigHttpBlock::defaultType(void) const
+{
+    return (_default_type);
+}
+
+std::vector<ErrorPage> ConfigHttpBlock::errorPages(void) const
+{
+    return (_error_page_list);
 }
 
 void ConfigHttpBlock::_parseConfigDirective(const std::string& line)

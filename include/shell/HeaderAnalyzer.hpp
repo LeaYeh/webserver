@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/17 19:18:37 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/17 21:28:51 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,18 @@ class HeaderAnalyzer
 
   private:
 
+    void _start_header(unsigned char c);
+    void _field_name(unsigned char c);
+    void _field_val(unsigned char c);
+    void _field_end_cr(unsigned char c);
+    void _field_end_lf(unsigned char c);
+    void _header_end_cr(unsigned char c);
+    void _header_end_lf(unsigned char c);
+
     std::map<std::string, std::string> _headers;
 
     // TODO: Seperate the variables name with prefix by different usage.
-    RequestHeaderState _header_state;
+    RequestHeaderState _state;
     std::string _host;
     std::string _header_new_line;
     std::string _host_name;

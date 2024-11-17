@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/17 19:20:22 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/17 21:29:25 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ HeaderAnalyzer::HeaderAnalyzer() : _connection_type(KEEP_ALIVE)
 }
 
 HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other)
-    : _header_state(other._header_state), _host(other._host),
+    : _state(other._state), _host(other._host),
       _header_new_line(other._header_new_line), _host_name(other._host_name),
       _accept(other._accept), _accept_type(other._accept_type),
       _accept_encoding(other._accept_encoding),
@@ -38,7 +38,7 @@ HeaderAnalyzer& HeaderAnalyzer::operator=(const HeaderAnalyzer& other)
 {
     if (this != &other)
     {
-        _header_state = other._header_state;
+        _state = other._state;
         _host = other._host;
         _header_new_line = other._header_new_line;
         _host_name = other._host_name;
@@ -69,9 +69,69 @@ void HeaderAnalyzer::parse_headers(const std::string& line,
     (void)current_state;
 }
 
-void HeaderAnalyzer::feed(unsigned char ch)
+void HeaderAnalyzer::feed(unsigned char c)
 {
-    (void)ch;
+    switch (_state)
+    {
+        case START_HEADER:
+            _start_header(c);
+            break;
+        case FIELD_NAME:
+            _field_name(c);
+            break;
+        case FIELD_VALUE:
+            _field_val(c);
+            break;
+        case FIELD_END_CR:
+            _field_end_cr(c);
+            break;
+        case FIELD_END_LF:
+            _field_end_lf(c);
+            break;
+        case HEADER_END_CR:
+            _header_end_cr(c);
+            break;
+        case HEADER_END_LF:
+            _header_end_lf(c);
+            break;
+        default:
+            throw std::runtime_error("Header analyzing went wrong");
+    }
+}
+
+void HeaderAnalyzer::_start_header(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_field_name(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_field_val(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_field_end_cr(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_field_end_lf(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_header_end_cr(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_header_end_lf(unsigned char c)
+{
+    (void)c;
 }
 
 std::map<std::string, std::string> HeaderAnalyzer::headers()
@@ -81,7 +141,7 @@ std::map<std::string, std::string> HeaderAnalyzer::headers()
 
 bool HeaderAnalyzer::done(void) const
 {
-    // return (_header_state == END_HEADERS);
+    // return (_state == END_HEADERS);
     return (true);
 }
 

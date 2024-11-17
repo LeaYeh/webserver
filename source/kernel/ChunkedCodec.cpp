@@ -40,13 +40,13 @@ std::string ChunkedCodec::encode(const std::string& content) const
 
 /*
 // usage example
-7
-Mozilla
-9
-Developer
-7
-Network
-0
+7\n\r
+Mozilla\n\r
+9\n\r
+Developer\n\r
+7\n\r
+Network\n\r
+0\n\r
 */
 std::string ChunkedCodec::decode(const std::string& content) const
 {
@@ -57,40 +57,46 @@ std::string ChunkedCodec::decode(const std::string& content) const
     //         webshell::PAYLOAD_TOO_LARGE,
     //         "Chunked data size exceeds client_max_body_size");
     std::string decoded_content;
-    std::istringstream iss(content);
-    std::string line;
-    while (std::getline(iss, line, '\n'))
-    {
-        // should end with '\r\n'
-        if (line[line.size() - 1] != '\r')
-            throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Chunked data should end with \\r\\n");
-        line.erase(line.size() - 1);
+    size_t pos = 0;
+    size_t newline_pos = 0;
 
+    while (true)
+    {
+        newline_pos = content.find("\r\n", pos);
+        if (newline_pos == std::string::npos)
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                                       "Invalid chunked data format");
+        std::string chunk_size_str = content.substr(pos, newline_pos - pos);
         size_t chunk_size = 0;
-        std::istringstream(line) >> std::hex >> chunk_size;
+
+        try
+        {
+            std::istringstream(chunk_size_str) >> std::hex >> chunk_size;
+        }
+        catch (std::exception& e)
+        {
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                                       "Invalid chunked size format: " +
+                                           chunk_size_str);
+        }
 
         if (chunk_size == 0)
         {
-            weblog::Logger::log(weblog::DEBUG,
-                                "ChunkedCodec::decode: end of chunked data");
-            if (std::getline(iss, line, '\n'))
-            {
-                if (line != "\r")
-                    throw utils::HttpException(
-                        webshell::BAD_REQUEST,
-                        "Chunked data should end with \\r\\n");
-            }
+            if (content.substr(newline_pos + 2, 2) != "\r\n")
+                throw utils::HttpException(webshell::BAD_REQUEST,
+                                           "Chunked data should end with CRLF");
             break;
         }
-        std::string chunk;
-        chunk.resize(chunk_size);
-        // check the read size need to be equal to chunk_size
-        if (!iss.read(&chunk[0], chunk_size))
+        pos = newline_pos + 2;
+        if (pos + chunk_size > content.size())
             throw utils::HttpException(webshell::BAD_REQUEST,
                                        "Chunked data size mismatch");
-
-        decoded_content += chunk;
+        decoded_content += content.substr(pos, chunk_size);
+        pos += chunk_size;
+        if (content.substr(pos, 2) != "\r\n")
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                                       "Each chunk should end with CRLF");
+        pos += 2;
     }
     return (decoded_content);
 }

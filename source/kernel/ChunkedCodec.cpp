@@ -67,19 +67,13 @@ std::string ChunkedCodec::decode(const std::string& content) const
             throw utils::HttpException(webshell::BAD_REQUEST,
                                        "Invalid chunked data format");
         std::string chunk_size_str = content.substr(pos, newline_pos - pos);
-        size_t chunk_size = 0;
+        int chunk_size = -1;
 
-        try
-        {
-            std::istringstream(chunk_size_str) >> std::hex >> chunk_size;
-        }
-        catch (std::exception& e)
-        {
+        std::istringstream(chunk_size_str) >> std::hex >> chunk_size;
+        if (chunk_size < 0)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Invalid chunked size format: " +
+                                       "Invalid chunked data size: " +
                                            chunk_size_str);
-        }
-
         if (chunk_size == 0)
         {
             if (content.substr(newline_pos + 2, 2) != "\r\n")

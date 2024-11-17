@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   HeaderAnalyzer.cpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
+/*   Updated: 2024/11/17 19:20:22 by mhuszar          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "HeaderAnalyzer.hpp"
 
 namespace webshell
@@ -60,6 +72,11 @@ void HeaderAnalyzer::parse_headers(const std::string& line,
 void HeaderAnalyzer::feed(unsigned char ch)
 {
     (void)ch;
+}
+
+std::map<std::string, std::string> HeaderAnalyzer::headers()
+{
+    return (_headers);
 }
 
 bool HeaderAnalyzer::done(void) const

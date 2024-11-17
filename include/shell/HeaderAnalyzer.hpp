@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   HeaderAnalyzer.hpp                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
+/*   Updated: 2024/11/17 19:18:37 by mhuszar          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
 #include "defines.hpp"
@@ -22,6 +34,8 @@ class HeaderAnalyzer
     void parse_headers(const std::string& line,
                        RequestHeaderState current_state);
 
+    std::map<std::string, std::string> headers();
+
     std::string host() const;
     std::string accept() const;
     std::string accept_encoding() const;
@@ -33,6 +47,9 @@ class HeaderAnalyzer
     bool done(void) const;
 
   private:
+
+    std::map<std::string, std::string> _headers;
+
     // TODO: Seperate the variables name with prefix by different usage.
     RequestHeaderState _header_state;
     std::string _host;

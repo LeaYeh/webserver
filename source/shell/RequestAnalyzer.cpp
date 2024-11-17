@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/10 16:09:53 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/17 19:16:59 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ void RequestAnalyzer::feed(const char ch)
             {
                 // _state = PARSING_REQUEST_BODY;
                 //TODO: extract info from header here
+                _headers = _header_analyzer.headers();
                 _state = COMPLETE;
             }
             break;

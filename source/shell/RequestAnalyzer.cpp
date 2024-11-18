@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/17 19:16:59 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 18:53:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,6 @@ void RequestAnalyzer::feed(const char ch)
             if (_header_analyzer.done())
             {
                 // _state = PARSING_REQUEST_BODY;
-                //TODO: extract info from header here
                 _headers = _header_analyzer.headers();
                 _state = COMPLETE;
             }
@@ -76,14 +75,10 @@ void RequestAnalyzer::feed(const char ch)
             throw std::runtime_error("Request parse error");
         }
     }
-    //TODO: how to handle body??
 }
 
 bool RequestAnalyzer::isComplete(void) const
 {
-    // TODO: check if received /r/n/r/n or 0 from chunked data or reached the
-    // Content-Length or ...
-    //MKH - i dont really think we need that
     return (_state == COMPLETE);
 }
 

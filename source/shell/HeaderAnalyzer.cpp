@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 18:52:01 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 18:58:30 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,22 +17,17 @@
 namespace webshell
 {
 
-HeaderAnalyzer::HeaderAnalyzer() : _connection_type(KEEP_ALIVE)
+//TODO: reset() function!!
+
+HeaderAnalyzer::HeaderAnalyzer()/* : _connection_type(KEEP_ALIVE)*/
 {
+    _state = START_FIELD_NAME;
+    _key = "";
+    _val = "";
 }
 
 HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other)
-    : _state(other._state), _host(other._host),
-      _header_new_line(other._header_new_line), _host_name(other._host_name),
-      _accept(other._accept), _accept_type(other._accept_type),
-      _accept_encoding(other._accept_encoding),
-      _accept_encoding_type(other._accept_encoding_type),
-      _connection(other._connection), _connection_type(other._connection_type),
-      _content_type(other._content_type),
-      _content_type_name(other._content_type_name),
-      _content_length(other._content_length),
-      _content_length_nbr(other._content_length_nbr),
-      _invalid_header(other._invalid_header), _the_rest(other._the_rest)
+    : _state(other._state), _map(other._map), _key(other._key), _val(other._val)
 {
 }
 
@@ -41,34 +36,15 @@ HeaderAnalyzer& HeaderAnalyzer::operator=(const HeaderAnalyzer& other)
     if (this != &other)
     {
         _state = other._state;
-        _host = other._host;
-        _header_new_line = other._header_new_line;
-        _host_name = other._host_name;
-        _accept = other._accept;
-        _accept_type = other._accept_type;
-        _accept_encoding = other._accept_encoding;
-        _accept_encoding_type = other._accept_encoding_type;
-        _connection = other._connection;
-        _connection_type = other._connection_type;
-        _content_type = other._content_type;
-        _content_type_name = other._content_type_name;
-        _content_length = other._content_length;
-        _content_length_nbr = other._content_length_nbr;
-        _invalid_header = other._invalid_header;
-        _the_rest = other._the_rest;
+        _map = other._map;
+        _key = other._key;
+        _val = other._val;
     }
     return (*this);
 }
 
 HeaderAnalyzer::~HeaderAnalyzer()
 {
-}
-
-void HeaderAnalyzer::parse_headers(const std::string& line,
-                                   RequestHeaderState current_state)
-{
-    (void)line;
-    (void)current_state;
 }
 
 void HeaderAnalyzer::feed(unsigned char c)

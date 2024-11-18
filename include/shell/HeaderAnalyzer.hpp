@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 17:15:36 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 18:49:15 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,19 +52,16 @@ class HeaderAnalyzer
     void _field_name(unsigned char c);
     void _leading_ws(unsigned char c);
     void _field_val(unsigned char c);
-    void _trailing_ws(unsigned char c);
-    void _middle_ws(unsigned char c);
-    void _field_end_cr(unsigned char c);
-    void _field_end_lf(unsigned char c);
-    void _header_end_cr(unsigned char c);
-    void _header_end_lf(unsigned char c);
+    void _middle_or_end_ws(unsigned char c);
+    void _field_end_crlf(unsigned char c);
+    void _header_end_crlf(unsigned char c);
 
     bool _is_ows(unsigned char c);
     unsigned char _lowcase(unsigned char c);
     bool _is_vchar(unsigned char c);
     
 
-    std::map<std::string, std::string> _headers;
+    std::map<std::string, std::string> _map;
 
     std::string _key;
     std::string _val;

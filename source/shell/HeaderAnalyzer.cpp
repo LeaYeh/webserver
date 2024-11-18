@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 17:14:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 18:52:01 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,23 +87,14 @@ void HeaderAnalyzer::feed(unsigned char c)
         case FIELD_VALUE:
             _field_val(c);
             break;
-        case MIDDLE_WS:
-            _middle_ws(c);
+        case MIDDLE_OR_END_WS:
+            _middle_or_end_ws(c);
             break;
-        case TRAILING_WS:
-            _trailing_ws(c);
+        case FIELD_END_CRLF:
+            _field_end_crlf(c);
             break;
-        case FIELD_END_CR:
-            _field_end_cr(c);
-            break;
-        case FIELD_END_LF:
-            _field_end_lf(c);
-            break;
-        case HEADER_END_CR:
-            _header_end_cr(c);
-            break;
-        case HEADER_END_LF:
-            _header_end_lf(c);
+        case HEADER_END_CRLF:
+            _header_end_crlf(c);
             break;
         default:
             throw std::runtime_error("Header analyzing went wrong");
@@ -134,11 +125,15 @@ bool HeaderAnalyzer::_is_vchar(unsigned char c)
 void HeaderAnalyzer::_start_header(unsigned char c)
 {
     if (utils::is_tchar(c))
+    {
         _key.push_back(_lowcase(c));
+        _state = FIELD_NAME;
+    }
+    else if (c == '\r')
+        _state = HEADER_END_CRLF;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
-    _state = FIELD_NAME;
 }
 
 void HeaderAnalyzer::_field_name(unsigned char c)
@@ -172,84 +167,107 @@ void HeaderAnalyzer::_field_val(unsigned char c)
     if (_is_vchar(c))
         _val.push_back(_lowcase(c));
     else if (_is_ows(c))
+        _state = MIDDLE_OR_END_WS;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
+{
+    if (_is_vchar(c))
     {
         _val.push_back(' '); //TODO: should i separate like this or not at all?
-        _state = MIDDLE_WS;
+        _val.push_back(_lowcase(c));
+        _state = FIELD_VALUE;
+    }
+    else if (_is_ows(c))
+        return ;
+    else if (c == '\r')
+        _state = FIELD_END_CRLF;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+}
+
+// void HeaderAnalyzer::_trailing_ws(unsigned char c)
+// {
+//     (void)c;
+// }
+
+void HeaderAnalyzer::_field_end_crlf(unsigned char c)
+{
+    if (c == '\n')
+    {
+        _map[_key] = _val;
+        _key.clear();
+        _val.clear();
+        // _state = LIMBO;
+        _state = START_FIELD_NAME;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
 }
 
-void HeaderAnalyzer::_middle_ws(unsigned char c)
+// void HeaderAnalyzer::_limbo(unsigned char c)
+// {
+//     if (_is_vchar(c))
+//         key.push_back
+// }
+
+void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 {
-    (void)c;
+    if (c == '\n')
+        _state = END_HEADERS;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
 }
 
-void HeaderAnalyzer::_trailing_ws(unsigned char c)
-{
-    (void)c;
-}
-
-void HeaderAnalyzer::_field_end_cr(unsigned char c)
-{
-    (void)c;
-}
-
-void HeaderAnalyzer::_field_end_lf(unsigned char c)
-{
-    (void)c;
-}
-
-void HeaderAnalyzer::_header_end_cr(unsigned char c)
-{
-    (void)c;
-}
-
-void HeaderAnalyzer::_header_end_lf(unsigned char c)
-{
-    (void)c;
-}
+// void HeaderAnalyzer::_header_end_lf(unsigned char c)
+// {
+//     (void)c;
+// }
 
 std::map<std::string, std::string> HeaderAnalyzer::headers()
 {
-    return (_headers);
+    return (_map);
 }
 
 bool HeaderAnalyzer::done(void) const
 {
-    // return (_state == END_HEADERS);
-    return (true);
+    return (_state == END_HEADERS);
 }
 
-std::string HeaderAnalyzer::host() const
-{
-    return (_host);
-}
+// std::string HeaderAnalyzer::host() const
+// {
+//     return (_host);
+// }
 
-std::string HeaderAnalyzer::accept() const
-{
-    return (_accept);
-}
+// std::string HeaderAnalyzer::accept() const
+// {
+//     return (_accept);
+// }
 
-std::string HeaderAnalyzer::accept_encoding() const
-{
-    return (_accept_encoding);
-}
+// std::string HeaderAnalyzer::accept_encoding() const
+// {
+//     return (_accept_encoding);
+// }
 
-std::string HeaderAnalyzer::connection() const
-{
-    return (_connection);
-}
+// std::string HeaderAnalyzer::connection() const
+// {
+//     return (_connection);
+// }
 
-ConnectionType HeaderAnalyzer::connection_type() const
-{
-    return (_connection_type);
-}
+// ConnectionType HeaderAnalyzer::connection_type() const
+// {
+//     return (_connection_type);
+// }
 
-std::string HeaderAnalyzer::content_length() const
-{
-    return (_content_length);
-}
+// std::string HeaderAnalyzer::content_length() const
+// {
+//     return (_content_length);
+// }
 
 } // namespace webshell

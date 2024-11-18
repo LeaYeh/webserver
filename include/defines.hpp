@@ -123,7 +123,7 @@ enum URIState
 enum RequestHeaderState
 {
     INVALID_HEADER = -1,
-    START_HEADER = 0,
+    START_FIELD_NAME = 0,
     FIELD_NAME,
     LEADING_WS,
     FIELD_VALUE,

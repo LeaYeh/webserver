@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 13:00:35 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 17:15:36 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,14 @@ class HeaderAnalyzer
     void _header_end_lf(unsigned char c);
 
     bool _is_ows(unsigned char c);
+    unsigned char _lowcase(unsigned char c);
+    bool _is_vchar(unsigned char c);
+    
 
     std::map<std::string, std::string> _headers;
+
+    std::string _key;
+    std::string _val;
 
     // TODO: Seperate the variables name with prefix by different usage.
     RequestHeaderState _state;

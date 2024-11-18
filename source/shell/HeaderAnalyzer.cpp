@@ -6,11 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 12:59:05 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 17:14:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
+#include "HttpException.hpp"
 #include "utils.hpp"
 
 namespace webshell
@@ -74,7 +75,7 @@ void HeaderAnalyzer::feed(unsigned char c)
 {
     switch (_state)
     {
-        case START_HEADER:
+        case START_FIELD_NAME:
             _start_header(c);
             break;
         case FIELD_NAME:
@@ -82,13 +83,16 @@ void HeaderAnalyzer::feed(unsigned char c)
             break;
         case LEADING_WS:
             _leading_ws(c);
+            break;
         case FIELD_VALUE:
             _field_val(c);
             break;
         case MIDDLE_WS:
             _middle_ws(c);
+            break;
         case TRAILING_WS:
             _trailing_ws(c);
+            break;
         case FIELD_END_CR:
             _field_end_cr(c);
             break;
@@ -113,24 +117,68 @@ bool HeaderAnalyzer::_is_ows(unsigned char c)
     return (false);
 }
 
+unsigned char HeaderAnalyzer::_lowcase(unsigned char c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return (c += 32);
+    return (c);
+}
+
+bool HeaderAnalyzer::_is_vchar(unsigned char c)
+{
+    if (c > 32 && c < 127) //32 is technically printable but its part of ows
+        return (true);
+    return (false);
+}
+
 void HeaderAnalyzer::_start_header(unsigned char c)
 {
-    (void)c;
+    if (utils::is_tchar(c))
+        _key.push_back(_lowcase(c));
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+    _state = FIELD_NAME;
 }
 
 void HeaderAnalyzer::_field_name(unsigned char c)
 {
-    (void)c;
+    if (utils::is_tchar(c))
+        _key.push_back(_lowcase(c));
+    else if (c == ':')
+        _state = LEADING_WS;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
 }
 
 void HeaderAnalyzer::_leading_ws(unsigned char c)
 {
-    (void)c;
+    if (_is_ows(c))
+        return ;
+    else if (_is_vchar(c))
+    {
+        _val.push_back(_lowcase(c));
+        _state = FIELD_VALUE;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
+    
 }
 
 void HeaderAnalyzer::_field_val(unsigned char c)
 {
-    (void)c;
+    if (_is_vchar(c))
+        _val.push_back(_lowcase(c));
+    else if (_is_ows(c))
+    {
+        _val.push_back(' '); //TODO: should i separate like this or not at all?
+        _state = MIDDLE_WS;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            BAD_REQUEST_MSG);
 }
 
 void HeaderAnalyzer::_middle_ws(unsigned char c)

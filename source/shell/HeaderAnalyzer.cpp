@@ -6,11 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/17 21:29:25 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/18 12:59:05 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
+#include "utils.hpp"
 
 namespace webshell
 {
@@ -79,9 +80,15 @@ void HeaderAnalyzer::feed(unsigned char c)
         case FIELD_NAME:
             _field_name(c);
             break;
+        case LEADING_WS:
+            _leading_ws(c);
         case FIELD_VALUE:
             _field_val(c);
             break;
+        case MIDDLE_WS:
+            _middle_ws(c);
+        case TRAILING_WS:
+            _trailing_ws(c);
         case FIELD_END_CR:
             _field_end_cr(c);
             break;
@@ -99,6 +106,13 @@ void HeaderAnalyzer::feed(unsigned char c)
     }
 }
 
+bool HeaderAnalyzer::_is_ows(unsigned char c)
+{
+    if (c == ' ' || c == '\t')
+        return (true);
+    return (false);
+}
+
 void HeaderAnalyzer::_start_header(unsigned char c)
 {
     (void)c;
@@ -109,7 +123,22 @@ void HeaderAnalyzer::_field_name(unsigned char c)
     (void)c;
 }
 
+void HeaderAnalyzer::_leading_ws(unsigned char c)
+{
+    (void)c;
+}
+
 void HeaderAnalyzer::_field_val(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_middle_ws(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderAnalyzer::_trailing_ws(unsigned char c)
 {
     (void)c;
 }

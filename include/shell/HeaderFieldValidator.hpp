@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 20:32:22 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:41:37 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ private:
     bool _is_sub_delim(unsigned char c);
     
     URIState _host_state;
-    
 };
 
 } //namespace webshell

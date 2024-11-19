@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 12:48:07 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 12:55:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 
 namespace webshell
 {
-
-//TODO: reset() function!!
 
 HeaderAnalyzer::HeaderAnalyzer()/* : _connection_type(KEEP_ALIVE)*/
 {
@@ -174,11 +172,6 @@ void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
             BAD_REQUEST_MSG);
 }
 
-// void HeaderAnalyzer::_trailing_ws(unsigned char c)
-// {
-//     (void)c;
-// }
-
 void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 {
     if (c == '\n')
@@ -186,19 +179,12 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
         _map[_key] = _val;
         _key.clear();
         _val.clear();
-        // _state = LIMBO;
         _state = START_FIELD_NAME;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             BAD_REQUEST_MSG);
 }
-
-// void HeaderAnalyzer::_limbo(unsigned char c)
-// {
-//     if (_is_vchar(c))
-//         key.push_back
-// }
 
 void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 {
@@ -209,11 +195,6 @@ void HeaderAnalyzer::_header_end_crlf(unsigned char c)
             BAD_REQUEST_MSG);
 }
 
-// void HeaderAnalyzer::_header_end_lf(unsigned char c)
-// {
-//     (void)c;
-// }
-
 std::map<std::string, std::string> HeaderAnalyzer::headers()
 {
     return (_map);
@@ -223,35 +204,5 @@ bool HeaderAnalyzer::done(void) const
 {
     return (_state == END_HEADERS);
 }
-
-// std::string HeaderAnalyzer::host() const
-// {
-//     return (_host);
-// }
-
-// std::string HeaderAnalyzer::accept() const
-// {
-//     return (_accept);
-// }
-
-// std::string HeaderAnalyzer::accept_encoding() const
-// {
-//     return (_accept_encoding);
-// }
-
-// std::string HeaderAnalyzer::connection() const
-// {
-//     return (_connection);
-// }
-
-// ConnectionType HeaderAnalyzer::connection_type() const
-// {
-//     return (_connection_type);
-// }
-
-// std::string HeaderAnalyzer::content_length() const
-// {
-//     return (_content_length);
-// }
 
 } // namespace webshell

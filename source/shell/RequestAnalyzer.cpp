@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 12:51:22 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 12:55:14 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ void RequestAnalyzer::feed(const char ch)
             {
                 _state = PARSING_REQUEST_HEADERS;
                 _method = _rl_analyzer.method();
-                // _target = _rl_analyzer.target();
                 _uri = _rl_analyzer.uri();
                 _version = _rl_analyzer.version();
             }
@@ -104,7 +103,7 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    std::cerr << "Request Line parsed. Method: " << _method << "Target: " << _uri.raw << "Version: " << _version << std::endl;
+    std::cerr << "Request Line parsed. Method: " << _method << " Target: " << _uri.raw << " Version: " << _version << std::endl;
     Request req; 
     req.setMethod(_method);
     req.setUri(_uri);

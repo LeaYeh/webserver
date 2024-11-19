@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/17 19:16:04 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 12:56:02 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,10 +46,8 @@ class RequestAnalyzer
     HeaderAnalyzer _header_analyzer;
 
     RequestMethod _method;
-    // std::string _target;
     Uri _uri;
     float _version;
-    //How i fill a map with headers from inside??
     std::map<std::string, std::string> _headers;
     std::string _body;
 };

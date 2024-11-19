@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 12:48:40 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 16:55:21 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class HeaderAnalyzer
     void _field_val(unsigned char c);
     void _middle_or_end_ws(unsigned char c);
     void _field_end_crlf(unsigned char c);
+    void _check_obs_fold(unsigned char c);
     void _header_end_crlf(unsigned char c);
 
     bool _is_ows(unsigned char c);

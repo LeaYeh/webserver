@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 14:16:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 17:11:53 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ namespace webshell
 
 HeaderAnalyzer::HeaderAnalyzer()/* : _connection_type(KEEP_ALIVE)*/
 {
-    _state = START_FIELD_NAME;
+    _state = START_HEADER;
     _key = "";
     _val = "";
 }
@@ -48,7 +48,7 @@ HeaderAnalyzer::~HeaderAnalyzer()
 
 void HeaderAnalyzer::reset()
 {
-    _state = START_FIELD_NAME;
+    _state = START_HEADER;
     _key.clear();
     _val.clear();
     _map.clear();
@@ -58,7 +58,7 @@ void HeaderAnalyzer::feed(unsigned char c)
 {
     switch (_state)
     {
-        case START_FIELD_NAME:
+        case START_HEADER:
             _start_header(c);
             break;
         case FIELD_NAME:
@@ -75,6 +75,9 @@ void HeaderAnalyzer::feed(unsigned char c)
             break;
         case FIELD_END_CRLF:
             _field_end_crlf(c);
+            break;
+        case CHECK_OBS_FOLD:
+            _check_obs_fold(c);
             break;
         case HEADER_END_CRLF:
             _header_end_crlf(c);
@@ -116,7 +119,7 @@ void HeaderAnalyzer::_start_header(unsigned char c)
         _state = HEADER_END_CRLF;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "start header error");
 }
 
 void HeaderAnalyzer::_field_name(unsigned char c)
@@ -187,13 +190,34 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
         _map[_key] = _val;
         _key.clear();
         _val.clear();
-        _state = START_FIELD_NAME;
+        _state = CHECK_OBS_FOLD;
         weblog::Logger::log(weblog::CRITICAL,
                             "Header field parsed");
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "header field_end_crfl state error");
+}
+
+void HeaderAnalyzer::_check_obs_fold(unsigned char c)
+{
+    if (utils::is_tchar(c))
+    {
+        _key.push_back(_lowcase(c));
+        _state = FIELD_NAME;
+    }
+    else if (c == '\r')
+        _state = HEADER_END_CRLF;
+    else if (_is_ows(c))
+    {
+        //TODO: need to set up a specific response in this case:
+        //Obs-fold not allowed
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "obs-fold detected");
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "failed at obsfold check");
 }
 
 void HeaderAnalyzer::_header_end_crlf(unsigned char c)

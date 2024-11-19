@@ -117,12 +117,13 @@ enum URIState
 enum RequestHeaderState
 {
     INVALID_HEADER = -1,
-    START_FIELD_NAME = 0,
+    START_HEADER = 0,
     FIELD_NAME,
     LEADING_WS,
     FIELD_VALUE,
     MIDDLE_OR_END_WS,
     FIELD_END_CRLF,
+    CHECK_OBS_FOLD,
     HEADER_END_CRLF,
     END_HEADERS
 };

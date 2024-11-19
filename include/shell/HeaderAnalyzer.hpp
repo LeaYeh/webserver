@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 18:55:29 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 12:48:40 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class HeaderAnalyzer
 
     void feed(unsigned char ch);
     bool done(void) const;
+    void reset(void);
 
   private:
 

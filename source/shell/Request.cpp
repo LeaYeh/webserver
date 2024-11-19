@@ -98,10 +98,10 @@ void Request::setMethod(RequestMethod method)
     _method = method;
 }
 
-// void Request::setTarget(std::string target)
-// {
-//     _target = target;
-// }
+void Request::setHeaders(std::map<std::string, std::string> headers)
+{
+    _headers = headers;
+}
 
 void Request::setUri(Uri uri)
 {
@@ -112,10 +112,5 @@ void Request::setVersion(float version)
 {
     _version = version;
 }
-
-// void Request::setBody(std::string& body)
-// {
-//     _body = body;
-// }
 
 } // namespace webshell

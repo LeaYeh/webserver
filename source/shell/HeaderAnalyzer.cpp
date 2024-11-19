@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 18:58:30 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 12:48:07 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,14 @@ HeaderAnalyzer& HeaderAnalyzer::operator=(const HeaderAnalyzer& other)
 
 HeaderAnalyzer::~HeaderAnalyzer()
 {
+}
+
+void HeaderAnalyzer::reset()
+{
+    _state = START_FIELD_NAME;
+    _key.clear();
+    _val.clear();
+    _map.clear();
 }
 
 void HeaderAnalyzer::feed(unsigned char c)

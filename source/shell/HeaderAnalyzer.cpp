@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 18:32:26 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 18:53:58 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,7 +227,7 @@ void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 {
     if (c == '\n')
     {
-        
+        _validator.validate(_map);
         _state = END_HEADERS;
     }
     else

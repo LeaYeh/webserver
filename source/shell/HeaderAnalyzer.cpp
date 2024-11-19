@@ -6,13 +6,14 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 12:55:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 14:16:56 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "utils.hpp"
+#include "Logger.hpp"
 
 namespace webshell
 {
@@ -126,7 +127,7 @@ void HeaderAnalyzer::_field_name(unsigned char c)
         _state = LEADING_WS;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header fieldname state error");
 }
 
 void HeaderAnalyzer::_leading_ws(unsigned char c)
@@ -140,7 +141,7 @@ void HeaderAnalyzer::_leading_ws(unsigned char c)
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header leading_ws state error");
     
 }
 
@@ -150,9 +151,14 @@ void HeaderAnalyzer::_field_val(unsigned char c)
         _val.push_back(_lowcase(c));
     else if (_is_ows(c))
         _state = MIDDLE_OR_END_WS;
+    else if (c == '\r')
+        _state = FIELD_END_CRLF;
     else
+    {
+        // std::cerr << "CHAR IS: |" << c << "| " << std::endl;
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header fieldval state error");
+    }
 }
 
 void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
@@ -169,21 +175,25 @@ void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
         _state = FIELD_END_CRLF;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header midws state error");
 }
 
 void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 {
+    // std::cerr << "Entred field_end crlf" << std::endl;
+    // sleep(5);
     if (c == '\n')
     {
         _map[_key] = _val;
         _key.clear();
         _val.clear();
         _state = START_FIELD_NAME;
+        weblog::Logger::log(weblog::CRITICAL,
+                            "Header field parsed");
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header field_end_crfl state error");
 }
 
 void HeaderAnalyzer::_header_end_crlf(unsigned char c)
@@ -192,7 +202,7 @@ void HeaderAnalyzer::_header_end_crlf(unsigned char c)
         _state = END_HEADERS;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "header end_crlf state error");
 }
 
 std::map<std::string, std::string> HeaderAnalyzer::headers()

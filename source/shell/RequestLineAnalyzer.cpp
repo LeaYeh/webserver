@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/18 13:00:10 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 15:01:45 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ static bool analyze_method(unsigned char c)
         return (true);
     else if (!utils::is_tchar(c))
         throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);
+                "error at check method");
     else
         return (false);
 }

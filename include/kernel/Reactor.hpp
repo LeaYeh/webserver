@@ -31,6 +31,7 @@ class Reactor
     void run(void);
     void registerHandler(int fd, int server_id, IHandler* handler, uint32_t events);
     void removeHandler(int fd);
+    void modifyHandler(int fd, uint32_t events);
     int lookupServerId(int fd) const;
     int epollFd(void) const;
 

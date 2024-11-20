@@ -130,6 +130,7 @@ enum RequestHeaderState
 
 enum StatusCode
 {
+    UNDEFINED = -1,
     OK = 200,
     CREATED = 201,
     ACCEPTED = 202,

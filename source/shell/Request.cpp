@@ -107,4 +107,14 @@ void Request::setVersion(float version)
     _version = version;
 }
 
+void Request::addHeader(std::string& name, std::string& value)
+{
+    _headers[name] = value;
+}
+
+// void Request::setBody(std::string& body)
+// {
+//     _body = body;
+// }
+
 } // namespace webshell

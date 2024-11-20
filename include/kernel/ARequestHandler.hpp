@@ -1,4 +1,5 @@
 #pragma once
+#include "ChunkedCodec.hpp"
 #include "Request.hpp"
 #include "RequestConfig.hpp"
 #include "Response.hpp"
@@ -15,11 +16,13 @@ class ARequestHandler
     ARequestHandler(const ARequestHandler& other);
     ARequestHandler& operator=(const ARequestHandler& other);
     virtual ~ARequestHandler();
-    virtual webshell::Response handle(const webconfig::RequestConfig& config,
+    virtual webshell::Response handle(int fd, EventProcessingState& state,
+                                      const webconfig::RequestConfig& config,
                                       const webshell::Request& request) = 0;
 
   protected:
     std::map<std::string, std::string> _response_headers;
+    ChunkedCodec _chunked_codec;
 
     bool _checkPathFormat(const std::string& path) const;
     bool
@@ -38,7 +41,7 @@ class ARequestHandler
     void _postProcess(const webconfig::RequestConfig& config,
                       const webshell::Request& request,
                       const std::string& target_path,
-                      const std::stringstream& content);
+                      const std::string& content);
 };
 
 } // namespace webkernel

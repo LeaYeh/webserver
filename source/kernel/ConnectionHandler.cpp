@@ -3,10 +3,10 @@
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
+#include "debugUtils.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <exception>
 #include <sys/epoll.h>
 
 namespace webkernel
@@ -39,7 +39,7 @@ ConnectionHandler::~ConnectionHandler()
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
-const Reactor* ConnectionHandler::reactor(void) const
+Reactor* ConnectionHandler::reactor(void) const
 {
     return (_reactor);
 }
@@ -119,6 +119,19 @@ void ConnectionHandler::_handleRead(int fd)
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "recv() failed: " +
                                        std::string(strerror(errno)));
+    else if (bytes_read == 0)
+    {
+        if (_write_buffer.find(fd) == _write_buffer.end() ||
+            _write_buffer[fd].empty())
+            closeConnection(fd, weblog::INFO,
+                            "Read 0 bytes, client closing connection");
+        else
+            closeConnection(fd, weblog::WARNING,
+                            "Read 0 bytes, client closing connection, but "
+                            "there is data to write");
+        // weblog::Logger::log(weblog::WARNING,
+        //                     "Read 0 bytes, but there is data to write");
+    }
     else
     {
         _read_buffer[fd] += std::string(buffer, bytes_read);
@@ -128,27 +141,48 @@ void ConnectionHandler::_handleRead(int fd)
 
 void ConnectionHandler::_handleWrite(int fd)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Write event on fd: " + utils::toString(fd));
+    weblog::Logger::log(
+        weblog::DEBUG,
+        "Write event on fd: " + utils::toString(fd) +
+            " with state: " + utils::toString(_processor.state(fd)));
 
-    if (_error_buffer.find(fd) != _error_buffer.end())
+    EventProcessingState& process_state = _processor.state(fd);
+    if (process_state & ERROR)
         _sendError(fd);
-    else if (_write_buffer.find(fd) != _write_buffer.end())
+    else if (process_state & COMPELETED)
+    {
         _sendNormal(fd);
+        process_state = INITIAL;
+        _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
+    }
+    else if (process_state & WRITE_CHUNKED)
+    {
+        _sendNormal(fd);
+        // TODO: Trigger the chunked writing
+        _processor.process(fd);
+    }
     else
-        weblog::Logger::log(weblog::DEBUG, "No write buffer found for fd: " +
-                                               utils::toString(fd) +
-                                               ", do nothing");
+    {
+        weblog::Logger::log(weblog::ERROR,
+                            "Unknown state " + utils::toString(process_state) +
+                                " on fd: " + utils::toString(fd));
+    }
 }
 
 void ConnectionHandler::_sendNormal(int fd)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Write buffer found for fd: " + utils::toString(fd));
-
     std::map<int, std::string>::iterator it = _write_buffer.find(fd);
 
-    weblog::Logger::log(weblog::DEBUG, "Write content: \n" + it->second);
+    if (it == _write_buffer.end())
+    {
+        weblog::Logger::log(weblog::WARNING, "No write buffer found for fd: " +
+                                                 utils::toString(fd) +
+                                                 ", do nothing");
+        return;
+    }
+
+    weblog::Logger::log(weblog::DEBUG,
+                        "Write content: \n" + utils::replaceCRLF(it->second));
     int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
     if (bytes_sent < 0)
@@ -168,8 +202,8 @@ void ConnectionHandler::_sendNormal(int fd)
         weblog::Logger::log(weblog::DEBUG,
                             "Sent " + utils::toString(bytes_sent) +
                                 " bytes to fd: " + utils::toString(fd));
-        _write_buffer.erase(it);
     }
+    _write_buffer.erase(it);
 }
 
 void ConnectionHandler::_sendError(int fd)
@@ -177,9 +211,12 @@ void ConnectionHandler::_sendError(int fd)
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
     if (it == _error_buffer.end())
-        closeConnection(fd, weblog::ERROR,
-                        "Error buffer not found for fd: " +
-                            utils::toString(fd));
+    {
+        weblog::Logger::log(weblog::WARNING, "No error buffer found for fd: " +
+                                                 utils::toString(fd) +
+                                                 ", do nothing");
+        return;
+    }
     else
     {
         weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +

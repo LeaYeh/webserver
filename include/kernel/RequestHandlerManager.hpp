@@ -10,13 +10,13 @@ class RequestHandlerManager
   public:
     static RequestHandlerManager& getInstance();
 
-    webshell::Response handleRequest(webshell::RequestMethod method,
+    webshell::Response handleRequest(int fd, EventProcessingState& state,
                                      const webconfig::RequestConfig& config,
                                      const webshell::Request& request);
 
   private:
-    RequestHandlerManager();
     ~RequestHandlerManager();
+    RequestHandlerManager();
     RequestHandlerManager(const RequestHandlerManager&);
     RequestHandlerManager& operator=(const RequestHandlerManager&);
 

@@ -26,17 +26,16 @@ class RequestProcessor
 
     const webconfig::RequestConfig& requestConfig(int fd) const;
     void setupRequestConfig(int fd, const webshell::Request& request);
+    EventProcessingState& state(int fd);
 
   private:
     RequestProcessor();
 
     ConnectionHandler* _handler;
-    const Reactor* _reactor;
+    Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
-    webconfig::RequestConfig _request_config;
-    // void _processGet(int fd, const webshell::Request& request);
-    // void _processPost(int fd, const webshell::Request& request);
-    // void _processPut(int fd, const webshell::Request& request);
-    // void _processDelete(int fd, const webshell::Request& request);
+    std::map<int /* fd */, EventProcessingState> _state;
+    std::map<int /* fd */, webshell::Request> _request_records;
+    std::map<int /* fd */, webconfig::RequestConfig> _request_config_pool;
 };
 } // namespace webkernel

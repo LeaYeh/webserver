@@ -227,4 +227,15 @@ enum EncodingMode
     GZIP = 0b00000010,
 };
 
+enum EventProcessingState
+{
+    INITIAL                 = 0b00000000,
+    PROCESSING              = 0b00001000,
+    WRITE_CHUNKED           = 0b00000100,
+    WRITE_FIRST_CHUNKED     = 0b00000001,
+    WRITE_OTHERS_CHUNKED    = 0b00000010,
+    COMPELETED              = 0b01000000,
+    ERROR                   = 0b10000000
+};
+
 } // namespace webkernel

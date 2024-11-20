@@ -21,6 +21,7 @@ unsigned int convertToSize(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delim);
 bool isDirectory(const std::string& path);
 bool isFile(const std::string& path);
+bool is_tchar(unsigned char c);
 
 template <typename T> std::string toString(const T& value)
 {

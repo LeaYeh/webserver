@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/19 19:31:24 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/06 16:49:48 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 15:01:19 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,9 +114,9 @@ bool StateMachine<TState>::feed(unsigned char c)
 {
     if (_actions.find(_current_state) == _actions.end())
     {
-        std::cerr << "Map size: " << _actions.size() << std::endl;
-        std::cerr << "Right pos holds: " << _actions.end()->first;
-        std::cerr << "For state: " << _current_state << " char: " << c << " : " << std::endl;
+        // std::cerr << "Map size: " << _actions.size() << std::endl;
+        // std::cerr << "Right pos holds: " << _actions.end()->first;
+        // std::cerr << "For state: " << _current_state << " char: " << c << " : " << std::endl;
         throw std::runtime_error("Action error: no action for current state");
     }
     return (_actions[_current_state](c));

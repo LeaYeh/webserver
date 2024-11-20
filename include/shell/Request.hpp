@@ -16,7 +16,6 @@ class Request
     ~Request();
 
     const RequestMethod& method() const;
-    // const std::string target() const;
     Uri uri() const;
     float version() const;
     const std::map<std::string, std::string>& headers() const;
@@ -26,16 +25,14 @@ class Request
 
     void setMethod(RequestMethod method);
     void setUri(Uri uri);
-    // void setTarget(std::string target);
     void setVersion(float version);
-    // void setHeaders(std::map<std::string, std::string> headers);
+    void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
 
   private:
     RequestMethod _method;
     Uri _uri;
-    // std::string _target;
     float _version;
     std::map<std::string, std::string> _headers;
     std::string _body;

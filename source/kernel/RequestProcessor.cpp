@@ -102,10 +102,10 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
                             "Feed char: " + utils::toString(buffer[i]) +
                                 " to analyzer on fd: " + utils::toString(fd));
         _analyzer_pool[fd].feed(buffer[i]);
-        if (_analyzer_pool[fd].isComplete() && (i < buffer.size() - 1))
+        if (_analyzer_pool[fd].isComplete()/* && (i < buffer.size() - 1)*/)
         {
             process(fd);
-            buffer.erase(0, i);
+            buffer.erase(0, i + 1); //because atp you have not incremented i yet
             return (true);
         }
         i++;

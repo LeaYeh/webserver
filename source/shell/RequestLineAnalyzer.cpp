@@ -6,13 +6,14 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 19:12:22 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 15:01:45 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestLineAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
+#include "utils.hpp"
 
 #ifndef MACHINE_DEBUG
 # define MACHINE_DEBUG 0
@@ -21,20 +22,20 @@
 namespace webshell
 {
 
-static bool is_tchar(unsigned char c)
-{
-    if (isdigit(c) || isalpha(c))
-        return (true);
-    if (c == '!' || c == '#' || c == '$' || c == '%')
-        return (true);
-    if (c == '&' || c == '`' || c == '*' || c == '+')
-        return (true);
-    if (c == '-' || c == '.' || c == '^' || c == '_')
-        return (true);
-    if (c == '|' || c == '~' || c == '\'')
-        return (true);
-    return (false);
-}
+// static bool is_tchar(unsigned char c)
+// {
+//     if (isdigit(c) || isalpha(c))
+//         return (true);
+//     if (c == '!' || c == '#' || c == '$' || c == '%')
+//         return (true);
+//     if (c == '&' || c == '`' || c == '*' || c == '+')
+//         return (true);
+//     if (c == '-' || c == '.' || c == '^' || c == '_')
+//         return (true);
+//     if (c == '|' || c == '~' || c == '\'')
+//         return (true);
+//     return (false);
+// }
 
 static void generic_transition_function(void)
 {
@@ -44,7 +45,7 @@ static void generic_transition_function(void)
 
 static bool validate_start(unsigned char c)
 {
-    if (!is_tchar(c))
+    if (!utils::is_tchar(c))
         throw utils::HttpException(webshell::BAD_REQUEST,
                 BAD_REQUEST_MSG);
     else
@@ -55,9 +56,9 @@ static bool analyze_method(unsigned char c)
 {
     if (c == ' ')
         return (true);
-    else if (!is_tchar(c))
+    else if (!utils::is_tchar(c))
         throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);
+                "error at check method");
     else
         return (false);
 }

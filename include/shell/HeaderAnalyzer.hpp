@@ -6,13 +6,14 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 16:55:21 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 18:47:51 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "defines.hpp"
+#include "HeaderFieldValidator.hpp"
 #include <iostream>
 #include <map>
 #include <vector>
@@ -51,6 +52,8 @@ class HeaderAnalyzer
     bool _is_ows(unsigned char c);
     bool _is_vchar(unsigned char c);
     unsigned char _lowcase(unsigned char c);
+
+    HeaderFieldValidator _validator;
   
     RequestHeaderState _state;
     std::map<std::string, std::string> _map;

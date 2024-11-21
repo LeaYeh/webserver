@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 18:46:14 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:25:10 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -379,6 +379,7 @@ unsigned char UriAnalyzer::_hexval(unsigned char c)
     return (c - 'A' + 10);
 }
 
+//TODO: move the following 2 to utils. Duplicate version exists in HeaderFieldValidator.
 bool UriAnalyzer::_is_unreserved(unsigned char c)
 {
     if (isalpha(c))

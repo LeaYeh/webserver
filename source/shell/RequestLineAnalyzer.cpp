@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 15:01:45 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 20:43:02 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,8 +102,11 @@ static bool analyze_version(unsigned char c)
     else if (c == '\n' && pos == 10)
         return (pos = 0, true);
     else
+    {
+        pos = 0;
         throw utils::HttpException(webshell::BAD_REQUEST,
                 BAD_REQUEST_MSG);    
+    }
 }
 
 RequestLineAnalyzer::RequestLineAnalyzer()

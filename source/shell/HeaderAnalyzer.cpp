@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 17:11:53 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/19 18:53:58 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,6 +187,9 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
     // sleep(5);
     if (c == '\n')
     {
+        if (_key == "host" && _map.find(_key) != _map.end())
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "multiple Host header fields are not allowed");
         _map[_key] = _val;
         _key.clear();
         _val.clear();
@@ -223,7 +226,10 @@ void HeaderAnalyzer::_check_obs_fold(unsigned char c)
 void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 {
     if (c == '\n')
+    {
+        _validator.validate(_map);
         _state = END_HEADERS;
+    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "header end_crlf state error");

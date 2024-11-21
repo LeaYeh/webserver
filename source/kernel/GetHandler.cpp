@@ -4,8 +4,10 @@
 #include "ResponseBuilder.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
-#include <iosfwd>
+#include "TemplateEngine.hpp"
 #include <string>
+#include <dirent.h>
+#include <sys/types.h>
 
 namespace webkernel
 {
@@ -29,7 +31,21 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
     if (!config.redirect.empty())
         throw utils::HttpException(webshell::MOVED_PERMANENTLY,
                                    "Redirect to " + config.redirect);
-    if (utils::isDirectory(_target_path) && !config.autoindex)
+    if (utils::isDirectory(_target_path))
+    {
+        if (!config.autoindex)
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                       "Forbidden autoindex is disabled");
+        else
+            _handle_autoindex(state, _target_path, content);
+    }
+    else
+    {
+        if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
+            _handle_chunked(fd, state, _target_path, content);
+        else
+            _handle_standard(state, _target_path, content);
+    }
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden autoindex is disabled");
     if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
@@ -97,6 +113,38 @@ void GetHandler::_handle_chunked(int fd, EventProcessingState& state,
     else
         file_offset = file.tellg();
     file.close();
+}
+
+void GetHandler::_handle_autoindex(EventProcessingState& state,
+                                   const std::string& target_path,
+                                   std::string& content) const
+{
+    DIR *dir;
+    struct dirent* ent;
+    std::string listItems;
+
+    if ((dir = opendir(target_path.c_str())) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            listItems += "<li><a href=\"" + std::string(ent->d_name) + "\">" +
+                         std::string(ent->d_name) + "</a></li>";
+        }
+        closedir(dir);
+    }
+    else
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Open directory failed");
+    try {
+        TemplateEngine engine("www/html/autoindex.html");
+        engine.setVariable("TITLE", "Index of " + target_path);
+        engine.setVariable("LIST_ITEMS", listItems);
+        content = engine.render();
+        state = COMPELETED;
+    } catch (const std::exception& e) {
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Template engine failed");
+    }
 }
 
 } // namespace webkernel

@@ -7,6 +7,7 @@
 #include "RequestHandlerManager.hpp"
 #include "Response.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <string>
 
@@ -84,7 +85,8 @@ void RequestProcessor::process(int fd)
     EventProcessingState& state = _state[fd];
     webshell::Response response = manager->handleRequest(
         fd, state, _request_config_pool[fd], _request_records[fd]);
-    weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(state));
+    weblog::Logger::log(weblog::DEBUG,
+                        "state: " + explainEventProcessingState(state));
     _handler->prepareWrite(fd, response.serialize());
 
     if (state & COMPELETED)
@@ -157,13 +159,22 @@ void RequestProcessor::setupRequestConfig(int fd,
     }
 }
 
-EventProcessingState& RequestProcessor::state(int fd)
+const EventProcessingState& RequestProcessor::state(int fd) const
 {
-    std::map<int /* fd */, EventProcessingState>::iterator it = _state.find(fd);
-    if (it == _state.end())
+    if (_state.find(fd) == _state.end())
         throw std::runtime_error("No state found for fd: " +
                                  utils::toString(fd));
-    return (it->second);
+    return (_state.at(fd));
+}
+
+void RequestProcessor::setState(int fd, EventProcessingState state)
+{
+    _state[fd] = state;
+}
+
+void RequestProcessor::resetState(int fd)
+{
+    _state[fd] = INITIAL;
 }
 
 } // namespace webkernel

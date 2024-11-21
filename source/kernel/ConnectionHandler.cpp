@@ -102,8 +102,7 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     weblog::Logger::log(weblog::WARNING,
                         "Error response: \n" + err_response.serialize());
     _error_buffer[fd] = err_response.serialize();
-    EventProcessingState& process_state = _processor.state(fd);
-    process_state = ERROR;
+    _processor.setState(fd, ERROR);
     _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 }
 
@@ -145,20 +144,16 @@ void ConnectionHandler::_handleRead(int fd)
 
 void ConnectionHandler::_handleWrite(int fd)
 {
-    weblog::Logger::log(
-        weblog::DEBUG,
-        "Write event on fd: " + utils::toString(fd) +
-            " with state: " + utils::toString(_processor.state(fd)));
+    weblog::Logger::log(weblog::DEBUG,
+                        "Write event on fd: " + utils::toString(fd) +
+                            " with state: " +
+                            explainEventProcessingState(_processor.state(fd)));
 
-    EventProcessingState& process_state = _processor.state(fd);
+    const EventProcessingState& process_state = _processor.state(fd);
     if (process_state & ERROR)
         _sendError(fd);
     else if (process_state & COMPELETED)
-    {
         _sendNormal(fd);
-        process_state = INITIAL;
-        _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
-    }
     else if (process_state & WRITE_CHUNKED)
     {
         _sendNormal(fd);
@@ -206,6 +201,8 @@ void ConnectionHandler::_sendNormal(int fd)
                             "Sent " + utils::toString(bytes_sent) +
                                 " bytes to fd: " + utils::toString(fd));
     }
+    _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
+    _processor.resetState(fd);
     _write_buffer.erase(it);
 }
 

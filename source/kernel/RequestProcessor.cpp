@@ -93,7 +93,6 @@ void RequestProcessor::process(int fd)
         fd, state, _request_config_pool[fd], _request_records[fd]);
     weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(state));
     _handler->prepareWrite(fd, response.serialize());
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 
     if (state & COMPELETED)
         _request_records.erase(fd);

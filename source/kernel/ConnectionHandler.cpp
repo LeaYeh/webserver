@@ -85,6 +85,7 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
                         "Prepare to write " + utils::toString(buffer.size()) +
                             " bytes to fd: " + utils::toString(fd));
     _write_buffer[fd] = buffer;
+    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 }
 
 void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
@@ -101,6 +102,9 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
     weblog::Logger::log(weblog::WARNING,
                         "Error response: \n" + err_response.serialize());
     _error_buffer[fd] = err_response.serialize();
+    EventProcessingState& process_state = _processor.state(fd);
+    process_state = ERROR;
+    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 }
 
 /*
@@ -216,7 +220,7 @@ void ConnectionHandler::_sendError(int fd)
     }
     else
     {
-        weblog::Logger::log(weblog::DEBUG, "Write buffer found for fd: " +
+        weblog::Logger::log(weblog::DEBUG, "Error buffer found for fd: " +
                                                utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 

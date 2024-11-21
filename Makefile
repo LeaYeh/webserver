@@ -4,7 +4,7 @@ NAME					= ./$(BUILD_DIR)/$(PROJECT)
 CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
 CMAKE_BUILD_TYPE_ARG	?= Debug
 
-MAKEFLAGS				+= --no-print-directory -j8
+MAKEFLAGS				+= --no-print-directory -j
 MAKE					= make $(MAKEFLAGS)
 
 CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
@@ -41,7 +41,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re cmake_build
+.PHONY: all clean fclean re cmake_build bonus
 
 # **************************** COLORS ******************************* #
 

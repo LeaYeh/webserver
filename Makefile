@@ -4,15 +4,15 @@ NAME					= ./$(BUILD_DIR)/$(PROJECT)
 CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
 CMAKE_BUILD_TYPE_ARG	?= Debug
 
-MAKEFLAGS				+= --no-print-directory
-MAKE					= make $(MAKEFLAGS)
+MAKEFLAGS				+= --no-print-directory -j
+MAKE					= make
 
 CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
 
 all: $(NAME)
 
 $(NAME): cmake_build
-	@$(MAKE) -C $(BUILD_DIR)
+	@$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS)
 	@echo ""
 	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
@@ -39,7 +39,9 @@ clean:
 fclean: clean
 	@echo $(STY_GRE)"[INFO] Perform full clean"$(STY_RES)
 
-re: fclean all
+re: fclean
+	@sleep 1
+	@$(MAKE) all
 
 .PHONY: all clean fclean re cmake_build bonus
 

@@ -4,19 +4,19 @@
 
 namespace webkernel 
 {
-    class ATemplateEngine
+    class TemplateEngine
     {
         public:
-        ATemplateEngine(const std::string& template_path);
-        virtual ~ATemplateEngine();
+        TemplateEngine(const std::string& template_path);
+        ~TemplateEngine();
 
         void setVariable(const std::string& key, const std::string& value);
         std::string render() const;
     
         private:
-        ATemplateEngine();
-        ATemplateEngine(const ATemplateEngine&);
-        ATemplateEngine& operator=(const ATemplateEngine&);
+        TemplateEngine();
+        TemplateEngine(const TemplateEngine&);
+        TemplateEngine& operator=(const TemplateEngine&);
         void _loadTemplate(const std::string& template_path);
 
         std::string _template_path;

@@ -141,12 +141,12 @@ enum StatusCode
     NOT_MODIFIED = 304,
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
-    PAYLOAD_TOO_LARGE = 413,
     FORBIDDEN = 403,
     NOT_FOUND = 404,
     METHOD_NOT_ALLOWED = 405,
     REQUEST_TIMEOUT = 408,
     NO_CONTENT_LENGTH = 411,
+    PAYLOAD_TOO_LARGE = 413,
     INTERNAL_SERVER_ERROR = 500,
     NOT_IMPLEMENTED = 501,
     BAD_GATEWAY = 502,
@@ -230,10 +230,10 @@ enum EncodingMode
 enum EventProcessingState
 {
     INITIAL                 = 0b00000000,
-    PROCESSING              = 0b00001000,
-    WRITE_CHUNKED           = 0b00000100,
-    WRITE_FIRST_CHUNKED     = 0b00000001,
+    PROCESSING              = 0b00000001,
     WRITE_OTHERS_CHUNKED    = 0b00000010,
+    WRITE_FIRST_CHUNKED     = 0b00000100,
+    WRITE_CHUNKED           = 0b00001000,
     COMPELETED              = 0b01000000,
     ERROR                   = 0b10000000
 };

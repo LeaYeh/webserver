@@ -114,6 +114,17 @@ enum URIState
     END_URI_PARSER
 };
 
+enum CacheState
+{
+    C_ERROR = -1,
+    C_DIRECTIVE_START = 0,
+    C_DIRECTIVE,
+    C_ARGUMENT_START,
+    C_ARGUMENT,
+    C_QUOTED, //RFC 7234 5.2.1: "A sender SHOULD NOT generate the quoted string form"
+    C_INQUOTE_ESCAPE
+};
+
 enum RequestHeaderState
 {
     INVALID_HEADER = -1,

@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 16:33:38 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/21 18:47:18 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderFieldValidator.hpp"
 #include "HttpException.hpp"
+#include "utils.hpp"
 
 namespace webshell
 {
@@ -59,11 +60,84 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     if (map.find("expect") != map.end() && map["expect"] != "100-continue")
         throw utils::HttpException(webshell::EXPECTATION_FAILED,
             "Only accepted Expect field value is \"100-continue\"");
-    // if (map.find("cache-control") != map.end()) 
-    //     _validate_cache_control(map["cache-control"]);
-    
-
+    if (map.find("cache-control") != map.end()) 
+        _validate_cache_control(map["cache-control"]);
 }
+
+void  HeaderFieldValidator::_validate_cache_control(std::string& val)
+{
+    _cache_state = C_DIRECTIVE_START;
+    int len = val.size();
+    int idx = 0;
+    while (idx < len)
+    {
+        switch (_cache_state)
+        {
+            case C_DIRECTIVE_START:
+                _c_start(val[idx]);
+                break;
+            case C_DIRECTIVE:
+                _c_directive(val[idx]);
+                break;
+            case C_ARGUMENT_START:
+                _c_argument_start(val[idx]);
+                break;
+            case C_ARGUMENT:
+                _c_argument(val[idx]);
+                break;
+            default:
+                throw utils::HttpException(webshell::BAD_REQUEST,
+                    "Cache-Control header field value incorrect (switch case)");
+        }
+        idx++;
+    }
+    if (_cache_state == C_ARGUMENT_START)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+             "Empty Cache-Control argument after = sign");
+}
+
+void HeaderFieldValidator::_c_start(unsigned char c)
+{
+    if (utils::is_tchar(c))
+        _cache_state = C_DIRECTIVE;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cache-Control directives should begin with tchar");
+}
+
+void HeaderFieldValidator::_c_directive(unsigned char c)
+{
+    if (c == '=')
+        _cache_state = C_ARGUMENT_START;
+    else if (c == ',')
+        _cache_state = C_DIRECTIVE_START;
+    else if (utils::is_tchar(c))
+        return ;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cache-Control directives should be made of tchar");
+}
+
+void HeaderFieldValidator::_c_argument_start(unsigned char c)
+{
+    if (isdigit(c))
+        _cache_state = C_ARGUMENT;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cache-Control argument should indicate seconds");
+}
+
+void HeaderFieldValidator::_c_argument(unsigned char c)
+{
+    if (c == ',')
+        _cache_state = C_DIRECTIVE_START;
+    else if (isdigit(c))
+        return ;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cache-Control argument should represent seconds");
+}
+
 
 void HeaderFieldValidator::_validate_host(std::string& val)
 {

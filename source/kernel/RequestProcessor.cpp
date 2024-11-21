@@ -2,7 +2,6 @@
 #include "Config.hpp"
 #include "ConfigHttpBlock.hpp"
 #include "ConnectionHandler.hpp"
-#include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "RequestHandlerManager.hpp"
@@ -82,19 +81,14 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 void RequestProcessor::process(int fd)
 {
     RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
-    std::map<int, EventProcessingState>::iterator it = _state.find(fd);
-    if (it == _state.end())
-        throw utils::HttpException(
-            webshell::INTERNAL_SERVER_ERROR,
-            "No state found for fd or state is not correct: " +
-                utils::toString(fd) + " state: " + utils::toString(it->second));
+    EventProcessingState& state = _state[fd];
     webshell::Response response = manager->handleRequest(
-        fd, it->second, _request_config_pool[fd], _request_records[fd]);
-    weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(it->second));
+        fd, state, _request_config_pool[fd], _request_records[fd]);
+    weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(state));
     _handler->prepareWrite(fd, response.serialize());
     _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 
-    if (it->second & COMPELETED)
+    if (state & COMPELETED)
         _request_records.erase(fd);
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it

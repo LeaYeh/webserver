@@ -158,7 +158,6 @@ void ConnectionHandler::_handleWrite(int fd)
     else if (process_state & WRITE_CHUNKED)
     {
         _sendNormal(fd);
-        // TODO: Trigger the chunked writing
         _processor.process(fd);
     }
     else

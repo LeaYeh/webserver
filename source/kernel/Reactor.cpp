@@ -139,6 +139,18 @@ void Reactor::registerHandler(int fd, int server_id, IHandler* handler,
     _server_map[fd] = server_id;
 }
 
+void Reactor::modifyHandler(int fd, uint32_t events)
+{
+    struct epoll_event ev = {.events = 0, .data = {0}};
+    ev.events = events;
+    ev.data.fd = fd;
+
+    weblog::Logger::log(weblog::DEBUG,
+                        "Modifying handler with fd: " + utils::toString(fd));
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+        throw std::runtime_error("epoll_ctl failed");
+}
+
 void Reactor::removeHandler(int fd)
 {
     std::map<int, IHandler*>::iterator it = _handlers.find(fd);

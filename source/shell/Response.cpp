@@ -1,5 +1,6 @@
 #include "Response.hpp"
 #include "Logger.hpp"
+#include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
 
@@ -65,8 +66,13 @@ void Response::setHeader(std::string key, std::string value)
 
 void Response::setBody(std::string body)
 {
-    _body = body + "\r\n";
-    _headers["Content-Length"] = utils::toString(body.size());
+    _body = body;
+    // _headers["Content-Length"] = utils::toString(body.size());
+}
+
+void Response::clearHeaders()
+{
+    _headers.clear();
 }
 
 /*
@@ -81,14 +87,16 @@ std::string Response::serialize()
 {
     std::string response;
 
-    response += "HTTP/1.1 " + utils::toString(_status_code) + " " +
-                statusReasonPhase(_status_code) + "\r\n";
-    for (std::map<std::string, std::string>::iterator it = _headers.begin();
-         it != _headers.end(); ++it)
+    if (_status_code != UNDEFINED)
+        response += "HTTP/1.1 " + utils::toString(_status_code) + " " +
+                    statusReasonPhase(_status_code) + "\r\n";
+    std::map<std::string, std::string>::iterator it;
+    for (it = _headers.begin(); it != _headers.end(); ++it)
     {
         response += it->first + ": " + it->second + "\r\n";
     }
-    response += "\r\n";
+    if (_headers.size() > 0 && it == _headers.end())
+        response += "\r\n";
     response += _body;
 
     return (response);

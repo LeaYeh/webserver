@@ -21,13 +21,22 @@ Response ResponseBuilder::buildErrorResponse(StatusCode status_code,
 
 Response ResponseBuilder::buildResponse(
     StatusCode status_code, const std::map<std::string, std::string>& headers,
-    const std::string& body)
+    const std::string& body, bool body_only)
 {
     Response response;
 
-    response.setStatusCode(status_code);
-    response.setHeaders(headers);
-    response.setBody(body);
+    if (body_only)
+    {
+        response.setStatusCode(UNDEFINED);
+        response.clearHeaders();
+        response.setBody(body);
+    }
+    else
+    {
+        response.setStatusCode(status_code);
+        response.setHeaders(headers);
+        response.setBody(body);
+    }
 
     return (response);
 }

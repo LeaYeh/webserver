@@ -22,6 +22,7 @@ class Response
     void setHeader(std::string key, std::string value);
     void setBody(std::string body);
     void setVersion(float version);
+    void clearHeaders();
     std::string serialize();
 
   private:

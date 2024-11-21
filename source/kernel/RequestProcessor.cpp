@@ -7,7 +7,7 @@
 #include "RequestHandlerManager.hpp"
 #include "Response.hpp"
 #include "defines.hpp"
-#include <exception>
+#include "utils.hpp"
 #include <string>
 
 namespace webkernel
@@ -41,50 +41,6 @@ RequestProcessor::~RequestProcessor()
 {
 }
 
-void RequestProcessor::setupRequestConfig(int fd,
-                                          const webshell::Request& request)
-{
-    int server_id = _reactor->lookupServerId(fd);
-    webconfig::ConfigHttpBlock http_config =
-        webconfig::Config::instance()->httpBlock();
-    webconfig::ConfigServerBlock server_config =
-        webconfig::Config::instance()->serverBlockList()[server_id];
-
-    _request_config.client_max_body_size = http_config.clientMaxBodySize();
-    _request_config.default_type = http_config.defaultType();
-    _request_config.error_pages = http_config.errorPages();
-    _request_config.error_log = server_config.errorLog();
-    _request_config.keep_alive_timeout = server_config.keepAliveTimeout();
-    _request_config.server_name = server_config.serverName();
-
-    for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
-    {
-        if (request.uri().path.find(
-                server_config.locationBlockList()[i].route()) == 0)
-        {
-            _request_config.route =
-                server_config.locationBlockList()[i].route();
-            _request_config.limit_except =
-                server_config.locationBlockList()[i].limitExcept();
-            _request_config.root = server_config.locationBlockList()[i].root();
-            _request_config.index =
-                server_config.locationBlockList()[i].index();
-            _request_config.redirect =
-                server_config.locationBlockList()[i].redirect();
-            _request_config.autoindex =
-                server_config.locationBlockList()[i].autoindex();
-            _request_config.cgi_extension =
-                server_config.locationBlockList()[i].cgiExtension();
-            _request_config.cgi_path =
-                server_config.locationBlockList()[i].cgiPath();
-            _request_config.enable_upload =
-                server_config.locationBlockList()[i].enableUpload();
-            _request_config.upload_path =
-                server_config.locationBlockList()[i].uploadPath();
-        }
-    }
-}
-
 // Analyze the buffer and feed to the request analyzer char by char to avoid
 // lossing data which belongs to the next request
 // TODO: How to test this function?
@@ -95,17 +51,23 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
     size_t i = 0;
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end())
+    {
         _analyzer_pool[fd] = webshell::RequestAnalyzer();
+        _state[fd] = INITIAL;
+    }
+
     while (i < buffer.size())
     {
-        weblog::Logger::log(weblog::CRITICAL,
-                            "Feed char: " + utils::toString(buffer[i]) +
-                                " to analyzer on fd: " + utils::toString(fd));
         _analyzer_pool[fd].feed(buffer[i]);
-        if (_analyzer_pool[fd].isComplete()/* && (i < buffer.size() - 1)*/)
+        if (_analyzer_pool[fd].isComplete() /* && (i < buffer.size() - 1)*/)
         {
+            _request_records[fd] = _analyzer_pool[fd].request();
+            weblog::Logger::log(weblog::WARNING,
+                                "Request is complete: \n" +
+                                    _request_records[fd].serialize());
+            setupRequestConfig(fd, _request_records[fd]);
             process(fd);
-            buffer.erase(0, i + 1); //because atp you have not incremented i yet
+            buffer.erase(0, i + 1);
             return (true);
         }
         i++;
@@ -114,31 +76,20 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
     return (_analyzer_pool[fd].isComplete());
 }
 
+// This function can be called after the request is complete or the request need
+// to be processed in chunks
 void RequestProcessor::process(int fd)
 {
-    try
-    {
-        setupRequestConfig(fd, _analyzer_pool[fd].request());
-    }
-    catch (std::exception& e)
-    {
-        weblog::Logger::log(weblog::ERROR, e.what());
-        _handler->prepareError(fd, webshell::INTERNAL_SERVER_ERROR, e.what());
-        return;
-    }
-    webshell::Uri uri;
-    uri.path = "/";
-    webshell::Request request;
-    std::string target = "/";
-    request.setMethod(webshell::GET);
-    request.setUri(uri);
-    request.setVersion(1.1);
-
-    webshell::Response response =
-        RequestHandlerManager::getInstance().handleRequest(
-            _analyzer_pool[fd].request().method(), _request_config, request);
+    RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
+    EventProcessingState& state = _state[fd];
+    webshell::Response response = manager->handleRequest(
+        fd, state, _request_config_pool[fd], _request_records[fd]);
+    weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(state));
     _handler->prepareWrite(fd, response.serialize());
+    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 
+    if (state & COMPELETED)
+        _request_records.erase(fd);
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
     _analyzer_pool[fd].reset();
@@ -149,33 +100,71 @@ void RequestProcessor::removeAnalyzer(int fd)
     _analyzer_pool.erase(fd);
 }
 
-// void RequestProcessor::_processGet(int fd, const webshell::Request& request)
-// {
-//     (void)request;
-//     webshell::Response dummy_response;
+const webconfig::RequestConfig& RequestProcessor::requestConfig(int fd) const
+{
+    std::map<int /* fd */, webconfig::RequestConfig>::const_iterator it =
+        _request_config_pool.find(fd);
+    if (it == _request_config_pool.end())
+        throw std::runtime_error("No request config found for fd: " +
+                                 utils::toString(fd));
+    return (it->second);
+}
 
-//     dummy_response.setStatusCode(webshell::OK);
-//     dummy_response.setBody("Hello, World!");
-//     _handler->prepareWrite(fd, dummy_response.serialize());
-// }
+void RequestProcessor::setupRequestConfig(int fd,
+                                          const webshell::Request& request)
+{
+    int server_id = _reactor->lookupServerId(fd);
+    webconfig::ConfigHttpBlock http_config =
+        webconfig::Config::instance()->httpBlock();
+    webconfig::ConfigServerBlock server_config =
+        webconfig::Config::instance()->serverBlockList()[server_id];
+    _request_config_pool[fd] = webconfig::RequestConfig();
 
-// void RequestProcessor::_processPost(int fd, const webshell::Request& request)
-// {
-//     (void)fd;
-//     (void)request;
-// }
+    _request_config_pool[fd].client_max_body_size =
+        http_config.clientMaxBodySize();
+    _request_config_pool[fd].default_type = http_config.defaultType();
+    _request_config_pool[fd].error_pages = http_config.errorPages();
+    _request_config_pool[fd].error_log = server_config.errorLog();
+    _request_config_pool[fd].keep_alive_timeout =
+        server_config.keepAliveTimeout();
+    _request_config_pool[fd].server_name = server_config.serverName();
 
-// void RequestProcessor::_processPut(int fd, const webshell::Request& request)
-// {
-//     (void)fd;
-//     (void)request;
-// }
+    for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
+    {
+        if (request.uri().path.find(
+                server_config.locationBlockList()[i].route()) == 0)
+        {
+            _request_config_pool[fd].route =
+                server_config.locationBlockList()[i].route();
+            _request_config_pool[fd].limit_except =
+                server_config.locationBlockList()[i].limitExcept();
+            _request_config_pool[fd].root =
+                server_config.locationBlockList()[i].root();
+            _request_config_pool[fd].index =
+                server_config.locationBlockList()[i].index();
+            _request_config_pool[fd].redirect =
+                server_config.locationBlockList()[i].redirect();
+            _request_config_pool[fd].autoindex =
+                server_config.locationBlockList()[i].autoindex();
+            _request_config_pool[fd].cgi_extension =
+                server_config.locationBlockList()[i].cgiExtension();
+            _request_config_pool[fd].cgi_path =
+                server_config.locationBlockList()[i].cgiPath();
+            _request_config_pool[fd].enable_upload =
+                server_config.locationBlockList()[i].enableUpload();
+            _request_config_pool[fd].upload_path =
+                server_config.locationBlockList()[i].uploadPath();
+        }
+    }
+}
 
-// void RequestProcessor::_processDelete(int fd, const webshell::Request&
-// request)
-// {
-//     (void)fd;
-//     (void)request;
-// }
+EventProcessingState& RequestProcessor::state(int fd)
+{
+    std::map<int /* fd */, EventProcessingState>::iterator it = _state.find(fd);
+    if (it == _state.end())
+        throw std::runtime_error("No state found for fd: " +
+                                 utils::toString(fd));
+    return (it->second);
+}
 
 } // namespace webkernel

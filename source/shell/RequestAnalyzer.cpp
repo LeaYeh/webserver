@@ -6,26 +6,24 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 14:16:59 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/21 14:00:11 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestAnalyzer.hpp"
-#include "defines.hpp"
 #include "ParseException.hpp"
+#include "defines.hpp"
 
 namespace webshell
 {
 
 RequestAnalyzer::RequestAnalyzer()
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(),
-      _header_analyzer()
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer()
 {
 }
 
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
-    : _state(other._state),
-      _rl_analyzer(other._rl_analyzer),
+    : _state(other._state), _rl_analyzer(other._rl_analyzer),
       _header_analyzer(other._header_analyzer)
 {
 }
@@ -104,11 +102,15 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 Request RequestAnalyzer::request(void) const
 {
     std::cerr << "Request Line parsed. Method: " << _method << " Target: " << _uri.raw << " Version: " << _version << std::endl;
-    Request req; 
+    Request req;
     req.setMethod(_method);
     req.setUri(_uri);
     req.setVersion(_version);
     req.setHeaders(_headers);
+
+    std::string key = "Accept-Encoding";
+    std::string value = "chunked";
+    req.addHeader(key, value);
     return (req);
 }
 

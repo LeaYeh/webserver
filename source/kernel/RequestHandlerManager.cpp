@@ -1,6 +1,7 @@
 #include "RequestHandlerManager.hpp"
 #include "GetHandler.hpp"
 #include "HttpException.hpp"
+#include "defines.hpp"
 
 namespace webkernel
 {
@@ -27,15 +28,15 @@ RequestHandlerManager& RequestHandlerManager::getInstance()
 }
 
 webshell::Response
-RequestHandlerManager::handleRequest(webshell::RequestMethod method,
+RequestHandlerManager::handleRequest(int fd, EventProcessingState& state,
                                      const webconfig::RequestConfig& config,
                                      const webshell::Request& request)
 {
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
-        _handlers.find(method);
+        _handlers.find(request.method());
     if (it != _handlers.end())
     {
-        return it->second->handle(config, request);
+        return it->second->handle(fd, state, config, request);
     }
     throw utils::HttpException(webshell::NOT_IMPLEMENTED,
                                "Method not implemented");

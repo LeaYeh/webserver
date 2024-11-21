@@ -1,5 +1,6 @@
 #include "ARequestHandler.hpp"
 #include "HttpException.hpp"
+#include "RequestConfig.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
 #include <string>
@@ -136,6 +137,8 @@ int ARequestHandler::_get_respones_encoding(
         std::string accept_encoding = request.headers().at("Accept-Encoding");
         if (accept_encoding.find("gzip") != std::string::npos)
             encoding |= webkernel::GZIP;
+        if (accept_encoding.find("chunked") != std::string::npos)
+            encoding |= webkernel::CHUNKED;
     }
     return (encoding);
 }
@@ -143,6 +146,7 @@ int ARequestHandler::_get_respones_encoding(
 std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
                                          const webshell::Request& request)
 {
+
     if (!_checkPathFormat(request.uri().path))
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
     if (!_checkMethodLimit(request.method(), config.limit_except))
@@ -165,24 +169,23 @@ std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
     if (full_path.find(config.root) == std::string::npos)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
-    if (access(full_path.c_str(), F_OK) == -1)
-        throw utils::HttpException(webshell::NOT_FOUND,
-                                   "Not found file: " + full_path);
     return (full_path);
 }
 
 void ARequestHandler::_postProcess(const webconfig::RequestConfig& config,
                                    const webshell::Request& request,
                                    const std::string& target_path,
-                                   const std::stringstream& content)
+                                   const std::string& content)
 {
     _response_headers["Content-Type"] = _getMimeType(target_path);
     if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
-        _response_headers["Transfer-Encoding"] =
-            _get_encoding_string(_get_respones_encoding(config, request));
+    {
+        int encoding = _get_respones_encoding(config, request);
+        std::string tmp = _get_encoding_string(encoding);
+        _response_headers["Transfer-Encoding"] = tmp;
+    }
     else
-        _response_headers["Content-Length"] =
-            utils::toString(content.str().size());
+        _response_headers["Content-Length"] = utils::toString(content.size());
 }
 
 } // namespace webkernel

@@ -145,7 +145,7 @@ void HeaderAnalyzer::_leading_ws(unsigned char c)
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "header leading_ws state error");
-    
+
 }
 
 void HeaderAnalyzer::_field_val(unsigned char c)
@@ -194,8 +194,6 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
         _key.clear();
         _val.clear();
         _state = CHECK_OBS_FOLD;
-        weblog::Logger::log(weblog::CRITICAL,
-                            "Header field parsed");
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,

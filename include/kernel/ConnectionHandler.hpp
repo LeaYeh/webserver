@@ -21,7 +21,7 @@ class ConnectionHandler : public IHandler
     ConnectionHandler& operator=(const ConnectionHandler& other);
     ~ConnectionHandler();
 
-    const Reactor* reactor(void) const;
+    Reactor* reactor(void) const;
 
     void handleEvent(int fd, uint32_t events);
     void closeConnection(int fd, weblog::LogLevel level, std::string message);

@@ -4,7 +4,7 @@ NAME					= ./$(BUILD_DIR)/$(PROJECT)
 CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
 CMAKE_BUILD_TYPE_ARG	?= Debug
 
-MAKEFLAGS				+= --no-print-directory -j
+MAKEFLAGS				+= --no-print-directory
 MAKE					= make $(MAKEFLAGS)
 
 CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)

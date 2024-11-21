@@ -33,6 +33,8 @@ std::string statusReasonPhase(const StatusCode& statusCode)
         return ("Not Found");
     case METHOD_NOT_ALLOWED:
         return ("Method Not Allowed");
+    case EXPECTATION_FAILED:
+        return ("Expectation Failed");
     case REQUEST_TIMEOUT:
         return ("Request Timeout");
     case NO_CONTENT_LENGTH:

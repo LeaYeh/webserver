@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 20:35:20 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/21 14:57:40 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,18 @@ HeaderFieldValidator& HeaderFieldValidator::operator=(const HeaderFieldValidator
         return (*this);
 }
 
+/*
+Whitelist:
+Host
+Expect
+Cache-Control
+Range
+If-Modified-Since
+If-Unmodified-Since
+Authorization
+Accept-Encoding
+*/
+
 void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
 {
     if (map.empty() || map.find("host") == map.end())
@@ -44,7 +56,10 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
             "Host header field missing");
     else
         _validate_host(map["host"]);
-    
+    if (map.find("expect") != map.end() && map["expect"] != "100-continue")
+        throw utils::HttpException(webshell::EXPECTATION_FAILED,
+            "Only accepted Expect field value is \"100-continue\"");
+
 }
 
 void HeaderFieldValidator::_validate_host(std::string& val)

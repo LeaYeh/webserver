@@ -1,19 +1,18 @@
 PROJECT					= webserv
 BUILD_DIR				= build
-NAME					= ./${BUILD_DIR}/$(PROJECT)
+NAME					= ./$(BUILD_DIR)/$(PROJECT)
 CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
 CMAKE_BUILD_TYPE_ARG	?= Debug
 
-# 禁止打印目录信息
-MAKEFLAGS				+= --no-print-directory
-MAKE					= make --no-print-directory
+MAKEFLAGS				+= --no-print-directory -j8
+MAKE					= make $(MAKEFLAGS)
 
 CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
 
 all: $(NAME)
 
 $(NAME): cmake_build
-	@$(MAKE) -C $(BUILD_DIR) -j8
+	@$(MAKE) -C $(BUILD_DIR)
 	@echo ""
 	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 14:57:40 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/21 16:33:38 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,9 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     if (map.find("expect") != map.end() && map["expect"] != "100-continue")
         throw utils::HttpException(webshell::EXPECTATION_FAILED,
             "Only accepted Expect field value is \"100-continue\"");
+    // if (map.find("cache-control") != map.end()) 
+    //     _validate_cache_control(map["cache-control"]);
+    
 
 }
 

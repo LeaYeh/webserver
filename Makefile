@@ -1,49 +1,45 @@
-NAME		= webserv
-CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -gdwarf-4
-LDFLAGS 	= -lstdc++  # Add the C++ standard library
-SRC_DIR		= source
-INC_DIR		= include
-BUILD_DIR	= build
-SRCS		= $(shell find $(SRC_DIR) -name "*.cpp")
-OBJ_DIR		= $(BUILD_DIR)/objects
-DEP_DIR		= $(BUILD_DIR)/dependencies
-OBJS		= $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
-DEPS		= $(patsubst $(SRC_DIR)/%.cpp, $(DEP_DIR)/%.d, $(SRCS))
+PROJECT					= webserv
+BUILD_DIR				= build
+NAME					= ./${BUILD_DIR}/$(PROJECT)
+CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
+CMAKE_BUILD_TYPE_ARG	?= Debug
 
-INCFLAGS	= $(shell find $(INC_DIR) -type d -exec echo -I{} \;)
+# 禁止打印目录信息
+MAKEFLAGS				+= --no-print-directory
+MAKE					= make --no-print-directory
 
-MAKEFLAGS	= -j
+CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(DEPS)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) $(LDFLAGS) $(OBJS) -o $(NAME)
+$(NAME): cmake_build
+	@$(MAKE) -C $(BUILD_DIR) -j8
+	@echo ""
+	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
+	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
+	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandetory" ${STY_RES}
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) -c $< -o $@
+bonus: cmake_build
+	@$(MAKE) -C $(BUILD_DIR) -j8
+	@echo ""
+	@echo ${STY_GRE}${STY_BOL} "🚀 Build Complete" ${STY_RES}
+	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
+	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Bonus" ${STY_RES}
 
-$(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp
-	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INCFLAGS) -M -MP -MF $@ $<
-
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),fclean)
-    -include $(DEPS)
-endif
-endif
+cmake_build:
+	@mkdir -p $(BUILD_DIR)
+	@cd $(BUILD_DIR) && $(CMAKE) ..
 
 clean:
-	rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
+	@echo $(STY_GRE)"[INFO] Clean the build directory"$(STY_RES)
 
 fclean: clean
-	rm -f $(NAME)
+	@echo $(STY_GRE)"[INFO] Perform full clean"$(STY_RES)
 
-re: fclean
-	$(MAKE) all
+re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re cmake_build
 
 # **************************** COLORS ******************************* #
 

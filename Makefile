@@ -19,12 +19,15 @@ $(NAME): cmake_build
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
 	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandetory" ${STY_RES}
 
-bonus: cmake_build
-	@$(MAKE) -C $(BUILD_DIR) -j8
-	@echo ""
-	@echo ${STY_GRE}${STY_BOL} "🚀 Build Complete" ${STY_RES}
-	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
-	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Bonus" ${STY_RES}
+# bonus: cmake_build
+# 	@$(MAKE) -C $(BUILD_DIR) -j8
+# 	@echo ""
+# 	@echo ${STY_GRE}${STY_BOL} "🚀 Build Complete" ${STY_RES}
+# 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
+# 	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Bonus" ${STY_RES}
+
+bonus:
+	@echo $(STY_YEL)"[WARNING] Bonus part is not implemented yet"$(STY_RES)
 
 cmake_build:
 	@mkdir -p $(BUILD_DIR)

@@ -45,7 +45,6 @@ jobs:
           excludeTitle: 'true' # optional: this excludes the title of a pull request
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
           accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
-        if: ${{ !cancelled() }}
       - name: Check Line Length
         uses: gsactions/commit-message-checker@v2
         with:
@@ -55,14 +54,14 @@ jobs:
           excludeTitle: 'true' # optional: this excludes the title of a pull request
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
           accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
-        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch')) && ${{ !cancelled() }}
+        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch'))
       - name: Check Verb
         run: .github/scripts/is_verb.sh
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch')) && ${{ !cancelled() }}
+        if: (!contains(github.event.pull_request.title, 'Merge pull request') && !contains(github.event.pull_request.title, 'Merge branch'))
 
   compilation_test:
     name: Compilation Test

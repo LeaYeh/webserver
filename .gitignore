@@ -32,4 +32,6 @@
 *.app
 
 .VSCodeCounter
+.cache
+build/
 webserv

@@ -21,6 +21,7 @@ const char* HttpException::what() const throw()
 {
     if (_reasonDetail.empty())
         _reasonDetail = webshell::statusReasonPhase(_statusCode);
+    _reasonDetail += "\n";
     return (_reasonDetail.c_str());
 }
 

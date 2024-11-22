@@ -5,7 +5,6 @@ CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
 CMAKE_BUILD_TYPE_ARG	?= Debug
 
 MAKEFLAGS				+= --no-print-directory -j
-MAKE					= make
 
 CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
 
@@ -16,7 +15,7 @@ $(NAME): cmake_build
 	@echo ""
 	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
-	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandetory" ${STY_RES}
+	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8

@@ -124,6 +124,7 @@ void RequestProcessor::setupRequestConfig(int fd,
         http_config.clientMaxBodySize();
     _request_config_pool[fd].default_type = http_config.defaultType();
     _request_config_pool[fd].error_pages = http_config.errorPages();
+    _request_config_pool[fd].autoindex_page = http_config.autoindexPage();
     _request_config_pool[fd].error_log = server_config.errorLog();
     _request_config_pool[fd].keep_alive_timeout =
         server_config.keepAliveTimeout();

@@ -10,11 +10,13 @@ namespace webconfig
 
 ConfigHttpBlock::ConfigHttpBlock()
     : AConfigParser(HTTP), _client_max_body_size(0),
-      _default_type(webshell::TEXT_PLAIN), _error_page_list()
+      _default_type(webshell::TEXT_PLAIN), _error_page_list(),
+      _autoindex_page("./www/html/autoindex.html")
 {
     _valid_directives.insert("client_max_body_size");
     _valid_directives.insert("default_type");
     _valid_directives.insert("error_page");
+    _valid_directives.insert("autoindex_page");
 }
 
 ConfigHttpBlock::ConfigHttpBlock(const ConfigHttpBlock& other)
@@ -78,6 +80,7 @@ void ConfigHttpBlock::printConfig(void) const
             "\t\t" + utils::toString(_error_page_list[i].status_code) + " " +
                 _error_page_list[i].path);
     }
+    weblog::Logger::log(weblog::DEBUG, "\tautoindex_page: " + _autoindex_page);
 }
 
 unsigned int ConfigHttpBlock::clientMaxBodySize(void) const
@@ -95,6 +98,11 @@ std::vector<ErrorPage> ConfigHttpBlock::errorPages(void) const
     return (_error_page_list);
 }
 
+std::string ConfigHttpBlock::autoindexPage(void) const
+{
+    return (_autoindex_page);
+}
+
 void ConfigHttpBlock::_parseConfigDirective(const std::string& line)
 {
     std::string directive = _getDirectiveName(line);
@@ -105,6 +113,8 @@ void ConfigHttpBlock::_parseConfigDirective(const std::string& line)
         _default_type = _parseDefaultType(line);
     else if (directive == "error_page")
         _error_page_list.push_back(_parseErrorPage(line));
+    else if (directive == "autoindex_page")
+        _autoindex_page = _parseAutoindexPage(line);
     else
         throw std::invalid_argument("Invalid directive in HTTP block: " +
                                     directive);
@@ -139,6 +149,14 @@ ErrorPage ConfigHttpBlock::_parseErrorPage(const std::string& line)
     webshell::StatusCode status_code = string_to_status_code(args[0]);
 
     return (ErrorPage(status_code, args[1]));
+}
+
+std::string ConfigHttpBlock::_parseAutoindexPage(const std::string& line)
+{
+    std::string directive = _getDirectiveName(line);
+    std::string value = extract_directive_value(line, directive);
+
+    return (value);
 }
 
 } // namespace webconfig

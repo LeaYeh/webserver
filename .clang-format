@@ -1,11 +1,66 @@
-BasedOnStyle: LLVM                          # Use the LLVM style as a base
-IndentWidth: 4                              # Commonly used indent width
-UseTab: Never                               # Prefer spaces, as is typical in older C++ code styles
-BreakBeforeBraces: Allman                   # Use the Allman style for braces
-AllowShortIfStatementsOnASingleLine: false  # Keep even short if statements on separate lines
-ColumnLimit: 80                             # Keeping with the traditional 80 characters per line limit
-PointerAlignment: Left                      # Place the asterisk close to the variable type e.g., int* x;
-AllowShortFunctionsOnASingleLine: false     # Force functions to be on multiple lines
-AllowShortBlocksOnASingleLine: false        # Force blocks to be on multiple lines
-SortIncludes: true                          # Sort includes alphabetically
-InsertNewlineAtEOF: true                    # Ensure a newline at the end of the file
+---
+Language: Cpp
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  BeforeCatch: true
+  BeforeElse: true
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+  AfterNamespace: true
+  AfterEnum: true
+  AfterClass: true
+  AfterStruct: true
+  AfterUnion: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+BreakStringLiterals: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+FixNamespaceComments: true
+IncludeBlocks: Merge
+IndentCaseLabels: false
+# IndentPPDirectives: AfterHash
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+InsertBraces: true
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: None
+PointerAlignment: Left
+ReflowComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: Auto
+UseTab: Never
+---

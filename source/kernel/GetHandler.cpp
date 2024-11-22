@@ -2,11 +2,11 @@
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "ResponseBuilder.hpp"
+#include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
-#include "TemplateEngine.hpp"
-#include <string>
 #include <dirent.h>
+#include <string>
 #include <sys/types.h>
 
 namespace webkernel
@@ -36,7 +36,8 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
         if (!config.autoindex)
         throw utils::HttpException(webshell::FORBIDDEN,
                                        "Forbidden autoindex is disabled");
-        else
+        // for autoindex the content is small so we can read it all at once, it
+        // doesn't make sense to chunk it
             _handle_autoindex(state, _target_path, content);
     }
     else
@@ -46,12 +47,6 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
         else
             _handle_standard(state, _target_path, content);
     }
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden autoindex is disabled");
-    if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
-        _handle_chunked(fd, state, _target_path, content);
-    else
-        _handle_standard(state, _target_path, content);
 
     // prepare headers in post process and encode the content if needed e.g.
     // gzip

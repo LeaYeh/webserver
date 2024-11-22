@@ -34,11 +34,11 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
     if (utils::isDirectory(_target_path))
     {
         if (!config.autoindex)
-        throw utils::HttpException(webshell::FORBIDDEN,
+            throw utils::HttpException(webshell::FORBIDDEN,
                                        "Forbidden autoindex is disabled");
         // for autoindex the content is small so we can read it all at once, it
         // doesn't make sense to chunk it
-            _handle_autoindex(state, _target_path, content);
+        _handle_autoindex(state, _target_path, config.autoindex_page, content);
     }
     else
     {
@@ -111,6 +111,7 @@ void GetHandler::_handle_chunked(int fd, EventProcessingState& state,
 }
 
 void GetHandler::_handle_autoindex(EventProcessingState& state,
+                                   const std::string& template_path,
                                    const std::string& target_path,
                                    std::string& content)
 {
@@ -123,16 +124,17 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
         while ((ent = readdir(dir)) != NULL)
         {
             list_items += "<li><a href=\"" + std::string(ent->d_name) + "\">" +
-                         std::string(ent->d_name) + "</a></li>";
+                          std::string(ent->d_name) + "</a></li>";
         }
         closedir(dir);
     }
     else
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "Open directory failed");
+                                   "Open directory failed for autoindex: " +
+                                       target_path);
     try
     {
-        _template_engine.loadTemplate("templates/autoindex.html");
+        _template_engine.loadTemplate(template_path);
         _template_engine.setVariable("TITLE", "Index of " + target_path);
         _template_engine.setVariable("LIST_ITEMS", list_items);
         content = _template_engine.render();

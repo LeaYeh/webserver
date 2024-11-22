@@ -26,6 +26,7 @@ class GetHandler : public ARequestHandler
                          const std::string& target_path, std::string& content);
     void _handle_autoindex(EventProcessingState& state,
                            const std::string& target_path,
+                           const std::string& template_path,
                            std::string& content);
 };
 

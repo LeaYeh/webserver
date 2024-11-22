@@ -98,6 +98,8 @@ std::string Response::serialize()
     if (_headers.size() > 0 && it == _headers.end())
         response += "\r\n";
     response += _body;
+    if (_headers.find("Transfer-Encoding") == _headers.end())
+        response += "\r\n";
 
     return (response);
 }

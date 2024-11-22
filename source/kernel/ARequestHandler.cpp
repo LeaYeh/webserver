@@ -177,8 +177,12 @@ void ARequestHandler::_postProcess(const webconfig::RequestConfig& config,
                                    const std::string& target_path,
                                    const std::string& content)
 {
-    _response_headers["Content-Type"] = _getMimeType(target_path);
-    if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
+    if (utils::isDirectory(target_path))
+        _response_headers["Content-Type"] = "text/html";
+    else
+        _response_headers["Content-Type"] = _getMimeType(target_path);
+    if (!utils::isDirectory(target_path) &&
+        (_get_respones_encoding(config, request) & webkernel::CHUNKED))
     {
         int encoding = _get_respones_encoding(config, request);
         std::string tmp = _get_encoding_string(encoding);

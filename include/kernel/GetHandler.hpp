@@ -26,7 +26,7 @@ class GetHandler : public ARequestHandler
                          const std::string& target_path, std::string& content);
     void _handle_autoindex(EventProcessingState& state,
                            const std::string& target_path,
-                           std::string& content) const;
+                           std::string& content);
 };
 
 } // namespace webkernel

@@ -3,6 +3,7 @@
 #include "Request.hpp"
 #include "RequestConfig.hpp"
 #include "Response.hpp"
+#include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include <map>
 
@@ -23,6 +24,7 @@ class ARequestHandler
   protected:
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
+    TemplateEngine _template_engine;
 
     bool _checkPathFormat(const std::string& path) const;
     bool

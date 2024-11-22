@@ -117,17 +117,17 @@ void GetHandler::_handle_chunked(int fd, EventProcessingState& state,
 
 void GetHandler::_handle_autoindex(EventProcessingState& state,
                                    const std::string& target_path,
-                                   std::string& content) const
+                                   std::string& content)
 {
-    DIR *dir;
+    DIR* dir;
     struct dirent* ent;
-    std::string listItems;
+    std::string list_items;
 
     if ((dir = opendir(target_path.c_str())) != NULL)
     {
         while ((ent = readdir(dir)) != NULL)
         {
-            listItems += "<li><a href=\"" + std::string(ent->d_name) + "\">" +
+            list_items += "<li><a href=\"" + std::string(ent->d_name) + "\">" +
                          std::string(ent->d_name) + "</a></li>";
         }
         closedir(dir);
@@ -135,13 +135,17 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     else
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Open directory failed");
-    try {
-        TemplateEngine engine("www/html/autoindex.html");
-        engine.setVariable("TITLE", "Index of " + target_path);
-        engine.setVariable("LIST_ITEMS", listItems);
-        content = engine.render();
+    try
+    {
+        _template_engine.loadTemplate("templates/autoindex.html");
+        _template_engine.setVariable("TITLE", "Index of " + target_path);
+        _template_engine.setVariable("LIST_ITEMS", list_items);
+        content = _template_engine.render();
+        _template_engine.reset();
         state = COMPELETED;
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Template engine failed");
     }

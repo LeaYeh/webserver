@@ -2,22 +2,22 @@
 #include <string>
 #include <map>
 
-namespace webkernel 
+namespace webkernel
 {
     class TemplateEngine
     {
         public:
-        TemplateEngine(const std::string& template_path);
+        TemplateEngine();
         ~TemplateEngine();
 
         void setVariable(const std::string& key, const std::string& value);
+        void loadTemplate(const std::string& template_path);
         std::string render() const;
-    
+        void reset();
+
         private:
-        TemplateEngine();
         TemplateEngine(const TemplateEngine&);
         TemplateEngine& operator=(const TemplateEngine&);
-        void _loadTemplate(const std::string& template_path);
 
         std::string _template_path;
         std::string _template_content;

@@ -71,3 +71,10 @@ chmod +x $HOME/bin/clang-format
 grep -q "export PATH=.*$HOME/bin" $HOME/.zshrc || echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.zshrc
 grep -q "export PATH=.*$HOME/bin" $HOME/.bashrc || echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.bashrc
 ```
+
+## Format all files
+
+After installing `clang-format` in the steps above, you can format all source files in your project with the following command:
+```bash
+clang-format -i **/*{.cpp,.hpp,.tpp}
+```

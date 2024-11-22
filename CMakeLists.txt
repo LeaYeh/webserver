@@ -12,7 +12,7 @@ if(NOT WIN32)
     set(GRAY        "${Esc}[90m")
 endif()
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22.1)
 project(webserv LANGUAGES CXX VERSION 0.0.1)
 
 set(CMAKE_COLOR_MAKEFILE ON)

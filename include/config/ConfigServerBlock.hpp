@@ -31,6 +31,7 @@ class ConfigServerBlock : public AConfigParser
     std::pair<std::string, std::string> _listen;
     std::vector<std::pair<std::string, weblog::LogLevel> > _error_log;
     unsigned int _keep_alive_timeout;
+    bool _is_location_block_sorted;
     std::vector<ConfigLocationBlock> _location_block_list;
 
     void _parseConfigDirective(const std::string& line);

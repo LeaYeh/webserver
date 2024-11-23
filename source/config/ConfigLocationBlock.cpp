@@ -1,9 +1,8 @@
 #include "ConfigLocationBlock.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
-#include <iostream>
+#include "utils.hpp"
 
 namespace webconfig
 {
@@ -59,6 +58,13 @@ ConfigLocationBlock::operator=(const ConfigLocationBlock& other)
 
 ConfigLocationBlock::~ConfigLocationBlock()
 {
+}
+
+bool ConfigLocationBlock::operator<(const ConfigLocationBlock& other) const
+{
+    if (_route.length() != other._route.length())
+        return (_route.length() > other._route.length());
+    return (_route < other._route);
 }
 
 std::string ConfigLocationBlock::route(void) const

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 18:43:31 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:48:41 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class HeaderFieldValidator
     HeaderFieldValidator(const HeaderFieldValidator& other);
     HeaderFieldValidator& operator=(const HeaderFieldValidator& other);
 
+    void set_method(RequestMethod method);
     void validate(std::map<std::string, std::string>& map);
 
 private:
@@ -47,6 +48,8 @@ private:
     
     URIState _host_state;
     CacheState _cache_state;
+
+    RequestMethod _method;
 };
 
 } //namespace webshell

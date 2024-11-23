@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 18:47:18 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:51:05 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,17 +38,36 @@ HeaderFieldValidator& HeaderFieldValidator::operator=(const HeaderFieldValidator
         return (*this);
 }
 
+void HeaderFieldValidator::set_method(RequestMethod method)
+{
+    _method = method;
+}
+
 /*
 Whitelist:
 Host
 Expect
 Cache-Control
-Range
-If-Modified-Since
-If-Unmodified-Since
+// Range
+// If-Modified-Since
+// If-Unmodified-Since
 Authorization
-Accept-Encoding
+// Accept-Encoding - we only support identity
+Transfer-Encoding
+Content-Length
 */
+
+//Authorization  = credentials
+//credentials    = auth-scheme [ 1*SP ( token68 / [ auth-param *( OWS "," OWS auth-param ) ] ) ]
+//auth-scheme    = token
+//token68        = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
+//auth-param     = token BWS "=" BWS ( token / quoted-string )
+
+//Accept-Ranges: bytes
+//Accept-Ranges: none
+
+//Content-Length = 1*DIGIT
+//Transfer-Encoding = #transfer-coding
 
 void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
 {
@@ -62,6 +81,13 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
             "Only accepted Expect field value is \"100-continue\"");
     if (map.find("cache-control") != map.end()) 
         _validate_cache_control(map["cache-control"]);
+    // if (map.find("transfer-encoding") != map.end())
+    //     _validate_transfer_encoding(map["transfer-encoding"]);
+    // if (map.find("authorization") != map.end()) 
+    //     _validate_auth(map["authorization"]);
+    // if (map.find("content_length") != map.end()) 
+    //     _validate_content_length(map["content_length"]);
+    
 }
 
 void  HeaderFieldValidator::_validate_cache_control(std::string& val)

@@ -22,7 +22,7 @@ ConfigHttpBlock::ConfigHttpBlock()
 ConfigHttpBlock::ConfigHttpBlock(const ConfigHttpBlock& other)
     : AConfigParser(other), _client_max_body_size(other._client_max_body_size),
       _default_type(other._default_type),
-      _error_page_list(other._error_page_list)
+      _error_page_list(other._error_page_list), _autoindex_page(other._autoindex_page)
 {
 }
 
@@ -34,6 +34,7 @@ ConfigHttpBlock& ConfigHttpBlock::operator=(const ConfigHttpBlock& other)
         _client_max_body_size = other._client_max_body_size;
         _default_type = other._default_type;
         _error_page_list = other._error_page_list;
+        _autoindex_page = other._autoindex_page;
     }
     return (*this);
 }

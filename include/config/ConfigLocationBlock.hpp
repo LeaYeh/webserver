@@ -18,6 +18,7 @@ class ConfigLocationBlock : public AConfigParser
     ConfigLocationBlock(const ConfigLocationBlock& other);
     ConfigLocationBlock& operator=(const ConfigLocationBlock& other);
     ~ConfigLocationBlock();
+    bool operator<(const ConfigLocationBlock& other) const;
 
     std::string route(void) const;
     std::vector<webshell::RequestMethod> limitExcept(void) const;

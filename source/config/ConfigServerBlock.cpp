@@ -2,6 +2,7 @@
 #include "defines.hpp"
 #include "utils/Logger.hpp"
 #include "utils/utils.hpp"
+#include <algorithm>
 #include <string>
 
 namespace webconfig
@@ -10,7 +11,7 @@ namespace webconfig
 ConfigServerBlock::ConfigServerBlock()
     : AConfigParser(SERVER), _server_name("localhost"),
       _listen(std::make_pair(std::string("127.0.0.1"), std::string("80"))),
-      _keep_alive_timeout(65)
+      _keep_alive_timeout(65), _is_location_block_sorted(false)
 {
     _valid_directives.insert("server_name");
     _valid_directives.insert("listen");
@@ -24,6 +25,7 @@ ConfigServerBlock::ConfigServerBlock(const ConfigServerBlock& other)
     : AConfigParser(other), _server_name(other._server_name),
       _listen(other._listen), _error_log(other._error_log),
       _keep_alive_timeout(other._keep_alive_timeout),
+      _is_location_block_sorted(other._is_location_block_sorted),
       _location_block_list(other._location_block_list)
 {
 }
@@ -37,6 +39,7 @@ ConfigServerBlock& ConfigServerBlock::operator=(const ConfigServerBlock& other)
         _listen = other._listen;
         _error_log = other._error_log;
         _keep_alive_timeout = other._keep_alive_timeout;
+        _is_location_block_sorted = other._is_location_block_sorted;
         _location_block_list = other._location_block_list;
     }
     return (*this);
@@ -69,6 +72,11 @@ unsigned int ConfigServerBlock::keepAliveTimeout(void) const
 
 std::vector<ConfigLocationBlock>& ConfigServerBlock::locationBlockList(void)
 {
+    // if (!_is_location_block_sorted)
+    // {
+    //     std::sort(_location_block_list.begin(), _location_block_list.end());
+    //     _is_location_block_sorted = true;
+    // }
     return (_location_block_list);
 }
 

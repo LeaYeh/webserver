@@ -143,6 +143,26 @@ int ARequestHandler::_get_respones_encoding(
     return (encoding);
 }
 
+std::string
+ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
+                                    const std::string& request_path) const
+{
+    std::string full_path;
+
+    // the root might be includeed in the path
+    full_path = request_path;
+    if (!utils::start_with(request_path, config.root))
+        full_path = config.root + request_path;
+    // Check if the path is a directory or a file
+    if (utils::isDirectory(full_path))
+    {
+        if (full_path[full_path.size() - 1] != '/')
+            full_path += "/";
+        full_path += config.index;
+    }
+    return (full_path);
+}
+
 std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
                                          const webshell::Request& request)
 {
@@ -153,23 +173,12 @@ std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
 
-    std::string full_path;
+    std::string response_path = _get_resource_path(config, request.uri().path);
 
-    // the root might be includeed in the path
-    full_path = request.uri().path;
-    if (request.uri().path.find(config.root) == std::string::npos)
-        full_path = config.root + request.uri().path;
-    // Check if the path is a directory or a file
-    if (utils::isDirectory(full_path))
-    {
-        if (full_path[full_path.size() - 1] != '/')
-            full_path += "/";
-        full_path += config.index;
-    }
-    if (full_path.find(config.root) == std::string::npos)
+    if (response_path.find(config.root) == std::string::npos)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
-    return (full_path);
+    return (response_path);
 }
 
 void ARequestHandler::_postProcess(const webconfig::RequestConfig& config,

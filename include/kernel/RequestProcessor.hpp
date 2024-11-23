@@ -25,7 +25,7 @@ class RequestProcessor
     void removeAnalyzer(int fd);
 
     const webconfig::RequestConfig& requestConfig(int fd) const;
-    void setupRequestConfig(int fd, const webshell::Request& request);
+    bool setupRequestConfig(int fd, const webshell::Request& request);
     EventProcessingState& state(int fd);
 
   private:

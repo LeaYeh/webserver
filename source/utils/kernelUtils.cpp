@@ -1,4 +1,7 @@
 #include "kernelUtils.hpp"
+#include "utils.hpp"
+#include <string>
+#include <vector>
 
 namespace webkernel
 {
@@ -22,6 +25,63 @@ std::string explainEpollEvent(uint32_t events)
         explanation += "EPOLLONESHOT ";
 
     return (explanation);
+}
+
+std::string get_object_size(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return ("0");
+    return (format_size(file_stat.st_size));
+}
+
+std::string get_object_mtime(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return ("0");
+    return (format_time(file_stat.st_mtime));
+}
+
+std::string get_object_type(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1)
+        return ("0");
+    if (S_ISDIR(file_stat.st_mode))
+        return ("directory");
+    if (S_ISREG(file_stat.st_mode))
+        return ("file");
+    return ("unknown");
+}
+
+std::string format_size(uint64_t size)
+{
+    std::string formatted_size;
+    const char* units[] = {"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+    const int UNITS_COUNT = sizeof(units) / sizeof(units[0]);
+
+    for (int i = 0; i < UNITS_COUNT; i++)
+    {
+        if (size < 1024)
+        {
+            formatted_size = utils::toString(size) + " " + units[i];
+            break;
+        }
+        size /= 1024;
+    }
+    return (formatted_size);
+}
+
+std::string format_time(time_t time)
+{
+    char buffer[80];
+
+    strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", localtime(&time));
+    return (std::string(buffer));
 }
 
 } // namespace webkernel

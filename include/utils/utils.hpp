@@ -22,6 +22,7 @@ std::vector<std::string> split(const std::string& str, char delim);
 bool isDirectory(const std::string& path);
 bool isFile(const std::string& path);
 bool is_tchar(unsigned char c);
+bool start_with(const std::string& str, const std::string& prefix);
 
 template <typename T> std::string toString(const T& value)
 {

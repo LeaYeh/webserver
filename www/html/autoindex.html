@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,18 +14,22 @@
             margin: 0 auto;
             padding: 20px;
         }
+
         h1 {
             color: #2c3e50;
             border-bottom: 2px solid #ecf0f1;
             padding-bottom: 10px;
         }
+
         ul {
             list-style-type: none;
             padding: 0;
         }
+
         li {
             margin: 5px 0;
         }
+
         a {
             text-decoration: none;
             color: #3498db;
@@ -32,16 +37,41 @@
             padding: 5px;
             border-radius: 3px;
         }
+
         a:hover {
             background-color: #f8f9fa;
             color: #2980b9;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        th,
+        td {
+            border: 1px solid #ecf0f1;
+            padding: 8px;
+            text-align: right;
+        }
     </style>
 </head>
+
 <body>
     <h1>{{TITLE}}</h1>
-    <ul>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Last Modified</th>
+        </tr>
         {{LIST_ITEMS}}
-    </ul>
+    </table>
 </body>
+
 </html>

@@ -108,9 +108,9 @@ Request RequestAnalyzer::request(void) const
     req.setVersion(_version);
     req.setHeaders(_headers);
 
-    std::string key = "Accept-Encoding";
-    std::string value = "chunked";
-    req.addHeader(key, value);
+    // std::string key = "Accept-Encoding";
+    // std::string value = "chunked";
+    // req.addHeader(key, value);
     return (req);
 }
 

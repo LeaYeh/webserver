@@ -36,6 +36,9 @@ class ARequestHandler
                                const webshell::Request& request) const;
     std::string _get_encoding_string(int encoding) const;
 
+    std::string _get_resource_path(const webconfig::RequestConfig& config,
+                                   const std::string& path) const;
+
     const std::string _getMimeType(const std::string& file_path) const;
 
     std::string _preProcess(const webconfig::RequestConfig& config,

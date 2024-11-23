@@ -13,6 +13,7 @@ Response ResponseBuilder::buildErrorResponse(StatusCode status_code,
     Response response;
 
     response.setStatusCode(status_code);
+    response.clearHeaders();
     response.setHeader("Content-Type", "text/plain");
     response.setBody(message);
 

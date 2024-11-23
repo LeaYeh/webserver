@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 16:54:34 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:49:59 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,11 @@ void HeaderAnalyzer::feed(unsigned char c)
         default:
             throw std::runtime_error("Header analyzing went wrong");
     }
+}
+
+void HeaderAnalyzer::set_method(RequestMethod method)
+{
+    _validator.set_method(method);
 }
 
 bool HeaderAnalyzer::_is_ows(unsigned char c)

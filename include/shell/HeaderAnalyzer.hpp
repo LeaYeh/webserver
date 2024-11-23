@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 18:47:51 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/23 19:50:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,8 @@ class HeaderAnalyzer
     ~HeaderAnalyzer();
 
     std::map<std::string, std::string> headers();
-
+    void set_method(RequestMethod method);
+    
     void feed(unsigned char ch);
     bool done(void) const;
     void reset(void);
@@ -60,6 +61,7 @@ class HeaderAnalyzer
 
     std::string _key;
     std::string _val;
+    // RequestMethod _method;
 
 
     // TO_DO: Seperate the variables name with prefix by different usage?

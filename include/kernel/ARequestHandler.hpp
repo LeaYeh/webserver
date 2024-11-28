@@ -25,6 +25,7 @@ class ARequestHandler
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
     TemplateEngine _template_engine;
+    std::string _target_path;
 
     bool _checkPathFormat(const std::string& path) const;
     bool
@@ -41,7 +42,7 @@ class ARequestHandler
 
     const std::string _getMimeType(const std::string& file_path) const;
 
-    std::string _preProcess(const webconfig::RequestConfig& config,
+    void _preProcess(const webconfig::RequestConfig& config,
                             const webshell::Request& request);
     void _postProcess(const webconfig::RequestConfig& config,
                       const webshell::Request& request,

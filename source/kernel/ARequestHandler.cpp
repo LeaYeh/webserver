@@ -163,8 +163,8 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
     return (full_path);
 }
 
-std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
-                                         const webshell::Request& request)
+void ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
+                                  const webshell::Request& request)
 {
 
     if (!_checkPathFormat(request.uri().path))
@@ -173,12 +173,10 @@ std::string ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
 
-    std::string response_path = _get_resource_path(config, request.uri().path);
-
-    if (response_path.find(config.root) == std::string::npos)
+    _target_path = _get_resource_path(config, request.uri().path);
+    if (_target_path.find(config.root) == std::string::npos)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
-    return (response_path);
 }
 
 void ARequestHandler::_postProcess(const webconfig::RequestConfig& config,

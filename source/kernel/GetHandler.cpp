@@ -19,7 +19,7 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
 {
     if (state == INITIAL)
     {
-        _target_path = _preProcess(config, request);
+        _preProcess(config, request);
         state = PROCESSING;
     }
     weblog::Logger::log(weblog::DEBUG, "GetHandler handle: " + _target_path);

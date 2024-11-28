@@ -17,7 +17,6 @@ class GetHandler : public ARequestHandler
   private:
     std::map</* conn fd */ int, /* file pos */ std::streampos>
         _chunked_file_records;
-    std::string _target_path;
 
     void _handle_standard(EventProcessingState& state,
                           const std::string& target_path,

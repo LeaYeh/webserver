@@ -37,7 +37,7 @@ jobs:
           excludeDescription: 'false'  # Check the entire commit message
           excludeTitle: 'false'  # Do not exclude the title
           checkAllCommitMessages: 'false'  # Check only the PR title, assuming it's the first commit
-        if: github.event_name == 'pull_request' && ${{ !github.event.pull_request.merged }} && ${{ !cancelled() }}
+        if: ${{ github.event_name == 'pull_request' && !cancelled() }}
       - name: Check Commit Type Format
         uses: gsactions/commit-message-checker@v2
         with:

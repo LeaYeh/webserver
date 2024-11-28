@@ -27,6 +27,8 @@ jobs:
           node-version: '20'
       - name: Install is-verb
         run: npm install is-verb
+      - name: DEBUG Print Event
+        run: echo ${{ github.event_name }}
       - name: Check Title Format
         uses: gsactions/commit-message-checker@v2
         with:

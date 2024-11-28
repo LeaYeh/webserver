@@ -1,5 +1,6 @@
 #include "RequestHandlerManager.hpp"
 #include "GetHandler.hpp"
+#include "PostHandler.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
 
@@ -9,6 +10,7 @@ namespace webkernel
 RequestHandlerManager::RequestHandlerManager()
 {
     _handlers[webshell::GET] = new GetHandler();
+    _handlers[webshell::POST] = new PostHandler();
 }
 
 RequestHandlerManager::~RequestHandlerManager()

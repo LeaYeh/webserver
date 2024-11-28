@@ -129,8 +129,6 @@ void ConnectionHandler::_handleRead(int fd)
             closeConnection(fd, weblog::WARNING,
                             "Read 0 bytes, client closing connection, but "
                             "there is data to write");
-        // weblog::Logger::log(weblog::WARNING,
-        //                     "Read 0 bytes, but there is data to write");
     }
     else
     {

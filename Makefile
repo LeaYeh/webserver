@@ -16,6 +16,7 @@ $(NAME): cmake_build
 	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
 	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}
+	@mv $(NAME) .
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8

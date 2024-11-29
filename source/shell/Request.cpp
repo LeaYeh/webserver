@@ -1,4 +1,5 @@
 #include "Request.hpp"
+#include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
@@ -155,13 +156,21 @@ bool Request::_proceed_chunked(std::string& chunked_body)
 {
     static int payload = 0;
     static int max_payload = 4096; //TODO: what is the limit and where is it defined?
-    std::string chunk;
 
-    chunk = _codec.decode(chunked_body);
+    try
+    {
+        chunked_body = _codec.decode_single(*_read_buffer);
+    }
+    catch (OperationInterrupt& e)
+    {
+        payload = 0;
+        return (true);
+    }
+    payload += chunked_body.size();
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
             "Chunked data size exceeds client_max_body_size");
-    return(true);
+    return (false);
 }
 
 // void Request::setBody(std::string& body)

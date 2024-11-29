@@ -30,16 +30,16 @@ jobs:
       - name: Check Title Format
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '\[(DOCS|FEAT|FIX|STYLE|DEVOPS|REFACTOR|PERF|TEST|CHORE)\] .+$'
+          pattern: '\[(FEAT|FIX|DOCS|STYLE|REFACTOR|PERF|TEST|CHORE|DEVOPS|REVERT)\] .+$'
           error: 'Your PR title must contain a commit type like "[FIX]".'
           excludeDescription: 'false'  # Check the entire commit message
           excludeTitle: 'false'  # Do not exclude the title
           checkAllCommitMessages: 'false'  # Check only the PR title, assuming it's the first commit
-        if: github.event_name == 'pull_request' && ${{ !github.event.pull_request.merged }} && ${{ !cancelled() }}
+        if: ${{ github.event_name == 'pull_request' && !cancelled() }}
       - name: Check Commit Type Format
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops): .*|^Merge pull request #[0-9]+ from [\w\-]+\/[\w\-].*'
+          pattern: '^(feat|fix|docs|style|refactor|perf|test|chore|devops|revert): .*|^Merge pull request #[0-9]+ from [\w\-]+\/[\w\-].*'
           error: 'Commit message must follow the format "<type>: <description>". Valid types: feat, fix, docs, style, refactor, perf, test, chore.'
           excludeDescription: 'true' # optional: this excludes the description body of a pull request
           excludeTitle: 'true' # optional: this excludes the title of a pull request
@@ -55,14 +55,14 @@ jobs:
           excludeTitle: 'true' # optional: this excludes the title of a pull request
           checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
           accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
-        if: ${{ !github.event.pull_request.merged }} && ${{ !cancelled() }}
+        if: ${{ !cancelled() }}
       - name: Check Verb
         run: .github/scripts/is_verb.sh
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        if: ${{ !github.event.pull_request.merged }} && ${{ !cancelled() }}
+        if: ${{ !cancelled() }}
 
   compilation_test:
     name: Compilation Test

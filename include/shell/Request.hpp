@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 
+
 namespace webshell
 {
 
@@ -33,6 +34,12 @@ class Request
     void addHeader(std::string& name, std::string& value);
 
   private:
+
+    bool _proceed_content_len(std::string& chunked_body);
+    bool _proceed_chunked(std::string& chunked_body);
+  
+    size_t _processed;
+  
     RequestMethod _method;
     Uri _uri;
     float _version;

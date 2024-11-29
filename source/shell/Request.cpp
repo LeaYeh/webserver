@@ -2,24 +2,26 @@
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
+#include "HttpException.hpp"
 #include "utils.hpp"
 #include <string>
+#include <cstdlib>
 
 namespace webshell
 {
 
 Request::Request()
-    : _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer()
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer()
 {
 }
 
 Request::Request(std::string* buffer)
-    : _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer(buffer)
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
-    : _method(other._method), _uri(other._uri), _version(other._version),
+    : _processed(other._processed), _method(other._method), _uri(other._uri), _version(other._version),
       _headers(other._headers), _read_buffer(other._read_buffer)
 {
 }
@@ -28,6 +30,7 @@ Request& Request::operator=(const Request& other)
 {
     if (this != &other)
     {
+        _processed = other._processed;
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
@@ -111,6 +114,47 @@ void Request::setVersion(float version)
 void Request::addHeader(std::string& name, std::string& value)
 {
     _headers[name] = value;
+}
+
+bool Request::read_chunked_body(std::string& chunked_body)
+{
+    if (_headers.find("content-length") != _headers.end())
+        return (_proceed_content_len(chunked_body));
+    else
+        return (_proceed_chunked(chunked_body));
+}
+
+bool Request::_proceed_content_len(std::string& chunked_body)
+{
+    static size_t maxlen = atoi(_headers["content-length"].c_str());
+    static size_t chunksize = webkernel::CHUNKED_SIZE;
+
+    if (maxlen - _processed > chunksize)
+    {
+        if ((*_read_buffer).size() < chunksize)
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Mismatched Body Size");
+        chunked_body = (*_read_buffer).substr(0, chunksize);
+        (*_read_buffer).erase(0, chunksize);
+        _processed += chunksize;
+        return (false);
+    }
+    else
+    {
+        if ((*_read_buffer).size() < maxlen - _processed)
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Mismatched Body Size");
+        chunked_body = (*_read_buffer).substr(0, maxlen - _processed);
+        (*_read_buffer).erase(0, maxlen - _processed);
+        _processed = 0;
+        return (true);
+    }
+}
+
+bool Request::_proceed_chunked(std::string& chunked_body)
+{
+    (void)chunked_body;
+    return(true);
 }
 
 // void Request::setBody(std::string& body)

@@ -130,15 +130,16 @@ int ARequestHandler::_get_respones_encoding(
 {
     int encoding = webkernel::IDENTITY;
 
-    if (_is_out_of_max_file_size(config, config.root + request.uri().path))
+    if (request.method() == webshell::GET &&
+        _is_out_of_max_file_size(config, config.root + request.uri().path))
         encoding |= webkernel::CHUNKED;
-    if (request.headers().find("Accept-Encoding") != request.headers().end())
+    if (request.has_header("Transfer-Encoding"))
     {
-        std::string accept_encoding = request.headers().at("Accept-Encoding");
-        if (accept_encoding.find("gzip") != std::string::npos)
-            encoding |= webkernel::GZIP;
-        if (accept_encoding.find("chunked") != std::string::npos)
+        std::string transfer_encoding = request.get_header("Transfer-Encoding");
+        if (transfer_encoding.find("chunked") != std::string::npos)
             encoding |= webkernel::CHUNKED;
+        if (transfer_encoding.find("gzip") != std::string::npos)
+            encoding |= webkernel::GZIP;
     }
     return (encoding);
 }

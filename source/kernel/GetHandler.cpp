@@ -15,7 +15,7 @@ namespace webkernel
 
 webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
                                       const webconfig::RequestConfig& config,
-                                      const webshell::Request& request)
+                                      webshell::Request& request)
 {
     std::string content;
 
@@ -35,7 +35,7 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
 
 std::string GetHandler::_process(int fd, EventProcessingState& state,
                                  const webconfig::RequestConfig& config,
-                                 const webshell::Request& request)
+                                 webshell::Request& request)
 {
     std::string content;
 

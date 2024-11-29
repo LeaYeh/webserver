@@ -119,7 +119,9 @@ void Request::addHeader(std::string& name, std::string& value)
 
 bool Request::read_chunked_body(std::string& chunked_body)
 {
-    if (_headers.find("content-length") != _headers.end())
+    static bool chunked = (_headers.find("content-length") == _headers.end());
+
+    if (!chunked)
         return (_proceed_content_len(chunked_body));
     else
         return (_proceed_chunked(chunked_body));

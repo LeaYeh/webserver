@@ -116,12 +116,7 @@ std::string ChunkedCodec::decode_single(std::string& content) const
                                         chunk_size_str);
 
     if (chunk_size == 0)
-    {
-        if (content.substr(newline_pos + 2, 2) != "\r\n")
-            throw utils::HttpException(webshell::BAD_REQUEST,
-                                        "Chunked data should end with CRLF");
         throw OperationInterrupt(UNPRIMED);
-    }
     pos = newline_pos + 2;
 
     newline_pos = content.find("\r\n", pos);
@@ -133,7 +128,7 @@ std::string ChunkedCodec::decode_single(std::string& content) const
         throw utils::HttpException(webshell::BAD_REQUEST,
                                     "Chunked data size mismatch");
 
-    content.erase(0, newline_pos);
+    content.erase(0, newline_pos + 2);
     return (chunk_content_str);
 }
 

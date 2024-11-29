@@ -10,26 +10,25 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
 {
     std::string content;
 
-    switch (state)
+    if (state == INITIAL)
     {
-    case INITIAL:
         _preProcess(config, request);
         state = PROCESSING;
-        break;
-    case PROCESSING:
-        break;
-    case COMPELETED:
-        break;
-    case WRITE_CHUNKED:
-        break;
-    default:
-        weblog::Logger::log(weblog::ERROR,
-                            "Unknown state " + utils::toString(state) +
-                                " on fd: " + utils::toString(fd));
-        break;
     }
+    content = _process(fd, state, config, request);
     _postProcess(config, request, _target_path, content);
     return webshell::Response();
+}
+
+std::string PostHandler::_process(int fd, EventProcessingState& state,
+                                  const webconfig::RequestConfig& config,
+                                  const webshell::Request& request)
+{
+    (void)fd;
+    (void)state;
+    (void)config;
+    (void)request;
+    return std::string();
 }
 
 } // namespace webkernel

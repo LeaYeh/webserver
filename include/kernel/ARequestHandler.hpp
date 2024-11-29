@@ -6,6 +6,7 @@
 #include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include <map>
+#include <string>
 
 namespace webkernel
 {
@@ -42,8 +43,11 @@ class ARequestHandler
 
     const std::string _getMimeType(const std::string& file_path) const;
 
+    virtual std::string _process(int fd, EventProcessingState& state,
+                                 const webconfig::RequestConfig& config,
+                                 const webshell::Request& request) = 0;
     void _preProcess(const webconfig::RequestConfig& config,
-                            const webshell::Request& request);
+                     const webshell::Request& request);
     void _postProcess(const webconfig::RequestConfig& config,
                       const webshell::Request& request,
                       const std::string& target_path,

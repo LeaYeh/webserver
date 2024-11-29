@@ -3,6 +3,7 @@
 #include "RequestConfig.hpp"
 #include "defines.hpp"
 #include <map>
+#include <string>
 
 namespace webkernel
 {
@@ -17,6 +18,10 @@ class GetHandler : public ARequestHandler
   private:
     std::map</* conn fd */ int, /* file pos */ std::streampos>
         _chunked_file_records;
+
+    std::string _process(int fd, EventProcessingState& state,
+                         const webconfig::RequestConfig& config,
+                         const webshell::Request& request);
 
     void _handle_standard(EventProcessingState& state,
                           const std::string& target_path,

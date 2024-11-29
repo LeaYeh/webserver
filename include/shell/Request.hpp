@@ -1,6 +1,7 @@
 #pragma once
 #include "Uri.hpp"
 #include "defines.hpp"
+#include "ChunkedCodec.hpp"
 #include <map>
 #include <string>
 
@@ -38,6 +39,7 @@ class Request
     bool _proceed_content_len(std::string& chunked_body);
     bool _proceed_chunked(std::string& chunked_body);
   
+    webkernel::ChunkedCodec _codec;
     size_t _processed;
   
     RequestMethod _method;

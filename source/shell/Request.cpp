@@ -153,7 +153,14 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    (void)chunked_body;
+    static int payload = 0;
+    static int max_payload = 4096; //TODO: what is the limit and where is it defined?
+    std::string chunk;
+
+    chunk = _codec.decode(chunked_body);
+    if (payload > max_payload)
+        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+            "Chunked data size exceeds client_max_body_size");
     return(true);
 }
 

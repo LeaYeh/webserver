@@ -61,13 +61,18 @@ const std::map<std::string, std::string>& Request::headers() const
     return (_headers);
 }
 
-const std::string& Request::header(const std::string& name) const
+const std::string& Request::get_header(const std::string& name) const
 {
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 
     if (it == _headers.end())
         return (utils::EMPTY_STRING);
     return (it->second);
+}
+
+bool Request::has_header(const std::string& name) const
+{
+    return (_headers.find(name) != _headers.end());
 }
 
 const std::string Request::serialize() const

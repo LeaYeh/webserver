@@ -15,7 +15,8 @@ class Response
     ~Response();
 
     StatusCode statusCode();
-    std::string header(std::string key);
+    const std::string& get_header(std::string key);
+    bool has_header(std::string key);
     std::string body();
     void setStatusCode(StatusCode statusCode);
     void setHeaders(std::map<std::string, std::string> headers);

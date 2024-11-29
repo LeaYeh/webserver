@@ -37,9 +37,14 @@ StatusCode Response::statusCode()
     return (_status_code);
 }
 
-std::string Response::header(std::string key)
+const std::string& Response::get_header(std::string key)
 {
     return (_headers[key]);
+}
+
+bool Response::has_header(std::string key)
+{
+    return (_headers.find(key) != _headers.end());
 }
 
 std::string Response::body()

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/30 21:45:13 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/30 21:48:18 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,16 +89,6 @@ Content-Length (RFC 7230 3.3.3)
 */
 
 /*
-If a message is received without Transfer-Encoding and with
-either multiple Content-Length header fields having differing
-field-values or a single Content-Length header field having an
-invalid value, then the message framing is invalid and the
-recipient MUST treat it as an unrecoverable error.  If this is a
-request message, the server MUST respond with a 400 (Bad Request)
-status code and then close the connection.
-*/
-
-/*
 A server MAY reject a request that contains a message body but not a
 Content-Length by responding with 411 (Length Required).
 */
@@ -125,7 +115,9 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     } 
     else if (map.find("content-length") != map.end()) 
         _validate_content_length(map["content-length"]);
-    
+    else if (_method == POST)
+        throw utils::HttpException(webshell::NO_CONTENT_LENGTH,
+            "POST request needs to have Content-Length or Transfer-Encoding");
 }
 
 void HeaderFieldValidator::_validate_content_length(std::string& val)

@@ -127,6 +127,14 @@ bool Request::read_chunked_body(std::string& chunked_body)
         return (_proceed_chunked(chunked_body));
 }
 
+/*
+TODO
+Any Content-Length field value greater than or equal to zero is
+valid.  Since there is no predefined limit to the length of a
+payload, a recipient MUST anticipate potentially large decimal
+numerals and prevent parsing errors due to integer conversion
+overflows (RFC 7230).
+*/
 bool Request::_proceed_content_len(std::string& chunked_body)
 {
     static size_t maxlen = atoi(_headers["content-length"].c_str());

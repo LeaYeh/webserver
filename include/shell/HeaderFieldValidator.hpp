@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/23 19:48:41 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/30 21:38:09 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ private:
     bool _is_unreserved(unsigned char c);
     bool _is_sub_delim(unsigned char c);
 
+    void _validate_content_length(std::string& val);
     void _validate_cache_control(std::string& val);
     void _c_start(unsigned char c);
     void _c_directive(unsigned char c);

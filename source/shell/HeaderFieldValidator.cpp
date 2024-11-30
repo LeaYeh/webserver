@@ -6,13 +6,16 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/23 19:51:05 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/30 21:45:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderFieldValidator.hpp"
 #include "HttpException.hpp"
+#include "defines.hpp"
 #include "utils.hpp"
+#include <cctype>
+#include <cstddef>
 
 namespace webshell
 {
@@ -47,11 +50,8 @@ void HeaderFieldValidator::set_method(RequestMethod method)
 Whitelist:
 Host
 Expect
-Cache-Control
-// Range
-// If-Modified-Since
-// If-Unmodified-Since
-Authorization
+// Range ?
+// Authorization ?
 // Accept-Encoding - we only support identity
 Transfer-Encoding
 Content-Length
@@ -69,6 +69,40 @@ Content-Length
 //Content-Length = 1*DIGIT
 //Transfer-Encoding = #transfer-coding
 
+/*
+If a Transfer-Encoding header field
+is present in a request and the chunked transfer coding is not
+the final encoding, the message body length cannot be determined
+reliably; the server MUST respond with the 400 (Bad Request)
+status code and then close the connection.
+*/
+
+/*
+A server that receives a request message with a transfer coding it
+does not understand SHOULD respond with 501 (Not Implemented).
+*/
+
+/*
+If a message is received with both a Transfer-Encoding and a
+Content-Length header field, the Transfer-Encoding overrides the
+Content-Length (RFC 7230 3.3.3)
+*/
+
+/*
+If a message is received without Transfer-Encoding and with
+either multiple Content-Length header fields having differing
+field-values or a single Content-Length header field having an
+invalid value, then the message framing is invalid and the
+recipient MUST treat it as an unrecoverable error.  If this is a
+request message, the server MUST respond with a 400 (Bad Request)
+status code and then close the connection.
+*/
+
+/*
+A server MAY reject a request that contains a message body but not a
+Content-Length by responding with 411 (Length Required).
+*/
+
 void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
 {
     if (map.empty() || map.find("host") == map.end())
@@ -81,13 +115,29 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
             "Only accepted Expect field value is \"100-continue\"");
     if (map.find("cache-control") != map.end()) 
         _validate_cache_control(map["cache-control"]);
-    // if (map.find("transfer-encoding") != map.end())
-    //     _validate_transfer_encoding(map["transfer-encoding"]);
-    // if (map.find("authorization") != map.end()) 
-    //     _validate_auth(map["authorization"]);
-    // if (map.find("content_length") != map.end()) 
-    //     _validate_content_length(map["content_length"]);
+    if (map.find("transfer-encoding") != map.end())
+    {
+        if (map["transfer-encoding"] != "chunked")
+            throw utils::HttpException(webshell::NOT_IMPLEMENTED,
+                "Only chunked transfer-coding is accepted");
+        if (map.find("content-length") != map.end())
+            map.erase("content-length");
+    } 
+    else if (map.find("content-length") != map.end()) 
+        _validate_content_length(map["content-length"]);
     
+}
+
+void HeaderFieldValidator::_validate_content_length(std::string& val)
+{
+    size_t idx = 0;
+    while (idx < val.size())
+    {
+        if (!isdigit(val[idx]))
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Content length must be a decimal number greater than or equal to 0");
+        idx++;
+    }
 }
 
 void  HeaderFieldValidator::_validate_cache_control(std::string& val)

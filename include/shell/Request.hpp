@@ -1,4 +1,5 @@
 #pragma once
+#include "RequestConfig.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "ChunkedCodec.hpp"
@@ -33,6 +34,7 @@ class Request
     void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
+    void setReferences(webconfig::RequestConfig* config, std::string* read_buffer);
 
   private:
 
@@ -47,6 +49,7 @@ class Request
     float _version;
     std::map<std::string, std::string> _headers;
     std::string* _read_buffer;
+    webconfig::RequestConfig* _config;
 };
 
 } // namespace webshell

@@ -113,6 +113,12 @@ void Request::setVersion(float version)
     _version = version;
 }
 
+void Request::setReferences(webconfig::RequestConfig* config, std::string* read_buffer)
+{
+    _config = config;
+    _read_buffer = read_buffer;
+}
+
 void Request::addHeader(std::string& name, std::string& value)
 {
     _headers[name] = value;

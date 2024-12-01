@@ -6,6 +6,7 @@
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
+#include "RequestAnalyzer.hpp"
 #include "RequestHandlerManager.hpp"
 #include "Response.hpp"
 #include "defines.hpp"
@@ -55,7 +56,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end())
     {
-        _analyzer_pool[fd] = webshell::RequestAnalyzer(); //TODO: import read buffer and CONST request config ref body limit
+        _analyzer_pool[fd] = webshell::RequestAnalyzer(&_request_config_pool[fd], &buffer); //TODO: import read buffer and CONST request config ref body limit
         _state[fd] = INITIAL;
     }
 

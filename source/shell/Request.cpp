@@ -146,7 +146,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 {
     static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    static size_t max_payload = 4096; //TODO: import from config
+    static size_t max_payload = _config->client_max_body_size;
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
@@ -176,7 +176,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    static size_t max_payload = 4096; //TODO: what is the limit and where is it defined?
+    static size_t max_payload = _config->client_max_body_size;
 
     try
     {

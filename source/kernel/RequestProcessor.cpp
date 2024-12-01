@@ -11,8 +11,6 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <algorithm>
-#include <iostream>
 #include <string>
 
 namespace webkernel
@@ -57,7 +55,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end())
     {
-        _analyzer_pool[fd] = webshell::RequestAnalyzer();
+        _analyzer_pool[fd] = webshell::RequestAnalyzer(); //TODO: import read buffer and CONST request config ref body limit
         _state[fd] = INITIAL;
     }
 

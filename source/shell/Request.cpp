@@ -5,6 +5,7 @@
 #include "shellUtils.hpp"
 #include "HttpException.hpp"
 #include "utils.hpp"
+#include <cstddef>
 #include <string>
 #include <cstdlib>
 
@@ -137,10 +138,15 @@ overflows (RFC 7230).
 */
 bool Request::_proceed_content_len(std::string& chunked_body)
 {
-    static size_t maxlen = atoi(_headers["content-length"].c_str());
+    static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
+    static size_t max_payload = 4096; //TODO: import from config
 
-    if (maxlen - _processed > chunksize)
+    if (payload > max_payload)
+        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+            "Data size exceeds client_max_body_size");
+
+    if (payload - _processed > chunksize)
     {
         if ((*_read_buffer).size() < chunksize)
             throw utils::HttpException(webshell::BAD_REQUEST,
@@ -152,11 +158,11 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     }
     else
     {
-        if ((*_read_buffer).size() < maxlen - _processed)
+        if ((*_read_buffer).size() < payload - _processed)
             throw utils::HttpException(webshell::BAD_REQUEST,
                 "Mismatched Body Size");
-        chunked_body = (*_read_buffer).substr(0, maxlen - _processed);
-        (*_read_buffer).erase(0, maxlen - _processed);
+        chunked_body = (*_read_buffer).substr(0, payload - _processed);
+        (*_read_buffer).erase(0, payload - _processed);
         _processed = 0;
         return (true);
     }
@@ -164,8 +170,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    static int payload = 0;
-    static int max_payload = 4096; //TODO: what is the limit and where is it defined?
+    static size_t max_payload = 4096; //TODO: what is the limit and where is it defined?
 
     try
     {
@@ -173,11 +178,11 @@ bool Request::_proceed_chunked(std::string& chunked_body)
     }
     catch (OperationInterrupt& e)
     {
-        payload = 0;
+        _processed = 0;
         return (true);
     }
-    payload += chunked_body.size();
-    if (payload > max_payload)
+    _processed += chunked_body.size();
+    if (_processed > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
             "Chunked data size exceeds client_max_body_size");
     return (false);

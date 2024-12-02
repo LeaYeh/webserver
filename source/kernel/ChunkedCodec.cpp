@@ -1,7 +1,7 @@
 #include "ChunkedCodec.hpp"
 #include "HttpException.hpp"
-#include "Logger.hpp"
 #include "defines.hpp"
+#include "OperationInterrupt.hpp"
 #include <sstream>
 
 namespace webkernel
@@ -79,6 +79,7 @@ std::string ChunkedCodec::decode(const std::string& content) const
             if (content.substr(newline_pos + 2, 2) != "\r\n")
                 throw utils::HttpException(webshell::BAD_REQUEST,
                                            "Chunked data should end with CRLF");
+            //  do we want to return empty here
             break;
         }
         pos = newline_pos + 2;
@@ -93,6 +94,44 @@ std::string ChunkedCodec::decode(const std::string& content) const
         pos += 2;
     }
     return (decoded_content);
+}
+
+std::string ChunkedCodec::decode_single(std::string& content) const
+{
+    size_t newline_pos = 0;
+
+    newline_pos = content.find("\r\n", 0);
+    if (newline_pos == std::string::npos)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                    "Invalid chunked data format");
+
+    std::string chunk_size_str = content.substr(0, newline_pos);
+    int chunk_size = -1;
+
+    std::istringstream(chunk_size_str) >> std::hex >> chunk_size;
+    if (chunk_size < 0)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                    "Invalid chunked data size: " +
+                                        chunk_size_str);
+
+    if (chunk_size == 0)
+    {
+        content.erase(0, newline_pos + 2);
+        throw OperationInterrupt(UNPRIMED);
+    }
+    size_t pos = newline_pos + 2;
+
+    newline_pos = content.find("\r\n", pos);
+    if (newline_pos == std::string::npos)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                    "Invalid chunked data format");
+    std::string chunk_content_str = content.substr(pos, newline_pos - pos);
+    if ((size_t)chunk_size > chunk_content_str.size())
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                    "Chunked data size mismatch");
+
+    content.erase(0, newline_pos + 2);
+    return (chunk_content_str);
 }
 
 } // namespace webkernel

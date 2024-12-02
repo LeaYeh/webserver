@@ -6,14 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 18:53:58 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/11/30 21:52:50 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "utils.hpp"
-#include "Logger.hpp"
 
 namespace webshell
 {
@@ -85,6 +84,11 @@ void HeaderAnalyzer::feed(unsigned char c)
         default:
             throw std::runtime_error("Header analyzing went wrong");
     }
+}
+
+void HeaderAnalyzer::set_method(RequestMethod method)
+{
+    _validator.set_method(method);
 }
 
 bool HeaderAnalyzer::_is_ows(unsigned char c)
@@ -181,6 +185,19 @@ void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
             "header midws state error");
 }
 
+/*
+If a message is received without Transfer-Encoding and with
+either multiple Content-Length header fields having differing
+field-values or a single Content-Length header field having an
+invalid value, then the message framing is invalid and the
+recipient MUST treat it as an unrecoverable error.  If this is a
+request message, the server MUST respond with a 400 (Bad Request)
+status code and then close the connection (RFC 7230 3.3.3).
+*/
+
+//TODO: this check fails if they provide multiple Content-Length fields
+//first and *then* a transfer-encoding
+
 void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 {
     // std::cerr << "Entred field_end crlf" << std::endl;
@@ -190,6 +207,10 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
         if (_key == "host" && _map.find(_key) != _map.end())
             throw utils::HttpException(webshell::BAD_REQUEST,
                 "multiple Host header fields are not allowed");
+        else if (_key == "content-length" && _map.find("transfer-encoding") == _map.end()
+            && _map.find(_key) != _map.end() && _map[_key] != _val)
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "multiple Content-Length header fields with differing value are not allowed");
         _map[_key] = _val;
         _key.clear();
         _val.clear();

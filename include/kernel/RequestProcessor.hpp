@@ -26,7 +26,9 @@ class RequestProcessor
 
     const webconfig::RequestConfig& requestConfig(int fd) const;
     bool setupRequestConfig(int fd, const webshell::Request& request);
-    EventProcessingState& state(int fd);
+    const EventProcessingState& state(int fd) const;
+    void setState(int fd, EventProcessingState state);
+    void resetState(int fd);
 
   private:
     RequestProcessor();

@@ -1,8 +1,11 @@
 #pragma once
+#include "RequestConfig.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
+#include "ChunkedCodec.hpp"
 #include <map>
 #include <string>
+
 
 namespace webshell
 {
@@ -31,13 +34,22 @@ class Request
     void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
+    void setReferences(webconfig::RequestConfig* config, std::string* read_buffer);
 
   private:
+
+    bool _proceed_content_len(std::string& chunked_body);
+    bool _proceed_chunked(std::string& chunked_body);
+  
+    webkernel::ChunkedCodec _codec;
+    size_t _processed;
+  
     RequestMethod _method;
     Uri _uri;
     float _version;
     std::map<std::string, std::string> _headers;
     std::string* _read_buffer;
+    webconfig::RequestConfig* _config;
 };
 
 } // namespace webshell

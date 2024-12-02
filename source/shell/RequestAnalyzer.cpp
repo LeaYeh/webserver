@@ -6,12 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/21 14:00:11 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/01 18:13:35 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestAnalyzer.hpp"
-#include "ParseException.hpp"
+#include "RequestConfig.hpp"
 #include "defines.hpp"
 
 namespace webshell
@@ -19,6 +19,11 @@ namespace webshell
 
 RequestAnalyzer::RequestAnalyzer()
     : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer()
+{
+}
+
+RequestAnalyzer::RequestAnalyzer(webconfig::RequestConfig* config, std::string* read_buffer)
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(), _config(config), _read_buffer(read_buffer)
 {
 }
 
@@ -53,6 +58,7 @@ void RequestAnalyzer::feed(const char ch)
             {
                 _state = PARSING_REQUEST_HEADERS;
                 _method = _rl_analyzer.method();
+                _header_analyzer.set_method(_method);
                 _uri = _rl_analyzer.uri();
                 _version = _rl_analyzer.version();
             }
@@ -107,6 +113,7 @@ Request RequestAnalyzer::request(void) const
     req.setUri(_uri);
     req.setVersion(_version);
     req.setHeaders(_headers);
+    req.setReferences(_config, _read_buffer);
 
     // std::string key = "Accept-Encoding";
     // std::string value = "chunked";

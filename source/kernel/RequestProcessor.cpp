@@ -6,12 +6,12 @@
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
+#include "RequestAnalyzer.hpp"
 #include "RequestHandlerManager.hpp"
 #include "Response.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <algorithm>
-#include <iostream>
 #include <string>
 
 namespace webkernel
@@ -56,7 +56,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end())
     {
-        _analyzer_pool[fd] = webshell::RequestAnalyzer();
+        _analyzer_pool[fd] = webshell::RequestAnalyzer(&_request_config_pool[fd], &buffer); //TODO: import read buffer and CONST request config ref body limit
         _state[fd] = INITIAL;
     }
 
@@ -91,9 +91,9 @@ void RequestProcessor::process(int fd)
     EventProcessingState& state = _state[fd];
     webshell::Response response = manager->handleRequest(
         fd, state, _request_config_pool[fd], _request_records[fd]);
-    weblog::Logger::log(weblog::DEBUG, "state: " + utils::toString(state));
+    weblog::Logger::log(weblog::DEBUG,
+                        "state: " + explainEventProcessingState(state));
     _handler->prepareWrite(fd, response.serialize());
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 
     if (state & COMPELETED)
         _request_records.erase(fd);
@@ -165,13 +165,22 @@ bool RequestProcessor::setupRequestConfig(int fd,
     return (true);
 }
 
-EventProcessingState& RequestProcessor::state(int fd)
+const EventProcessingState& RequestProcessor::state(int fd) const
 {
-    std::map<int /* fd */, EventProcessingState>::iterator it = _state.find(fd);
-    if (it == _state.end())
+    if (_state.find(fd) == _state.end())
         throw std::runtime_error("No state found for fd: " +
                                  utils::toString(fd));
-    return (it->second);
+    return (_state.at(fd));
+}
+
+void RequestProcessor::setState(int fd, EventProcessingState state)
+{
+    _state[fd] = state;
+}
+
+void RequestProcessor::resetState(int fd)
+{
+    _state[fd] = INITIAL;
 }
 
 } // namespace webkernel

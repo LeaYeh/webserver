@@ -13,6 +13,7 @@ struct RequestConfig
     unsigned int client_max_body_size;
     std::string default_type;
     std::vector<ErrorPage> error_pages;
+    std::string autoindex_page;
 
     // Server level configuration
     std::vector<std::pair<std::string, weblog::LogLevel> > error_log;

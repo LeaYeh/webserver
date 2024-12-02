@@ -49,6 +49,11 @@ bool isFile(const std::string& path)
     return (S_ISREG(file_stat.st_mode));
 }
 
+bool start_with(const std::string& str, const std::string& prefix)
+{
+    return (str.find(prefix) == 0);
+}
+
 // bool setup_nonblocking(int fd)
 // {
 //     int flags = fcntl(fd, F_GETFL, 0);

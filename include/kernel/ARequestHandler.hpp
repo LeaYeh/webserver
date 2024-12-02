@@ -3,6 +3,7 @@
 #include "Request.hpp"
 #include "RequestConfig.hpp"
 #include "Response.hpp"
+#include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include <map>
 
@@ -23,6 +24,7 @@ class ARequestHandler
   protected:
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
+    TemplateEngine _template_engine;
 
     bool _checkPathFormat(const std::string& path) const;
     bool
@@ -33,6 +35,9 @@ class ARequestHandler
     int _get_respones_encoding(const webconfig::RequestConfig& config,
                                const webshell::Request& request) const;
     std::string _get_encoding_string(int encoding) const;
+
+    std::string _get_resource_path(const webconfig::RequestConfig& config,
+                                   const std::string& path) const;
 
     const std::string _getMimeType(const std::string& file_path) const;
 

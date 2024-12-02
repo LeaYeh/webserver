@@ -1,15 +1,15 @@
 #include "ConfigLocationBlock.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
+#include "utils.hpp"
 
 namespace webconfig
 {
 
 ConfigLocationBlock::ConfigLocationBlock()
-    : AConfigParser(LOCATION), _route("/"), _root("./www/html"), _index("index.html"),
-      _redirect(""), _autoindex(false), _cgi_extension(""), _cgi_path(""),
+    : AConfigParser(LOCATION), _route("/"), _root("./www/html"), _index(""),
+      _redirect(""), _autoindex(true), _cgi_extension(""), _cgi_path(""),
       _enable_upload(false), _upload_path("")
 {
     _limit_except.push_back(webshell::GET);
@@ -60,12 +60,20 @@ ConfigLocationBlock::~ConfigLocationBlock()
 {
 }
 
+bool ConfigLocationBlock::operator<(const ConfigLocationBlock& other) const
+{
+    if (_route.length() != other._route.length())
+        return (_route.length() > other._route.length());
+    return (_route < other._route);
+}
+
 std::string ConfigLocationBlock::route(void) const
 {
     return (_route);
 }
 
-std::vector<webshell::RequestMethod> ConfigLocationBlock::limitExcept(void) const
+std::vector<webshell::RequestMethod>
+ConfigLocationBlock::limitExcept(void) const
 {
     return (_limit_except);
 }
@@ -134,9 +142,9 @@ void ConfigLocationBlock::printConfig(void) const
     weblog::Logger::log(weblog::DEBUG, "\troute: " + _route);
     weblog::Logger::log(weblog::DEBUG, "\tlimit_except:");
     for (std::size_t i = 0; i < _limit_except.size(); ++i)
-        weblog::Logger::log(weblog::DEBUG,
-                            "\t\t" +
-                                webshell::requestMethodToString(_limit_except[i]));
+        weblog::Logger::log(
+            weblog::DEBUG,
+            "\t\t" + webshell::requestMethodToString(_limit_except[i]));
     weblog::Logger::log(weblog::DEBUG, "\troot: " + _root);
     weblog::Logger::log(weblog::DEBUG, "\tindex: " + _index);
     weblog::Logger::log(weblog::DEBUG,

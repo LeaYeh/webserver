@@ -1,13 +1,17 @@
 #include "RequestProcessor.hpp"
 #include "Config.hpp"
 #include "ConfigHttpBlock.hpp"
+#include "ConfigLocationBlock.hpp"
 #include "ConnectionHandler.hpp"
+#include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Request.hpp"
 #include "RequestHandlerManager.hpp"
 #include "Response.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
+#include <algorithm>
+#include <iostream>
 #include <string>
 
 namespace webkernel
@@ -65,7 +69,10 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
             weblog::Logger::log(weblog::WARNING,
                                 "Request is complete: \n" +
                                     _request_records[fd].serialize());
-            setupRequestConfig(fd, _request_records[fd]);
+            if (!setupRequestConfig(fd, _request_records[fd]))
+                throw utils::HttpException(
+                    webshell::NOT_FOUND, "No matching location block found: " +
+                                             _request_records[fd].uri().path);
             process(fd);
             buffer.erase(0, i + 1);
             return (true);
@@ -110,52 +117,85 @@ const webconfig::RequestConfig& RequestProcessor::requestConfig(int fd) const
     return (it->second);
 }
 
-void RequestProcessor::setupRequestConfig(int fd,
+bool RequestProcessor::setupRequestConfig(int fd,
                                           const webshell::Request& request)
 {
+    webconfig::ConfigLocationBlock* location_config = NULL;
     int server_id = _reactor->lookupServerId(fd);
     webconfig::ConfigHttpBlock http_config =
         webconfig::Config::instance()->httpBlock();
     webconfig::ConfigServerBlock server_config =
         webconfig::Config::instance()->serverBlockList()[server_id];
+
+    for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
+    {
+        if (utils::start_with(request.uri().path,
+                              server_config.locationBlockList()[i].route()))
+        {
+            location_config = &server_config.locationBlockList()[i];
+            break;
+        }
+    }
+    if (location_config == NULL)
+        return (false);
+
     _request_config_pool[fd] = webconfig::RequestConfig();
 
     _request_config_pool[fd].client_max_body_size =
         http_config.clientMaxBodySize();
     _request_config_pool[fd].default_type = http_config.defaultType();
     _request_config_pool[fd].error_pages = http_config.errorPages();
+    _request_config_pool[fd].autoindex_page = http_config.autoindexPage();
     _request_config_pool[fd].error_log = server_config.errorLog();
     _request_config_pool[fd].keep_alive_timeout =
         server_config.keepAliveTimeout();
     _request_config_pool[fd].server_name = server_config.serverName();
 
-    for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
-    {
-        if (request.uri().path.find(
-                server_config.locationBlockList()[i].route()) == 0)
-        {
-            _request_config_pool[fd].route =
-                server_config.locationBlockList()[i].route();
-            _request_config_pool[fd].limit_except =
-                server_config.locationBlockList()[i].limitExcept();
-            _request_config_pool[fd].root =
-                server_config.locationBlockList()[i].root();
-            _request_config_pool[fd].index =
-                server_config.locationBlockList()[i].index();
-            _request_config_pool[fd].redirect =
-                server_config.locationBlockList()[i].redirect();
-            _request_config_pool[fd].autoindex =
-                server_config.locationBlockList()[i].autoindex();
-            _request_config_pool[fd].cgi_extension =
-                server_config.locationBlockList()[i].cgiExtension();
-            _request_config_pool[fd].cgi_path =
-                server_config.locationBlockList()[i].cgiPath();
-            _request_config_pool[fd].enable_upload =
-                server_config.locationBlockList()[i].enableUpload();
-            _request_config_pool[fd].upload_path =
-                server_config.locationBlockList()[i].uploadPath();
-        }
-    }
+    _request_config_pool[fd].route = location_config->route();
+    _request_config_pool[fd].limit_except = location_config->limitExcept();
+    _request_config_pool[fd].root = location_config->root();
+    _request_config_pool[fd].index = location_config->index();
+    _request_config_pool[fd].redirect = location_config->redirect();
+    _request_config_pool[fd].autoindex = location_config->autoindex();
+    _request_config_pool[fd].cgi_extension = location_config->cgiExtension();
+    _request_config_pool[fd].cgi_path = location_config->cgiPath();
+    _request_config_pool[fd].enable_upload = location_config->enableUpload();
+    _request_config_pool[fd].upload_path = location_config->uploadPath();
+
+    return (true);
+    // for (std::size_t i = 0; i < server_config.locationBlockList().size();
+    // i++)
+    // {
+    //     if (request.uri().path ==
+    //     server_config.locationBlockList()[i].route())
+    //     {
+    //         _request_config_pool[fd].route =
+    //             server_config.locationBlockList()[i].route();
+    //         _request_config_pool[fd].limit_except =
+    //             server_config.locationBlockList()[i].limitExcept();
+    //         _request_config_pool[fd].root =
+    //             server_config.locationBlockList()[i].root();
+    //         _request_config_pool[fd].index =
+    //             server_config.locationBlockList()[i].index();
+    //         _request_config_pool[fd].redirect =
+    //             server_config.locationBlockList()[i].redirect();
+    //         _request_config_pool[fd].autoindex =
+    //             server_config.locationBlockList()[i].autoindex();
+    //         _request_config_pool[fd].cgi_extension =
+    //             server_config.locationBlockList()[i].cgiExtension();
+    //         _request_config_pool[fd].cgi_path =
+    //             server_config.locationBlockList()[i].cgiPath();
+    //         _request_config_pool[fd].enable_upload =
+    //             server_config.locationBlockList()[i].enableUpload();
+    //         _request_config_pool[fd].upload_path =
+    //             server_config.locationBlockList()[i].uploadPath();
+    //         match = true;
+    //         break;
+    //     }
+    // }
+    // if (!match)
+    //     _request_config_pool.erase(fd);
+    // return (match);
 }
 
 EventProcessingState& RequestProcessor::state(int fd)

@@ -1,7 +1,9 @@
 #include "Config.hpp"
+#include "ConfigLocationBlock.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
-#include "utils/Logger.hpp"
-#include <iostream>
+#include <algorithm>
+#include <vector>
 
 namespace webconfig
 {
@@ -93,6 +95,12 @@ void Config::_parse(void)
     if (_current_block_level != GLOBAL)
         throw std::invalid_argument(
             "Invalid block level: Make sure to close all blocks");
+    for (size_t i = 0; i < _server_block_list.size(); ++i)
+    {
+        std::vector<ConfigLocationBlock>& location_block_list =
+            _server_block_list[i].locationBlockList();
+        std::sort(location_block_list.begin(), location_block_list.end());
+    }
 }
 
 bool Config::_setBlockLevel(const std::string& line)

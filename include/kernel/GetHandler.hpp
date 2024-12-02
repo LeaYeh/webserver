@@ -25,8 +25,9 @@ class GetHandler : public ARequestHandler
     void _handle_chunked(int fd, EventProcessingState& state,
                          const std::string& target_path, std::string& content);
     void _handle_autoindex(EventProcessingState& state,
+                           const std::string& request_path,
                            const webconfig::RequestConfig& config,
-                           std::string& target_path);
+                           std::string& content);
 };
 
 } // namespace webkernel

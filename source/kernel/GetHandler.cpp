@@ -17,12 +17,26 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
                                       const webconfig::RequestConfig& config,
                                       const webshell::Request& request)
 {
+    std::string content;
+
     if (state == INITIAL)
     {
-        _target_path = _preProcess(config, request);
+        _preProcess(config, request);
         state = PROCESSING;
     }
-    weblog::Logger::log(weblog::DEBUG, "GetHandler handle: " + _target_path);
+    content = _process(fd, state, config, request);
+    // prepare headers in post process and encode the content if needed e.g.
+    // gzip
+    _postProcess(config, request, _target_path, content);
+    return (webshell::ResponseBuilder::buildResponse(
+        webshell::OK, _response_headers, content,
+        state & WRITE_OTHERS_CHUNKED));
+}
+
+std::string GetHandler::_process(int fd, EventProcessingState& state,
+                                 const webconfig::RequestConfig& config,
+                                 const webshell::Request& request)
+{
     std::string content;
 
     if (access(_target_path.c_str(), R_OK) == -1)
@@ -49,12 +63,7 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
             _handle_standard(state, _target_path, content);
     }
 
-    // prepare headers in post process and encode the content if needed e.g.
-    // gzip
-    _postProcess(config, request, _target_path, content);
-    return (webshell::ResponseBuilder::buildResponse(
-        webshell::OK, _response_headers, content,
-        state & WRITE_OTHERS_CHUNKED));
+    return (content);
 }
 
 void GetHandler::_handle_standard(EventProcessingState& state,

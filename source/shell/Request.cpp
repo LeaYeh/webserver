@@ -9,13 +9,18 @@ namespace webshell
 {
 
 Request::Request()
-    : _method(UNKNOWN), _uri(), _version(), _headers()
+    : _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer()
+{
+}
+
+Request::Request(std::string* buffer)
+    : _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
     : _method(other._method), _uri(other._uri), _version(other._version),
-      _headers(other._headers)
+      _headers(other._headers), _read_buffer(other._read_buffer)
 {
 }
 
@@ -27,6 +32,7 @@ Request& Request::operator=(const Request& other)
         _uri = other._uri;
         _version = other._version;
         _headers = other._headers;
+        _read_buffer = other._read_buffer;
     }
     return (*this);
 }
@@ -64,25 +70,20 @@ const std::string& Request::header(const std::string& name) const
     return (it->second);
 }
 
-const std::string& Request::body() const
-{
-    return (_body);
-}
-
 const std::string Request::serialize() const
 {
     std::string serialized;
 
     // serialize request line
-    serialized += requestMethodToString(_method) + " " + _uri.raw +
-                  " HTTP/" + utils::toString(_version) + "\r\n";
+    serialized += requestMethodToString(_method) + " " + _uri.raw + " HTTP/" +
+                  utils::toString(_version) + "\r\n";
     // serialize headers
     for (std::map<std::string, std::string>::const_iterator it =
              _headers.begin();
          it != _headers.end(); ++it)
         serialized += it->first + ": " + it->second + "\r\n";
     // serialize body
-    serialized += "\r\n" + _body;
+    serialized += "\r\n";
 
     return (serialized);
 }

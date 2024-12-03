@@ -130,6 +130,9 @@ void UriAnalyzer::_feed(unsigned char c)
         case URI_SCHEME:
             _uri_scheme(c);
             break;
+        case URI_HOST_TRIAL:
+            _uri_host_trial(c);
+            break;
         case URI_HOST_IPV4:
             _uri_host_ipv4(c);
             break;

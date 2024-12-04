@@ -130,15 +130,16 @@ int ARequestHandler::_get_respones_encoding(
 {
     int encoding = webkernel::IDENTITY;
 
-    if (_is_out_of_max_file_size(config, config.root + request.uri().path))
+    if (request.method() == webshell::GET &&
+        _is_out_of_max_file_size(config, config.root + request.uri().path))
         encoding |= webkernel::CHUNKED;
-    if (request.headers().find("Accept-Encoding") != request.headers().end())
+    if (request.has_header("Transfer-Encoding"))
     {
-        std::string accept_encoding = request.headers().at("Accept-Encoding");
-        if (accept_encoding.find("gzip") != std::string::npos)
-            encoding |= webkernel::GZIP;
-        if (accept_encoding.find("chunked") != std::string::npos)
+        std::string transfer_encoding = request.get_header("Transfer-Encoding");
+        if (transfer_encoding.find("chunked") != std::string::npos)
             encoding |= webkernel::CHUNKED;
+        if (transfer_encoding.find("gzip") != std::string::npos)
+            encoding |= webkernel::GZIP;
     }
     return (encoding);
 }
@@ -172,31 +173,6 @@ void ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
     if (!_checkMethodLimit(request.method(), config.limit_except))
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
-
-    _target_path = _get_resource_path(config, request.uri().path);
-    if (_target_path.find(config.root) == std::string::npos)
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden out of root");
-}
-
-void ARequestHandler::_postProcess(const webconfig::RequestConfig& config,
-                                   const webshell::Request& request,
-                                   const std::string& target_path,
-                                   const std::string& content)
-{
-    if (utils::isDirectory(target_path))
-        _response_headers["Content-Type"] = "text/html";
-    else
-        _response_headers["Content-Type"] = _getMimeType(target_path);
-    if (!utils::isDirectory(target_path) &&
-        (_get_respones_encoding(config, request) & webkernel::CHUNKED))
-    {
-        int encoding = _get_respones_encoding(config, request);
-        std::string tmp = _get_encoding_string(encoding);
-        _response_headers["Transfer-Encoding"] = tmp;
-    }
-    else
-        _response_headers["Content-Length"] = utils::toString(content.size());
 }
 
 } // namespace webkernel

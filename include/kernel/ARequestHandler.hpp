@@ -20,7 +20,7 @@ class ARequestHandler
     virtual ~ARequestHandler();
     virtual webshell::Response handle(int fd, EventProcessingState& state,
                                       const webconfig::RequestConfig& config,
-                                      const webshell::Request& request) = 0;
+                                      webshell::Request& request) = 0;
 
   protected:
     std::map<std::string, std::string> _response_headers;
@@ -45,13 +45,13 @@ class ARequestHandler
 
     virtual std::string _process(int fd, EventProcessingState& state,
                                  const webconfig::RequestConfig& config,
-                                 const webshell::Request& request) = 0;
-    void _preProcess(const webconfig::RequestConfig& config,
+                                 webshell::Request& request) = 0;
+    virtual void _postProcess(const webconfig::RequestConfig& config,
+                              const webshell::Request& request,
+                              const std::string& target_path,
+                              const std::string& content) = 0;
+    virtual void _preProcess(const webconfig::RequestConfig& config,
                      const webshell::Request& request);
-    void _postProcess(const webconfig::RequestConfig& config,
-                      const webshell::Request& request,
-                      const std::string& target_path,
-                      const std::string& content);
 };
 
 } // namespace webkernel

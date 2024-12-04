@@ -23,8 +23,9 @@ class Request
     Uri uri() const;
     float version() const;
     const std::map<std::string, std::string>& headers() const;
-    const std::string& header(const std::string& name) const;
+    const std::string& get_header(const std::string& name) const;
     const std::string serialize() const;
+    bool has_header(const std::string& name) const;
 
     bool read_chunked_body(std::string& chunked_body);
 

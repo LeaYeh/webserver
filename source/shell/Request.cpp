@@ -118,10 +118,8 @@ void Request::setVersion(float version)
     _version = version;
 }
 
-void Request::setReferences(webconfig::RequestConfig* config,
-                            std::string* read_buffer)
+void Request::setReference(std::string* read_buffer)
 {
-    _config = config;
     _read_buffer = read_buffer;
 }
 
@@ -152,7 +150,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 {
     static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    static size_t max_payload = _config->client_max_body_size;
+    static size_t max_payload = 4096;//_config->client_max_body_size;
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
@@ -182,7 +180,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    static size_t max_payload = _config->client_max_body_size;
+    static size_t max_payload = 4096;//_config->client_max_body_size;
 
     try
     {
@@ -199,6 +197,12 @@ bool Request::_proceed_chunked(std::string& chunked_body)
             webshell::PAYLOAD_TOO_LARGE,
             "Chunked data size exceeds client_max_body_size");
     return (false);
+}
+
+bool Request::setupRequestConfig(int server_id)
+{
+    (void)server_id;
+    return (true);
 }
 
 // void Request::setBody(std::string& body)

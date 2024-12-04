@@ -35,7 +35,8 @@ class Request
     void setHeaders(std::map<std::string, std::string> headers);
     void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
-    void setReferences(webconfig::RequestConfig* config, std::string* read_buffer);
+    void setReference(std::string* read_buffer);
+    bool setupRequestConfig(int server_id);
 
   private:
 
@@ -50,7 +51,7 @@ class Request
     float _version;
     std::map<std::string, std::string> _headers;
     std::string* _read_buffer;
-    webconfig::RequestConfig* _config;
+    webconfig::RequestConfig _config;
 };
 
 } // namespace webshell

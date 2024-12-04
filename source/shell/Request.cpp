@@ -10,24 +10,28 @@
 #include "utils.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 
 namespace webshell
 {
 
 Request::Request()
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer()
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+      _read_buffer()
 {
 }
 
 Request::Request(std::string* buffer)
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer(buffer)
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+      _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
-    : _processed(other._processed), _method(other._method), _uri(other._uri), _version(other._version),
-      _headers(other._headers), _read_buffer(other._read_buffer)
+    : _processed(other._processed), _method(other._method), _uri(other._uri),
+      _version(other._version), _headers(other._headers),
+      _read_buffer(other._read_buffer)
 {
 }
 
@@ -62,6 +66,11 @@ Uri Request::uri() const
 float Request::version() const
 {
     return (_version);
+}
+
+const webconfig::RequestConfig& Request::config() const
+{
+    return (_config);
 }
 
 const std::map<std::string, std::string>& Request::headers() const
@@ -153,17 +162,17 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 {
     static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    static size_t max_payload = 4096;//_config->client_max_body_size;
+    static size_t max_payload = _config.client_max_body_size;
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-            "Data size exceeds client_max_body_size");
+                                   "Data size exceeds client_max_body_size");
 
     if (payload - _processed > chunksize)
     {
         if ((*_read_buffer).size() < chunksize)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                "Mismatched Body Size");
+                                       "Mismatched Body Size");
         chunked_body = (*_read_buffer).substr(0, chunksize);
         (*_read_buffer).erase(0, chunksize);
         _processed += chunksize;
@@ -173,7 +182,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if ((*_read_buffer).size() < payload - _processed)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                "Mismatched Body Size");
+                                       "Mismatched Body Size");
         chunked_body = (*_read_buffer).substr(0, payload - _processed);
         (*_read_buffer).erase(0, payload - _processed);
         _processed = 0;
@@ -183,7 +192,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    static size_t max_payload = 4096;//_config->client_max_body_size;
+    static size_t max_payload = _config.client_max_body_size;
 
     try
     {
@@ -205,6 +214,9 @@ bool Request::_proceed_chunked(std::string& chunked_body)
 bool Request::setupRequestConfig(int server_id)
 {
     webconfig::ConfigLocationBlock* location_config = NULL;
+    webconfig::Config *config = webconfig::Config::instance();
+
+    std::cout << config << std::endl;
     webconfig::ConfigHttpBlock http_config =
         webconfig::Config::instance()->httpBlock();
     webconfig::ConfigServerBlock server_config =
@@ -224,14 +236,12 @@ bool Request::setupRequestConfig(int server_id)
 
     _config = webconfig::RequestConfig();
 
-    _config.client_max_body_size =
-        http_config.clientMaxBodySize();
+    _config.client_max_body_size = http_config.clientMaxBodySize();
     _config.default_type = http_config.defaultType();
     _config.error_pages = http_config.errorPages();
     _config.autoindex_page = http_config.autoindexPage();
     _config.error_log = server_config.errorLog();
-    _config.keep_alive_timeout =
-        server_config.keepAliveTimeout();
+    _config.keep_alive_timeout = server_config.keepAliveTimeout();
     _config.server_name = server_config.serverName();
 
     _config.route = location_config->route();

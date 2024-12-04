@@ -24,8 +24,6 @@ class RequestProcessor
     void process(int fd);
     void removeAnalyzer(int fd);
 
-    const webconfig::RequestConfig& requestConfig(int fd) const;
-    bool setupRequestConfig(int fd, const webshell::Request& request);
     const EventProcessingState& state(int fd) const;
     void setState(int fd, EventProcessingState state);
     void resetState(int fd);
@@ -37,7 +35,7 @@ class RequestProcessor
     Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     std::map<int /* fd */, EventProcessingState> _state;
-    std::map<int /* fd */, webshell::Request> _request_records;
-    std::map<int /* fd */, webconfig::RequestConfig> _request_config_pool;
+    // std::map<int /* fd */, webshell::Request> _request_records;
+    // std::map<int /* fd */, webconfig::RequestConfig> _request_config_pool;
 };
 } // namespace webkernel

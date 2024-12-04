@@ -125,10 +125,10 @@ std::string ARequestHandler::_get_encoding_string(int encoding) const
 }
 
 int ARequestHandler::_get_respones_encoding(
-    const webconfig::RequestConfig& config,
     const webshell::Request& request) const
 {
     int encoding = webkernel::IDENTITY;
+    const webconfig::RequestConfig& config = request.config();
 
     if (request.method() == webshell::GET &&
         _is_out_of_max_file_size(config, config.root + request.uri().path))
@@ -164,13 +164,12 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
     return (full_path);
 }
 
-void ARequestHandler::_preProcess(const webconfig::RequestConfig& config,
-                                  const webshell::Request& request)
+void ARequestHandler::_preProcess(const webshell::Request& request)
 {
 
     if (!_checkPathFormat(request.uri().path))
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
-    if (!_checkMethodLimit(request.method(), config.limit_except))
+    if (!_checkMethodLimit(request.method(), request.config().limit_except))
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
 }

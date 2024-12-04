@@ -12,7 +12,6 @@ class GetHandler : public ARequestHandler
 {
   public:
     webshell::Response handle(int fd, EventProcessingState& state,
-                              const webconfig::RequestConfig& config,
                               webshell::Request& request);
 
   private:
@@ -20,12 +19,9 @@ class GetHandler : public ARequestHandler
         _chunked_file_records;
 
     std::string _process(int fd, EventProcessingState& state,
-                         const webconfig::RequestConfig& config,
                          webshell::Request& request);
-    void _preProcess(const webconfig::RequestConfig& config,
-                     const webshell::Request& request);
-    void _postProcess(const webconfig::RequestConfig& config,
-                      const webshell::Request& request,
+    void _preProcess(const webshell::Request& request);
+    void _postProcess(const webshell::Request& request,
                       const std::string& target_path,
                       const std::string& content);
 

@@ -15,18 +15,17 @@ namespace webkernel
 {
 
 webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
-                                       const webconfig::RequestConfig& config,
                                        webshell::Request& request)
 {
     if (state == INITIAL)
     {
-        _preProcess(config, request);
+        _preProcess(request);
         state = PROCESSING;
     }
-    _process(fd, state, config, request);
+    _process(fd, state, request);
     if (state & COMPELETED)
     {
-        _postProcess(config, request, _upload_record_pool[fd].target_filename(),
+        _postProcess(request, _upload_record_pool[fd].target_filename(),
                      _upload_record_pool[fd].serialize());
         return (webshell::ResponseBuilder::buildResponse(
             webshell::CREATED, _response_headers,
@@ -35,25 +34,29 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
     return webshell::Response();
 }
 
-void PostHandler::_preProcess(const webconfig::RequestConfig& config,
-                              const webshell::Request& request)
+void PostHandler::_preProcess(const webshell::Request& request)
 {
-    ARequestHandler::_preProcess(config, request);
+    ARequestHandler::_preProcess(request);
+    const webconfig::RequestConfig& config = request.config();
+
     _target_path = config.root + config.upload_path;
 }
 
 std::string PostHandler::_process(int fd, EventProcessingState& state,
-                                  const webconfig::RequestConfig& config,
                                   webshell::Request& request)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "PostHandler: handle the request with target path: " +
                             _target_path);
-    if (!config.enable_upload)
+    if (!request.config().enable_upload)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden upload is disabled");
-    weblog::Logger::log(weblog::DEBUG, "path exists: " + utils::toString(access(_target_path.c_str(), F_OK)));
-    weblog::Logger::log(weblog::DEBUG, "path writeable: " + utils::toString(access(_target_path.c_str(), W_OK)));
+    weblog::Logger::log(
+        weblog::DEBUG,
+        "path exists: " + utils::toString(access(_target_path.c_str(), F_OK)));
+    weblog::Logger::log(
+        weblog::DEBUG, "path writeable: " +
+                           utils::toString(access(_target_path.c_str(), W_OK)));
     if (access(_target_path.c_str(), F_OK) == -1 ||
         access(_target_path.c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
@@ -78,13 +81,11 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
     return ("");
 }
 
-void PostHandler::_postProcess(const webconfig::RequestConfig& config,
-                               const webshell::Request& request,
+void PostHandler::_postProcess(const webshell::Request& request,
                                const std::string& target_path,
                                const std::string& content)
 {
     // TODO: Add upload redirect
-    (void)config;
     (void)request;
 
     _response_headers.clear();

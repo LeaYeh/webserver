@@ -23,13 +23,15 @@ RequestAnalyzer::RequestAnalyzer()
 }
 
 RequestAnalyzer::RequestAnalyzer(int server_id, std::string* read_buffer)
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(), _server_id(server_id), _read_buffer(read_buffer)
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(),
+      _server_id(server_id), _read_buffer(read_buffer)
 {
 }
 
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
     : _state(other._state), _rl_analyzer(other._rl_analyzer),
-      _header_analyzer(other._header_analyzer)
+      _header_analyzer(other._header_analyzer), _server_id(other._server_id),
+      _read_buffer(other._read_buffer)
 {
 }
 
@@ -44,6 +46,8 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
         _state = other._state;
         _rl_analyzer = other._rl_analyzer;
         _header_analyzer = other._header_analyzer;
+        _server_id = other._server_id;
+        _read_buffer = other._read_buffer;
     }
     return (*this);
 }
@@ -52,30 +56,30 @@ void RequestAnalyzer::feed(const char ch)
 {
     switch (_state)
     {
-        case PARSING_REQUEST_LINE:
-            _rl_analyzer.feed(ch);
-            if (_rl_analyzer.done())
-            {
-                _state = PARSING_REQUEST_HEADERS;
-                _method = _rl_analyzer.method();
-                _header_analyzer.set_method(_method);
-                _uri = _rl_analyzer.uri();
-                _version = _rl_analyzer.version();
-            }
-            break ;
-        case PARSING_REQUEST_HEADERS:
-            _header_analyzer.feed(ch);
-            if (_header_analyzer.done())
-            {
-                _headers = _header_analyzer.headers();
-                _state = COMPLETE;
-            }
-            break;
-        default:
+    case PARSING_REQUEST_LINE:
+        _rl_analyzer.feed(ch);
+        if (_rl_analyzer.done())
         {
-            std::cerr << "State received: " << _state << std::endl;
-            throw std::runtime_error("Request parse error");
+            _state = PARSING_REQUEST_HEADERS;
+            _method = _rl_analyzer.method();
+            _header_analyzer.set_method(_method);
+            _uri = _rl_analyzer.uri();
+            _version = _rl_analyzer.version();
         }
+        break;
+    case PARSING_REQUEST_HEADERS:
+        _header_analyzer.feed(ch);
+        if (_header_analyzer.done())
+        {
+            _headers = _header_analyzer.headers();
+            _state = COMPLETE;
+        }
+        break;
+    default:
+    {
+        std::cerr << "State received: " << _state << std::endl;
+        throw std::runtime_error("Request parse error");
+    }
     }
 }
 
@@ -107,7 +111,9 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    std::cerr << "Request Line parsed. Method: " << _method << " Target: " << _uri.raw << " Version: " << _version << std::endl;
+    std::cerr << "Request Line parsed. Method: " << _method
+              << " Target: " << _uri.raw << " Version: " << _version
+              << std::endl;
     Request req;
     req.setMethod(_method);
     req.setUri(_uri);
@@ -115,9 +121,9 @@ Request RequestAnalyzer::request(void) const
     req.setHeaders(_headers);
     req.setReference(_read_buffer);
     if (!req.setupRequestConfig(_server_id))
-        throw utils::HttpException(
-                    webshell::NOT_FOUND, "No matching location block found: ");
-                                            // + _request_records[fd].uri().path);
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "No matching location block found: " +
+                                       _uri.path);
 
     // std::string key = "Accept-Encoding";
     // std::string value = "chunked";

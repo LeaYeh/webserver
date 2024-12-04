@@ -13,10 +13,10 @@ all: $(NAME)
 $(NAME): cmake_build
 	@$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS)
 	@echo ""
+	@mv $(BUILD_DIR)/$(PROJECT) $(PROJECT)
 	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
 	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
 	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}
-	@mv $(NAME) .
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8
@@ -34,9 +34,11 @@ cmake_build:
 
 clean:
 	@rm -rf $(BUILD_DIR)
+
 	@echo $(STY_GRE)"[INFO] Clean the build directory"$(STY_RES)
 
 fclean: clean
+	@rm -f $(PROJECT)
 	@echo $(STY_GRE)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean

@@ -32,7 +32,7 @@ RequestHandlerManager& RequestHandlerManager::getInstance()
 webshell::Response
 RequestHandlerManager::handleRequest(int fd, EventProcessingState& state,
                                      const webconfig::RequestConfig& config,
-                                     const webshell::Request& request)
+                                     webshell::Request& request)
 {
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
         _handlers.find(request.method());

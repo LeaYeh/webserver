@@ -12,7 +12,7 @@ class RequestHandlerManager
 
     webshell::Response handleRequest(int fd, EventProcessingState& state,
                                      const webconfig::RequestConfig& config,
-                                     const webshell::Request& request);
+                                     webshell::Request& request);
 
   private:
     ~RequestHandlerManager();

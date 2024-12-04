@@ -1,4 +1,5 @@
 #include "GetHandler.hpp"
+#include "ARequestHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "ResponseBuilder.hpp"
@@ -15,7 +16,7 @@ namespace webkernel
 
 webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
                                       const webconfig::RequestConfig& config,
-                                      const webshell::Request& request)
+                                      webshell::Request& request)
 {
     std::string content;
 
@@ -33,9 +34,19 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
         state & WRITE_OTHERS_CHUNKED));
 }
 
+void GetHandler::_preProcess(const webconfig::RequestConfig& config,
+                             const webshell::Request& request)
+{
+    ARequestHandler::_preProcess(config, request);
+    _target_path = _get_resource_path(config, request.uri().path);
+    if (_target_path.find(config.root) == std::string::npos)
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Forbidden out of root");
+}
+
 std::string GetHandler::_process(int fd, EventProcessingState& state,
                                  const webconfig::RequestConfig& config,
-                                 const webshell::Request& request)
+                                 webshell::Request& request)
 {
     std::string content;
 
@@ -64,6 +75,26 @@ std::string GetHandler::_process(int fd, EventProcessingState& state,
     }
 
     return (content);
+}
+
+void GetHandler::_postProcess(const webconfig::RequestConfig& config,
+                                   const webshell::Request& request,
+                                   const std::string& target_path,
+                                   const std::string& content)
+{
+    if (utils::isDirectory(target_path))
+        _response_headers["Content-Type"] = "text/html";
+    else
+        _response_headers["Content-Type"] = _getMimeType(target_path);
+    if (!utils::isDirectory(target_path) &&
+        (_get_respones_encoding(config, request) & webkernel::CHUNKED))
+    {
+        int encoding = _get_respones_encoding(config, request);
+        std::string tmp = _get_encoding_string(encoding);
+        _response_headers["Transfer-Encoding"] = tmp;
+    }
+    else
+        _response_headers["Content-Length"] = utils::toString(content.size());
 }
 
 void GetHandler::_handle_standard(EventProcessingState& state,

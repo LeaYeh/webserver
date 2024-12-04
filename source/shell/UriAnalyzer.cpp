@@ -6,13 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/03 21:18:05 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 21:45:11 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
-#include <sstream>
 
 namespace webshell
 {
@@ -77,6 +76,14 @@ void UriAnalyzer::reset()
     _fragment = "";
 }
 
+std::string UriAnalyzer::_remove_dot_segments() const
+{
+    std::string input_buffer;
+    std::string output_buffer;
+
+    return (output_buffer);
+}
+
 Uri UriAnalyzer::take_uri() const
 {
     Uri ret;
@@ -85,7 +92,7 @@ Uri UriAnalyzer::take_uri() const
     ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;
-    ret.path = _path;
+    ret.path = _remove_dot_segments();//_path;
     ret.query = _query;
     ret.fragment = _fragment;
     return (ret);

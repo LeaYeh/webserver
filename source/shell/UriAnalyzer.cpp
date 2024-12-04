@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 21:45:11 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 22:11:38 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,11 +76,59 @@ void UriAnalyzer::reset()
     _fragment = "";
 }
 
+void UriAnalyzer::_remove_last_segment(std::string& str) const
+{
+    size_t pos = str.find_last_of('/');
+    if (pos != std::string::npos)
+        str.erase(pos);
+}
+
+void UriAnalyzer::_move_first_segment(std::string& from, std::string& to) const
+{
+    size_t pos = from[0] == '/';
+    pos = from.find('/', pos);
+    if (pos != std::string::npos)
+    {
+        to += from.substr(0, pos);
+        from = from.substr(pos);
+    }
+    else
+    {
+        to += from;
+        from.clear();
+    }
+}
+
 std::string UriAnalyzer::_remove_dot_segments() const
 {
     std::string input_buffer;
     std::string output_buffer;
 
+    while (!input_buffer.empty())
+    {
+        if (input_buffer.substr(0, 3) == "../")
+            input_buffer = input_buffer.substr(3);
+        else if (input_buffer.substr(0, 2) == "./")
+            input_buffer = input_buffer.substr(2);
+        else if (input_buffer.substr(0, 3) == "/./")
+            input_buffer = input_buffer.substr(2);
+        else if (input_buffer == "/.")
+            input_buffer = "/";
+        else if (input_buffer.substr(0, 3) == "/../")
+        {
+            input_buffer = input_buffer.substr(3);
+            _remove_last_segment(output_buffer);
+        }
+        else if (input_buffer == "/..")
+        {
+            input_buffer = "/";
+            _remove_last_segment(output_buffer);
+        }
+        else if (input_buffer == ".." || input_buffer == ".")
+            input_buffer.clear();
+        else
+            _move_first_segment(input_buffer, output_buffer);
+    }
     return (output_buffer);
 }
 

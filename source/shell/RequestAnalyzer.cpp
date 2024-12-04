@@ -6,12 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 14:48:50 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 14:52:41 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestAnalyzer.hpp"
-#include "RequestConfig.hpp"
+#include "HttpException.hpp"
 #include "defines.hpp"
 
 namespace webshell
@@ -114,7 +114,10 @@ Request RequestAnalyzer::request(void) const
     req.setVersion(_version);
     req.setHeaders(_headers);
     req.setReference(_read_buffer);
-    req.setupRequestConfig(_server_id);
+    if (!req.setupRequestConfig(_server_id))
+        throw utils::HttpException(
+                    webshell::NOT_FOUND, "No matching location block found: ");
+                                            // + _request_records[fd].uri().path);
 
     // std::string key = "Accept-Encoding";
     // std::string value = "chunked";

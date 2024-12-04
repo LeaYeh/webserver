@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 22:11:38 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 22:26:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void UriAnalyzer::_move_first_segment(std::string& from, std::string& to) const
 
 std::string UriAnalyzer::_remove_dot_segments() const
 {
-    std::string input_buffer;
+    std::string input_buffer = _path;
     std::string output_buffer;
 
     while (!input_buffer.empty())
@@ -114,7 +114,7 @@ std::string UriAnalyzer::_remove_dot_segments() const
             input_buffer = input_buffer.substr(2);
         else if (input_buffer == "/.")
             input_buffer = "/";
-        else if (input_buffer.substr(0, 3) == "/../")
+        else if (input_buffer.substr(0, 4) == "/../")
         {
             input_buffer = input_buffer.substr(3);
             _remove_last_segment(output_buffer);
@@ -140,7 +140,7 @@ Uri UriAnalyzer::take_uri() const
     ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;
-    ret.path = _remove_dot_segments();//_path;
+    ret.path = _remove_dot_segments();
     ret.query = _query;
     ret.fragment = _fragment;
     return (ret);

@@ -14,7 +14,6 @@
 
 #include "HeaderAnalyzer.hpp"
 #include "Request.hpp"
-#include "RequestConfig.hpp"
 #include "RequestLineAnalyzer.hpp"
 #include "defines.hpp"
 #include <string>
@@ -25,7 +24,6 @@ namespace webshell
 class RequestAnalyzer
 {
   public:
-
     RequestAnalyzer();
     RequestAnalyzer(int server_id, std::string* read_buffer);
     ~RequestAnalyzer();
@@ -39,7 +37,6 @@ class RequestAnalyzer
     Request request(void) const;
 
   private:
-
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;

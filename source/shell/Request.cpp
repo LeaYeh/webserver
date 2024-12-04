@@ -1,13 +1,13 @@
 #include "Request.hpp"
+#include "HttpException.hpp"
 #include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
-#include "HttpException.hpp"
 #include "utils.hpp"
 #include <cstddef>
-#include <string>
 #include <cstdlib>
+#include <string>
 
 namespace webshell
 {
@@ -66,13 +66,18 @@ const std::map<std::string, std::string>& Request::headers() const
     return (_headers);
 }
 
-const std::string& Request::header(const std::string& name) const
+const std::string& Request::get_header(const std::string& name) const
 {
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 
     if (it == _headers.end())
         return (utils::EMPTY_STRING);
     return (it->second);
+}
+
+bool Request::has_header(const std::string& name) const
+{
+    return (_headers.find(name) != _headers.end());
 }
 
 const std::string Request::serialize() const
@@ -113,7 +118,8 @@ void Request::setVersion(float version)
     _version = version;
 }
 
-void Request::setReferences(webconfig::RequestConfig* config, std::string* read_buffer)
+void Request::setReferences(webconfig::RequestConfig* config,
+                            std::string* read_buffer)
 {
     _config = config;
     _read_buffer = read_buffer;
@@ -189,7 +195,8 @@ bool Request::_proceed_chunked(std::string& chunked_body)
     }
     _processed += chunked_body.size();
     if (_processed > max_payload)
-        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+        throw utils::HttpException(
+            webshell::PAYLOAD_TOO_LARGE,
             "Chunked data size exceeds client_max_body_size");
     return (false);
 }

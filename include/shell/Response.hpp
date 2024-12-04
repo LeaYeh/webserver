@@ -23,7 +23,8 @@ class Response
     void setBody(std::string body);
     void setVersion(float version);
     void clearHeaders();
-    std::string serialize();
+    bool empty() const;
+    std::string serialize() const;
 
   private:
     StatusCode _status_code;

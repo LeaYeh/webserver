@@ -19,8 +19,7 @@ class ARequestHandler
     ARequestHandler& operator=(const ARequestHandler& other);
     virtual ~ARequestHandler();
     virtual webshell::Response handle(int fd, EventProcessingState& state,
-                                      const webconfig::RequestConfig& config,
-                                      const webshell::Request& request) = 0;
+                                      webshell::Request& request) = 0;
 
   protected:
     std::map<std::string, std::string> _response_headers;
@@ -34,8 +33,7 @@ class ARequestHandler
                       const std::vector<webshell::RequestMethod>& limit) const;
     bool _is_out_of_max_file_size(const webconfig::RequestConfig& config,
                                   const std::string file_path) const;
-    int _get_respones_encoding(const webconfig::RequestConfig& config,
-                               const webshell::Request& request) const;
+    int _get_respones_encoding(const webshell::Request& request) const;
     std::string _get_encoding_string(int encoding) const;
 
     std::string _get_resource_path(const webconfig::RequestConfig& config,
@@ -44,14 +42,11 @@ class ARequestHandler
     const std::string _getMimeType(const std::string& file_path) const;
 
     virtual std::string _process(int fd, EventProcessingState& state,
-                                 const webconfig::RequestConfig& config,
-                                 const webshell::Request& request) = 0;
-    void _preProcess(const webconfig::RequestConfig& config,
-                     const webshell::Request& request);
-    void _postProcess(const webconfig::RequestConfig& config,
-                      const webshell::Request& request,
-                      const std::string& target_path,
-                      const std::string& content);
+                                 webshell::Request& request) = 0;
+    virtual void _postProcess(const webshell::Request& request,
+                              const std::string& target_path,
+                              const std::string& content) = 0;
+    virtual void _preProcess(const webshell::Request& request);
 };
 
 } // namespace webkernel

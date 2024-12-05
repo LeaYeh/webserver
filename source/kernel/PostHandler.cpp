@@ -2,17 +2,36 @@
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "RequestConfig.hpp"
+#include "Response.hpp"
 #include "ResponseBuilder.hpp"
 #include "configUtils.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
+#include <cstddef>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
 namespace webkernel
 {
+
+PostHandler::PostHandler()
+{
+}
+
+PostHandler::~PostHandler()
+{
+    for (std::map<int, UploadRecord*>::iterator it =
+             _upload_record_pool.begin();
+         it != _upload_record_pool.end(); it++)
+    {
+        if (it->second)
+            delete it->second;
+    }
+    _upload_record_pool.clear();
+}
 
 webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
                                        webshell::Request& request)
@@ -22,14 +41,25 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
         _preProcess(request);
         state = PROCESSING;
     }
-    _process(fd, state, request);
+    try
+    {
+        _process(fd, state, request);
+    }
+    catch (std::exception& e)
+    {
+        weblog::Logger::log(weblog::ERROR, e.what());
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what());
+    }
     if (state & COMPELETED)
     {
-        _postProcess(request, _upload_record_pool[fd].target_filename(),
-                     _upload_record_pool[fd].serialize());
-        return (webshell::ResponseBuilder::buildResponse(
+        _postProcess(request, _upload_record_pool[fd]->target_filename(),
+                     _upload_record_pool[fd]->serialize());
+        webshell::Response response = webshell::ResponseBuilder::buildResponse(
             webshell::CREATED, _response_headers,
-            _upload_record_pool[fd].serialize(), false));
+            _upload_record_pool[fd]->serialize(), false);
+        // delete _upload_record_pool[fd];
+        _upload_record_pool.erase(fd);
+        return (response);
     }
     return webshell::Response();
 }
@@ -45,38 +75,49 @@ void PostHandler::_preProcess(const webshell::Request& request)
 std::string PostHandler::_process(int fd, EventProcessingState& state,
                                   webshell::Request& request)
 {
+    if (request.has_header("Expect") &&
+        request.get_header("Expect") == "100-continue")
+    {
+        if (!request.has_header("Content-Length"))
+            throw utils::HttpException(webshell::FORBIDDEN,
+                                       "Upload length required");
+        unsigned int content_length =
+            utils::stoi(request.get_header("content-length"));
+        if (content_length > request.config().client_max_body_size)
+            throw utils::HttpException(
+                webshell::PAYLOAD_TOO_LARGE,
+                "Data size exceeds client_max_body_size");
+        throw utils::HttpException(webshell::CONTINUE, "Continue");
+    }
     weblog::Logger::log(weblog::DEBUG,
                         "PostHandler: handle the request with target path: " +
                             _target_path);
     if (!request.config().enable_upload)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden upload is disabled");
-    weblog::Logger::log(
-        weblog::DEBUG,
-        "path exists: " + utils::toString(access(_target_path.c_str(), F_OK)));
-    weblog::Logger::log(
-        weblog::DEBUG, "path writeable: " +
-                           utils::toString(access(_target_path.c_str(), W_OK)));
     if (access(_target_path.c_str(), F_OK) == -1 ||
         access(_target_path.c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden cannot write to file: " +
                                        _target_path);
+
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
     {
+        std::string tmp = request.get_header("content-length");
+        unsigned int content_length = utils::stoi(tmp.empty() ? "0" : tmp);
         _upload_record_pool[fd] =
-            UploadRecord(_generate_safe_file_path(request));
+            new UploadRecord(_generate_safe_file_path(request), content_length);
     }
     std::string content;
     bool is_eof = request.read_chunked_body(content);
 
-    // write the content to the temp file
     _write_chunked_file(fd, content);
+    _upload_record_pool[fd]->update(is_eof);
     state = static_cast<EventProcessingState>(state | WRITE_CHUNKED);
-    if (is_eof && _upload_record_pool[fd].success())
+    if (is_eof && _upload_record_pool[fd]->success())
     {
         state = COMPELETED;
-        return (_upload_record_pool[fd].serialize());
+        return (_upload_record_pool[fd]->serialize());
     }
     return ("");
 }
@@ -174,20 +215,22 @@ void PostHandler::_write_chunked_file(int fd, const std::string& content)
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "File stream not found");
-    std::ofstream& file_stream = _upload_record_pool[fd].file_stream();
+    std::ofstream* file_stream = _upload_record_pool[fd]->file_stream();
     size_t remaining = content.size();
     size_t offset = 0;
 
+    if (!file_stream->is_open())
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "File stream is not open");
     while (remaining > 0)
     {
         size_t write_size =
             std::min(remaining, (size_t)webkernel::CHUNKED_SIZE);
-        file_stream.write(content.c_str() + offset, write_size);
+        file_stream->write(content.c_str() + offset, write_size);
         offset += write_size;
         remaining -= write_size;
     }
-    file_stream.flush();
-    _upload_record_pool[fd].update();
+    file_stream->flush();
 }
 
 } // namespace webkernel

@@ -142,6 +142,7 @@ enum RequestHeaderState
 enum StatusCode
 {
     UNDEFINED = -1,
+    CONTINUE = 100,
     OK = 200,
     CREATED = 201,
     ACCEPTED = 202,

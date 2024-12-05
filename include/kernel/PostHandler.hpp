@@ -13,11 +13,15 @@ class PostHandler : public ARequestHandler
 {
 
   public:
+    PostHandler();
+    ~PostHandler();
+
+  public:
     webshell::Response handle(int fd, EventProcessingState& state,
                               webshell::Request& request);
 
   private:
-    std::map<int, UploadRecord> _upload_record_pool;
+    std::map<int /* fd */, UploadRecord*> _upload_record_pool;
 
   private:
     void _preProcess(const webshell::Request& request);
@@ -32,6 +36,10 @@ class PostHandler : public ARequestHandler
     std::string _generate_safe_file_path(const webshell::Request& request);
 
     void _write_chunked_file(int fd, const std::string& content);
+
+  private:
+    PostHandler(const PostHandler& other);
+    PostHandler& operator=(const PostHandler& other);
 };
 
 } // namespace webkernel

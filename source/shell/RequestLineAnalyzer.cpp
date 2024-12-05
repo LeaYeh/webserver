@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 20:43:02 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/03 21:11:11 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ static bool validate_start(unsigned char c)
 {
     if (!utils::is_tchar(c))
         throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);
+                "RLAnalyzer failed at validate start");
     else
         return (true);
 }
@@ -77,7 +77,7 @@ static bool check_lf(unsigned char c)
         return (true);
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);  
+                "RLAnalyzer failed at check_lf");  
 }
 
 static bool analyze_version(unsigned char c)
@@ -105,7 +105,7 @@ static bool analyze_version(unsigned char c)
     {
         pos = 0;
         throw utils::HttpException(webshell::BAD_REQUEST,
-                BAD_REQUEST_MSG);    
+                "RLAnalyzer failed at check_version");    
     }
 }
 

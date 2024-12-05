@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/19 20:25:10 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/03 21:18:05 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
+#include <sstream>
 
 namespace webshell
 {
@@ -108,7 +109,7 @@ void UriAnalyzer::parse_uri(std::string& uri)
     }
     if (_state < URI_REL_START) //TODO: is it host? or which state? always consider abempty
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed: end too early");
     _state = END_URI_PARSER;
 }
 
@@ -129,6 +130,9 @@ void UriAnalyzer::_feed(unsigned char c)
             break;
         case URI_SCHEME:
             _uri_scheme(c);
+            break;
+        case URI_HOST_TRIAL:
+            _uri_host_trial(c);
             break;
         case URI_HOST_IPV4:
             _uri_host_ipv4(c);
@@ -152,8 +156,12 @@ void UriAnalyzer::_feed(unsigned char c)
             _uri_fragment(c);
             break;
         default:
+        {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");
+            
+        }
+            
     }
 }
 
@@ -173,7 +181,7 @@ void UriAnalyzer::_uri_start(unsigned char c)
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-        BAD_REQUEST_MSG);
+        "URIAnalyzer failed at uri start");
 }
 
 void UriAnalyzer::_uri_rel_start(unsigned char c)
@@ -190,7 +198,7 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-        BAD_REQUEST_MSG);
+        "URIAnalyzer failed at uri rel start");
 }
 
 void UriAnalyzer::_uri_scheme(unsigned char c)
@@ -211,7 +219,7 @@ void UriAnalyzer::_uri_scheme(unsigned char c)
         return;
     }
     throw utils::HttpException(webshell::BAD_REQUEST,
-        BAD_REQUEST_MSG);
+        "URIAnalyzer failed at uri scheme");
 }
 
 void UriAnalyzer::_uri_host_trial(unsigned char c)
@@ -223,7 +231,7 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
         _state = URI_HOST_REGNAME;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at host trial");
 }
 
 void UriAnalyzer::_uri_host_ipv4(unsigned char c)
@@ -259,7 +267,7 @@ void UriAnalyzer::_uri_host_ipv4(unsigned char c)
     except:
 
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at ipv4 host");
 }
 
 void UriAnalyzer::_uri_host_regname(unsigned char c)
@@ -277,7 +285,7 @@ void UriAnalyzer::_uri_host_regname(unsigned char c)
     //     _path.push_back(_decode_percent()); //TODO: need to parse!!
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at regname host");
 }
 
 void UriAnalyzer::_uri_port(unsigned char c)
@@ -291,7 +299,7 @@ void UriAnalyzer::_uri_port(unsigned char c)
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at uri port");
 }
 
 void UriAnalyzer::_uri_path_trial(unsigned char c)
@@ -303,7 +311,7 @@ void UriAnalyzer::_uri_path_trial(unsigned char c)
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at uri path tiral");
 }
 
 void UriAnalyzer::_uri_path(unsigned char c)
@@ -319,7 +327,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
         _state = URI_FRAGMENT;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at uri path");
 }
 
 void UriAnalyzer::_uri_query(unsigned char c)
@@ -330,7 +338,7 @@ void UriAnalyzer::_uri_query(unsigned char c)
         _state = URI_FRAGMENT;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at uri query");
 }
 
 void UriAnalyzer::_uri_fragment(unsigned char c)
@@ -339,20 +347,20 @@ void UriAnalyzer::_uri_fragment(unsigned char c)
         _fragment.push_back(c);
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed at uri fragment");
 }
 
 unsigned char UriAnalyzer::_decode_percent()
 {
     if (_idx > _uri.size() - 3)
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed: percent code cut short");
 
     unsigned char first = _uri[_idx + 1];
     unsigned char second = _uri[_idx + 2];
     if (!_valid_hexdigit(first) || !_valid_hexdigit(second))
         throw utils::HttpException(webshell::BAD_REQUEST,
-            BAD_REQUEST_MSG);
+            "URIAnalyzer failed: not a valid hexdigit at encoding");
 
     _idx += 3;
     //TODO: is %FF a problem? would turn to 256

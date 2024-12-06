@@ -75,6 +75,11 @@ void Response::clearHeaders()
     _headers.clear();
 }
 
+bool Response::empty() const
+{
+    return (_status_code == UNDEFINED);
+}
+
 /*
 HTTP/1.1 200 OK
 Content-Type: text/plain
@@ -83,14 +88,14 @@ Connection: close
 
 Hello, World!
 */
-std::string Response::serialize()
+std::string Response::serialize() const
 {
     std::string response;
 
     if (_status_code != UNDEFINED)
         response += "HTTP/1.1 " + utils::toString(_status_code) + " " +
                     statusReasonPhase(_status_code) + "\r\n";
-    std::map<std::string, std::string>::iterator it;
+    std::map<std::string, std::string>::const_iterator it;
     for (it = _headers.begin(); it != _headers.end(); ++it)
     {
         response += it->first + ": " + it->second + "\r\n";

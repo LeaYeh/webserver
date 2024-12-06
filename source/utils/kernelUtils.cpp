@@ -1,7 +1,9 @@
 #include "kernelUtils.hpp"
+#include "defines.hpp"
 #include "utils.hpp"
+#include <cstdlib>
+#include <ctime>
 #include <string>
-#include <vector>
 
 namespace webkernel
 {
@@ -102,6 +104,15 @@ std::string explainEventProcessingState(EventProcessingState state)
         explanation += "WRITE_OTHERS_CHUNKED ";
 
     return (explanation);
+}
+
+std::string uuid()
+{
+    std::time_t now = std::time(0);
+    std::srand(static_cast<unsigned int>(now));
+    int rand_num = std::rand();
+
+    return (utils::toString(now) + "_" + utils::toString(rand_num));
 }
 
 } // namespace webkernel

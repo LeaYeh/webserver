@@ -5,10 +5,19 @@
 }
 
 body {
+    display: flex;
+    flex-direction: column;
     font-family: 'Arial', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f4f4f4;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 header {
@@ -74,18 +83,21 @@ nav ul li a:hover {
     background-color: #f4f4f4;
 }
 
-.about-section, .features-section {
+.about-section,
+.features-section {
     padding: 50px 20px;
     text-align: center;
 }
 
-.about-section h2, .features-section h2 {
+.about-section h2,
+.features-section h2 {
     font-size: 2em;
     color: #22b5b7;
     margin-bottom: 20px;
 }
 
-.about-section p, .features-section ul {
+.about-section p,
+.features-section ul {
     font-size: 1.1em;
     margin: 20px 0;
 }
@@ -123,4 +135,21 @@ footer a:hover {
 
 .email-link:hover {
     border-bottom: 1px solid #0066cc;
+}
+
+.dropzone {
+    border: 2px dashed #0087F7;
+    border-radius: 5px;
+    background: white;
+}
+
+.dropzone .dz-message {
+    font-weight: 400;
+}
+
+.dropzone .dz-message .note {
+    font-size: 0.8em;
+    font-weight: 200;
+    display: block;
+    margin-top: 1.4rem;
 }

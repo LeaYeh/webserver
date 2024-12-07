@@ -50,12 +50,15 @@ foreach(path ${ALL_PATHS})
     endif()
 endforeach()
 
-debug_message("Source directory: ${SRC_DIR}")
-debug_message("Include directory: ${INC_DIR}")
-debug_message("Include subdirectories:")
-foreach(folder ${INCLUDE_FOLDERS})
-    debug_message("  ${folder}")
-endforeach()
+
+if(CMAKE_MESSAGE_LOG_LEVEL STREQUAL "DEBUG" OR CMAKE_MESSAGE_LOG_LEVEL STREQUAL "TRACE")
+    debug_message("Source directory: ${SRC_DIR}")
+    debug_message("Include directory: ${INC_DIR}")
+    debug_message("Include subdirectories:")
+    foreach(folder ${INCLUDE_FOLDERS})
+        debug_message("  ${folder}")
+    endforeach()
+endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

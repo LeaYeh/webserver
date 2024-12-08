@@ -7,17 +7,7 @@
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    <header>
-        <div class="logo">42Vienna</div>
-        <nav>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#features">Support Features</a></li>
-                <li><a href="#contact">Controbutors</a></li>
-            </ul>
-        </nav>
-    </header>
-
+    <header id="header"></header>
     <section class="hero">
         <div class="hero-content">
             <h1>Welcome to 42Vienna Web Server</h1>
@@ -41,19 +31,15 @@
             <li>Golang testing framework and branchmark with Nginx</li>
         </ul>
     </section>
-
-    <footer id="contact" class="footer">
-        <p>
-            <a href="https://github.com/LeaYeh">Lea Yeh</a>
-            <a href="mailto:lea.yeh.ml@gmail.com" class="email-link">&lt;lea.yeh.ml@gmail.com&gt;</a>
-        </p>
-        <p>
-            <a href="https://github.com/yenthing">yenthing</a>
-        </p>
-        <p>
-            <a href="https://github.com/leske42">leske42</a>
-        </p>
-        <p>&copy; 2024 42Vienna Web Server. All rights reserved.</p>
-    </footer>
+    <footer id="footer"></footer>
+    <script>
+        async function loadComponents() {
+            const headerContent = await fetch('header.html').then(res => res.text());
+            document.getElementById('header').innerHTML = headerContent;
+            const footerContent = await fetch('footer.html').then(res => res.text());
+            document.getElementById('footer').innerHTML = footerContent;
+        }
+        loadComponents().catch(err => console.error(err));
+    </script>
 </body>
 </html>

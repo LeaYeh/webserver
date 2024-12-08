@@ -85,17 +85,7 @@
 </head>
 
 <body>
-    <header>
-        <div class="logo">42Vienna</div>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="index.html#about">About</a></li>
-                <li><a href="index.html#features">Features</a></li>
-            </ul>
-        </nav>
-    </header>
-
+    <header id="header"></header>
     <div class="main-content">
         <section class="upload-section">
             <h2>Upload Files</h2>
@@ -108,9 +98,16 @@
         </section>
     </div>
 
-    <footer>
-        <p>&copy; 2024 42Vienna Web Server. All rights reserved.</p>
-    </footer>
+    <footer id="footer"></footer>
+    <script>
+        async function loadComponents() {
+            const headerContent = await fetch('header.html').then(res => res.text());
+            document.getElementById('header').innerHTML = headerContent;
+            const footerContent = await fetch('footer.html').then(res => res.text());
+            document.getElementById('footer').innerHTML = footerContent;
+        }
+        loadComponents().catch(err => console.error(err));
+    </script>
 
     <script>
         const serverUrl = '{{HOST}}:{{PORT}}/upload';

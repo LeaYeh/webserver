@@ -1,4 +1,5 @@
 #include "utils.hpp"
+#include <cstring>
 
 namespace utils
 {
@@ -40,6 +41,22 @@ bool isDirectory(const std::string& path)
     return (S_ISDIR(file_stat.st_mode));
 }
 
+std::string basefolder(const std::string& path)
+{
+    std::string::size_type pos = path.find_last_of('/');
+    if (pos == std::string::npos)
+        return (path);
+    return (path.substr(0, pos));
+}
+
+std::string basename(const std::string& path)
+{
+    std::string::size_type pos = path.find_last_of('/');
+    if (pos == std::string::npos)
+        return (path);
+    return (path.substr(pos + 1));
+}
+
 bool isFile(const std::string& path)
 {
     struct stat file_stat;
@@ -52,6 +69,14 @@ bool isFile(const std::string& path)
 bool start_with(const std::string& str, const std::string& prefix)
 {
     return (str.find(prefix) == 0);
+}
+
+std::string file_extension(const std::string& path)
+{
+    std::string::size_type pos = path.find_last_of('.');
+    if (pos == std::string::npos)
+        return (EMPTY_STRING);
+    return (path.substr(pos + 1));
 }
 
 // bool setup_nonblocking(int fd)

@@ -111,7 +111,7 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    std::cerr << "Request Line parsed. Method: " << _method
+    std::cerr << "Assembling request struct. Method: " << _method
               << " Target: " << _uri.raw << " Version: " << _version
               << std::endl;
     Request req;

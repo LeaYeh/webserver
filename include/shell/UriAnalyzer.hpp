@@ -45,6 +45,10 @@ class UriAnalyzer
     unsigned char _hexval(unsigned char c);
     bool _valid_hexdigit(unsigned char c);
 
+    std::string _remove_dot_segments() const;
+    void _remove_last_segment(std::string& str) const;
+    void _move_first_segment(std::string& from, std::string& to) const;
+
     // std::string _scheme; //we dont really need this for anything
     std::string _uri;
     std::string _host;

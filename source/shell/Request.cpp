@@ -163,6 +163,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
     static size_t max_payload = _config.client_max_body_size;
+    static size_t buffer_size = (*_read_buffer).size();
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
@@ -170,9 +171,13 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
     if (payload - _processed > chunksize)
     {
-        if ((*_read_buffer).size() < chunksize)
-            throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Mismatched Body Size");
+        if (buffer_size < chunksize)
+        {
+            chunked_body = (*_read_buffer).substr(0, buffer_size);
+            _processed += buffer_size;
+            (*_read_buffer).clear();
+            return (false);
+        }
         chunked_body = (*_read_buffer).substr(0, chunksize);
         (*_read_buffer).erase(0, chunksize);
         _processed += chunksize;

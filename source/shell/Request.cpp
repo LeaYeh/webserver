@@ -1,30 +1,37 @@
 #include "Request.hpp"
+#include "Config.hpp"
+#include "ConfigHttpBlock.hpp"
+#include "ConfigLocationBlock.hpp"
+#include "HttpException.hpp"
 #include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
-#include "HttpException.hpp"
 #include "utils.hpp"
 #include <cstddef>
-#include <string>
 #include <cstdlib>
+#include <iostream>
+#include <string>
 
 namespace webshell
 {
 
 Request::Request()
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer()
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+      _read_buffer()
 {
 }
 
 Request::Request(std::string* buffer)
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(), _read_buffer(buffer)
+    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+      _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
-    : _processed(other._processed), _method(other._method), _uri(other._uri), _version(other._version),
-      _headers(other._headers), _read_buffer(other._read_buffer)
+    : _processed(other._processed), _method(other._method), _uri(other._uri),
+      _version(other._version), _headers(other._headers),
+      _read_buffer(other._read_buffer)
 {
 }
 
@@ -61,18 +68,28 @@ float Request::version() const
     return (_version);
 }
 
+const webconfig::RequestConfig& Request::config() const
+{
+    return (_config);
+}
+
 const std::map<std::string, std::string>& Request::headers() const
 {
     return (_headers);
 }
 
-const std::string& Request::header(const std::string& name) const
+const std::string& Request::get_header(const std::string& name) const
 {
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
 
     if (it == _headers.end())
         return (utils::EMPTY_STRING);
     return (it->second);
+}
+
+bool Request::has_header(const std::string& name) const
+{
+    return (_headers.find(name) != _headers.end());
 }
 
 const std::string Request::serialize() const
@@ -113,9 +130,8 @@ void Request::setVersion(float version)
     _version = version;
 }
 
-void Request::setReferences(webconfig::RequestConfig* config, std::string* read_buffer)
+void Request::setReference(std::string* read_buffer)
 {
-    _config = config;
     _read_buffer = read_buffer;
 }
 
@@ -146,17 +162,17 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 {
     static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    static size_t max_payload = _config->client_max_body_size;
+    static size_t max_payload = _config.client_max_body_size;
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-            "Data size exceeds client_max_body_size");
+                                   "Data size exceeds client_max_body_size");
 
     if (payload - _processed > chunksize)
     {
         if ((*_read_buffer).size() < chunksize)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                "Mismatched Body Size");
+                                       "Mismatched Body Size");
         chunked_body = (*_read_buffer).substr(0, chunksize);
         (*_read_buffer).erase(0, chunksize);
         _processed += chunksize;
@@ -166,7 +182,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if ((*_read_buffer).size() < payload - _processed)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                "Mismatched Body Size");
+                                       "Mismatched Body Size");
         chunked_body = (*_read_buffer).substr(0, payload - _processed);
         (*_read_buffer).erase(0, payload - _processed);
         _processed = 0;
@@ -176,7 +192,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    static size_t max_payload = _config->client_max_body_size;
+    static size_t max_payload = _config.client_max_body_size;
 
     try
     {
@@ -189,9 +205,57 @@ bool Request::_proceed_chunked(std::string& chunked_body)
     }
     _processed += chunked_body.size();
     if (_processed > max_payload)
-        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+        throw utils::HttpException(
+            webshell::PAYLOAD_TOO_LARGE,
             "Chunked data size exceeds client_max_body_size");
     return (false);
+}
+
+bool Request::setupRequestConfig(int server_id)
+{
+    webconfig::ConfigLocationBlock* location_config = NULL;
+    webconfig::Config *config = webconfig::Config::instance();
+
+    std::cout << config << std::endl;
+    webconfig::ConfigHttpBlock http_config =
+        webconfig::Config::instance()->httpBlock();
+    webconfig::ConfigServerBlock server_config =
+        webconfig::Config::instance()->serverBlockList()[server_id];
+
+    for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
+    {
+        if (utils::start_with(_uri.path,
+                              server_config.locationBlockList()[i].route()))
+        {
+            location_config = &server_config.locationBlockList()[i];
+            break;
+        }
+    }
+    if (location_config == NULL)
+        return (false);
+
+    _config = webconfig::RequestConfig();
+
+    _config.client_max_body_size = http_config.clientMaxBodySize();
+    _config.default_type = http_config.defaultType();
+    _config.error_pages = http_config.errorPages();
+    _config.autoindex_page = http_config.autoindexPage();
+    _config.error_log = server_config.errorLog();
+    _config.keep_alive_timeout = server_config.keepAliveTimeout();
+    _config.server_name = server_config.serverName();
+
+    _config.route = location_config->route();
+    _config.limit_except = location_config->limitExcept();
+    _config.root = location_config->root();
+    _config.index = location_config->index();
+    _config.redirect = location_config->redirect();
+    _config.autoindex = location_config->autoindex();
+    _config.cgi_extension = location_config->cgiExtension();
+    _config.cgi_path = location_config->cgiPath();
+    _config.enable_upload = location_config->enableUpload();
+    _config.upload_path = location_config->uploadPath();
+
+    return (true);
 }
 
 // void Request::setBody(std::string& body)

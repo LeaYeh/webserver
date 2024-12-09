@@ -6,12 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/01 18:13:35 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 14:52:41 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestAnalyzer.hpp"
-#include "RequestConfig.hpp"
+#include "HttpException.hpp"
 #include "defines.hpp"
 
 namespace webshell
@@ -22,14 +22,16 @@ RequestAnalyzer::RequestAnalyzer()
 {
 }
 
-RequestAnalyzer::RequestAnalyzer(webconfig::RequestConfig* config, std::string* read_buffer)
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(), _config(config), _read_buffer(read_buffer)
+RequestAnalyzer::RequestAnalyzer(int server_id, std::string* read_buffer)
+    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(),
+      _server_id(server_id), _read_buffer(read_buffer)
 {
 }
 
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
     : _state(other._state), _rl_analyzer(other._rl_analyzer),
-      _header_analyzer(other._header_analyzer)
+      _header_analyzer(other._header_analyzer), _server_id(other._server_id),
+      _read_buffer(other._read_buffer)
 {
 }
 
@@ -44,6 +46,8 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
         _state = other._state;
         _rl_analyzer = other._rl_analyzer;
         _header_analyzer = other._header_analyzer;
+        _server_id = other._server_id;
+        _read_buffer = other._read_buffer;
     }
     return (*this);
 }
@@ -52,30 +56,30 @@ void RequestAnalyzer::feed(const char ch)
 {
     switch (_state)
     {
-        case PARSING_REQUEST_LINE:
-            _rl_analyzer.feed(ch);
-            if (_rl_analyzer.done())
-            {
-                _state = PARSING_REQUEST_HEADERS;
-                _method = _rl_analyzer.method();
-                _header_analyzer.set_method(_method);
-                _uri = _rl_analyzer.uri();
-                _version = _rl_analyzer.version();
-            }
-            break ;
-        case PARSING_REQUEST_HEADERS:
-            _header_analyzer.feed(ch);
-            if (_header_analyzer.done())
-            {
-                _headers = _header_analyzer.headers();
-                _state = COMPLETE;
-            }
-            break;
-        default:
+    case PARSING_REQUEST_LINE:
+        _rl_analyzer.feed(ch);
+        if (_rl_analyzer.done())
         {
-            std::cerr << "State received: " << _state << std::endl;
-            throw std::runtime_error("Request parse error");
+            _state = PARSING_REQUEST_HEADERS;
+            _method = _rl_analyzer.method();
+            _header_analyzer.set_method(_method);
+            _uri = _rl_analyzer.uri();
+            _version = _rl_analyzer.version();
         }
+        break;
+    case PARSING_REQUEST_HEADERS:
+        _header_analyzer.feed(ch);
+        if (_header_analyzer.done())
+        {
+            _headers = _header_analyzer.headers();
+            _state = COMPLETE;
+        }
+        break;
+    default:
+    {
+        std::cerr << "State received: " << _state << std::endl;
+        throw std::runtime_error("Request parse error");
+    }
     }
 }
 
@@ -107,13 +111,19 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
-    std::cerr << "Request Line parsed. Method: " << _method << " Target: " << _uri.raw << " Version: " << _version << std::endl;
+    std::cerr << "Request Line parsed. Method: " << _method
+              << " Target: " << _uri.raw << " Version: " << _version
+              << std::endl;
     Request req;
     req.setMethod(_method);
     req.setUri(_uri);
     req.setVersion(_version);
     req.setHeaders(_headers);
-    req.setReferences(_config, _read_buffer);
+    req.setReference(_read_buffer);
+    if (!req.setupRequestConfig(_server_id))
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "No matching location block found: " +
+                                       _uri.path);
 
     // std::string key = "Accept-Encoding";
     // std::string value = "chunked";

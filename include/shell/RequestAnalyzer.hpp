@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/01 18:07:32 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/04 14:42:31 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 #include "HeaderAnalyzer.hpp"
 #include "Request.hpp"
-#include "RequestConfig.hpp"
 #include "RequestLineAnalyzer.hpp"
 #include "defines.hpp"
 #include <string>
@@ -25,9 +24,8 @@ namespace webshell
 class RequestAnalyzer
 {
   public:
-
     RequestAnalyzer();
-    RequestAnalyzer(webconfig::RequestConfig* config, std::string* read_buffer);
+    RequestAnalyzer(int server_id, std::string* read_buffer);
     ~RequestAnalyzer();
     RequestAnalyzer(const RequestAnalyzer& other);
     RequestAnalyzer& operator=(const RequestAnalyzer& other);
@@ -39,12 +37,12 @@ class RequestAnalyzer
     Request request(void) const;
 
   private:
-
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;
 
-    webconfig::RequestConfig* _config;
+    // webconfig::RequestConfig* _config;
+    int _server_id;
     std::string* _read_buffer;
 
     RequestMethod _method;

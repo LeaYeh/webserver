@@ -1,4 +1,5 @@
 #include "GetHandler.hpp"
+#include "ARequestHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "ResponseBuilder.hpp"
@@ -14,30 +15,40 @@ namespace webkernel
 {
 
 webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
-                                      const webconfig::RequestConfig& config,
-                                      const webshell::Request& request)
+                                      webshell::Request& request)
 {
     std::string content;
 
     if (state == INITIAL)
     {
-        _preProcess(config, request);
+        _preProcess(request);
         state = PROCESSING;
     }
-    content = _process(fd, state, config, request);
+    content = _process(fd, state, request);
     // prepare headers in post process and encode the content if needed e.g.
     // gzip
-    _postProcess(config, request, _target_path, content);
+    _postProcess(request, _target_path, content);
     return (webshell::ResponseBuilder::buildResponse(
         webshell::OK, _response_headers, content,
         state & WRITE_OTHERS_CHUNKED));
 }
 
+void GetHandler::_preProcess(const webshell::Request& request)
+{
+    ARequestHandler::_preProcess(request);
+    const webconfig::RequestConfig& config = request.config();
+
+    _target_path = _get_resource_path(config, request.uri().path);
+    if (_target_path.find(config.root) == std::string::npos)
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Forbidden out of root");
+}
+
 std::string GetHandler::_process(int fd, EventProcessingState& state,
-                                 const webconfig::RequestConfig& config,
-                                 const webshell::Request& request)
+                                 webshell::Request& request)
 {
     std::string content;
+    const webconfig::RequestConfig& config = request.config();
 
     if (access(_target_path.c_str(), R_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
@@ -57,13 +68,32 @@ std::string GetHandler::_process(int fd, EventProcessingState& state,
     }
     else
     {
-        if (_get_respones_encoding(config, request) & webkernel::CHUNKED)
+        if (_get_respones_encoding(request) & webkernel::CHUNKED)
             _handle_chunked(fd, state, _target_path, content);
         else
             _handle_standard(state, _target_path, content);
     }
 
     return (content);
+}
+
+void GetHandler::_postProcess(const webshell::Request& request,
+                              const std::string& target_path,
+                              const std::string& content)
+{
+    if (utils::isDirectory(target_path))
+        _response_headers["Content-Type"] = "text/html";
+    else
+        _response_headers["Content-Type"] = _getMimeType(target_path);
+    if (!utils::isDirectory(target_path) &&
+        (_get_respones_encoding(request) & webkernel::CHUNKED))
+    {
+        int encoding = _get_respones_encoding(request);
+        std::string tmp = _get_encoding_string(encoding);
+        _response_headers["Transfer-Encoding"] = tmp;
+    }
+    else
+        _response_headers["Content-Length"] = utils::toString(content.size());
 }
 
 void GetHandler::_handle_standard(EventProcessingState& state,

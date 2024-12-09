@@ -135,6 +135,9 @@ void ConnectionHandler::_handleRead(int fd)
     }
     else
     {
+        weblog::Logger::log(weblog::DEBUG,
+                            "Read content: \n" +
+                                utils::replaceCRLF(std::string(buffer, bytes_read)));
         _read_buffer[fd] += std::string(buffer, bytes_read);
         _processor.analyze(fd, _read_buffer[fd]);
     }

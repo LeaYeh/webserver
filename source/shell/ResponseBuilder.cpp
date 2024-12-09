@@ -1,4 +1,6 @@
 #include "ResponseBuilder.hpp"
+#include "TemplateEngine.hpp"
+#include "utils.hpp"
 
 namespace webshell
 {
@@ -10,12 +12,17 @@ ResponseBuilder::~ResponseBuilder()
 Response ResponseBuilder::buildErrorResponse(StatusCode status_code,
                                              const std::string& message)
 {
+    static webkernel::TemplateEngine template_engine;
     Response response;
 
     response.setStatusCode(status_code);
     response.clearHeaders();
-    response.setHeader("Content-Type", "text/plain");
-    response.setBody(message);
+    response.setHeader("Content-Type", "text/html");
+
+    template_engine.loadTemplate("./www/html/error_page.html");
+    template_engine.setVariable("STATUS_CODE", utils::toString(status_code));
+    template_engine.setVariable("ERROR_REASON", message);
+    response.setBody(template_engine.render());
 
     return (response);
 }

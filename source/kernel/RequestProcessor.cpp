@@ -9,6 +9,7 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <string>
+#include <sys/epoll.h>
 
 namespace webkernel
 {
@@ -81,6 +82,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 // to be processed in chunks
 void RequestProcessor::process(int fd)
 {
+    _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
     RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
     EventProcessingState& state = _state[fd];
     webshell::Request request = _analyzer_pool[fd].request();

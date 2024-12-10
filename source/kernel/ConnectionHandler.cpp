@@ -85,7 +85,8 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
                         "Prepare to write " + utils::toString(buffer.size()) +
                             " bytes to fd: " + utils::toString(fd));
     _write_buffer[fd] = buffer;
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
+    // _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
+    _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
 }
 
 void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
@@ -103,7 +104,8 @@ void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
                         "Error response: \n" + err_response.serialize());
     _error_buffer[fd] = err_response.serialize();
     _processor.setState(fd, ERROR);
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
+    // _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
+    _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
 }
 
 /*
@@ -154,7 +156,10 @@ void ConnectionHandler::_handleWrite(int fd)
     if (process_state & ERROR)
         _sendError(fd);
     else if (process_state & COMPELETED)
+    {
         _sendNormal(fd);
+        _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT, 0);
+    }
     else if (process_state & WRITE_CHUNKED)
     {
         _sendNormal(fd);
@@ -202,7 +207,8 @@ void ConnectionHandler::_sendNormal(int fd)
                             "Sent " + utils::toString(bytes_sent) +
                                 " bytes to fd: " + utils::toString(fd));
     }
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
+    // _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
+    _reactor->modifyHandler(fd, EPOLLIN, EPOLLOUT);
     _processor.resetState(fd);
     _write_buffer.erase(it);
 }

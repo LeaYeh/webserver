@@ -110,7 +110,7 @@
     </script>
 
     <script>
-        const serverUrl = '{{HOST}}:{{PORT}}/upload';
+        const serverUrl = '/upload';
 
         Dropzone.autoDiscover = false;
 
@@ -172,6 +172,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/octet-stream',
+                            'Accept': 'text/plain',
                         },
                         body: event.target.result,
                     });

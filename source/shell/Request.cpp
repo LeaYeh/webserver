@@ -3,6 +3,7 @@
 #include "ConfigHttpBlock.hpp"
 #include "ConfigLocationBlock.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
@@ -170,9 +171,12 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
     if (payload - _processed > chunksize)
     {
+        weblog::Logger::log(weblog::DEBUG, "(*_read_buffer).size() = " + utils::toString((*_read_buffer).size()));
+        weblog::Logger::log(weblog::DEBUG, "read_buffer = " + *_read_buffer);
+
         if ((*_read_buffer).size() < chunksize)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Mismatched Body Size");
+                                       "Mismatched Body Size 2");
         chunked_body = (*_read_buffer).substr(0, chunksize);
         (*_read_buffer).erase(0, chunksize);
         _processed += chunksize;
@@ -182,7 +186,7 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if ((*_read_buffer).size() < payload - _processed)
             throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Mismatched Body Size");
+                                       "Mismatched Body Size 1");
         chunked_body = (*_read_buffer).substr(0, payload - _processed);
         (*_read_buffer).erase(0, payload - _processed);
         _processed = 0;

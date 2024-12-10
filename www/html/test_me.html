@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>42Vienna Web Server - Test</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header id="header"></header>
+
+    <section class="hero">
+        <h1>42Vienna Web Server Feature Testing</h1>
+        <p>Welcome to the test page. Use this to test the capabilities of the web server you’ve implemented.</p>
+    </section>
+
+    <!-- GET Features -->
+    <section id="get-tests" class="features-section">
+        <h2>GET Features</h2>
+        <p>Test the basic GET functionalities of your web server:</p></br>
+        <div class="grid">
+            <div class="grid-item grid-description">
+                Basic GET request handling
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/get_basic.html" class="cta-button">Test Basic GET</a>
+            </div>
+
+            <div class="grid-item grid-description">
+                Handling different MIME types (e.g., HTML, CSS, PNG, etc.)
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/get_mime.html" class="cta-button">Test MIME Types</a>
+            </div>
+
+            <div class="grid-item grid-description">
+                Download a large file (e.g., >1GB)
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/get_largefile" class="cta-button">Download Large File</a>
+            </div>
+
+            <div class="grid-item grid-description">
+                Autoindex generation for directories
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/autoindex/" class="cta-button">Test Autoindex</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- POST Features -->
+    <section id="post-tests" class="features-section">
+        <h2>POST Features</h2>
+        <p>Test the POST-related functionalities:</p></br>
+        <div class="grid">
+            <div class="grid-item grid-description">
+                Basic POST request handling
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/post_basic.html" class="cta-button">Test Basic POST</a>
+            </div>
+
+            <div class="grid-item grid-description">
+                File upload handling
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/post_upload.html" class="cta-button">Upload File</a>
+            </div>
+
+            <div class="grid-item grid-description">
+                Upload and handle a large file
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/post_largefile.html" class="cta-button">Upload Large File</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- DELETE Features -->
+    <section id="delete-tests" class="features-section">
+        <h2>DELETE Features</h2>
+        <p>Test the DELETE functionality (TBD):</p></br>
+        <div class="grid">
+            <div class="grid-item grid-description">
+                Delete functionality is still under development.
+            </div>
+            <div class="grid-item grid-button">
+                <a href="#" class="cta-button disabled" onclick="return false;">Coming Soon</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- h1spec Testing Framework -->
+    <section id="h1spec" class="features-section">
+        <h2>h1spec Testing Framework</h2>
+        <p>
+            The <strong>h1spec testing framework</strong> is used to ensure the web server adheres to the HTTP/1.1 RFC protocols. </br>
+            It compares the results against Google and Nginx to validate precision and robustness.
+        </p>
+        <div class="grid">
+            <div class="grid-item grid-description">
+                Run compliance tests with h1spec
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/features/h1spec_tests.html" class="cta-button">Run h1spec Tests</a>
+            </div>
+        </div>
+    </section>
+
+    <footer id="footer"></footer>
+    <script>
+        async function loadComponents() {
+            const headerContent = await fetch('header.html').then(res => res.text());
+            document.getElementById('header').innerHTML = headerContent;
+
+            const footerContent = await fetch('footer.html').then(res => res.text());
+            document.getElementById('footer').innerHTML = footerContent;
+        }
+        loadComponents().catch(err => console.error(err));
+    </script>
+</body>
+</html>

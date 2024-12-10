@@ -15,13 +15,12 @@ cmake_build:
 	@cd $(BUILD_DIR) && $(CMAKE) ..
 
 $(NAME): cmake_build
-	@if [ ! -f $(NAME) ] || [ -n "$$(find CMakeLists.txt source include -newer $(NAME) -print -quit 2>/dev/null)" ]; then \
+	@if [ ! -f $(PROJECT) ] || [ -n "$$(find CMakeLists.txt source include -newer $(PROJECT) -print -quit 2>/dev/null)" ]; then \
 		$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS); \
 		echo ""; \
 		echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}; \
 		echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}; \
 		echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}; \
-		cp $(NAME) .; \
 	else \
 		echo ${STY_YEL}"No changes detected. Nothing to do."${STY_RES}; \
 	fi
@@ -41,6 +40,7 @@ clean:
 	@echo $(STY_BLU)"[INFO] Clean the build directory"$(STY_RES)
 
 fclean: clean
+	@rm -f $(PROJECT)
 	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean

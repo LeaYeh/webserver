@@ -10,13 +10,20 @@ CMAKE 					= cmake $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ARG)
 
 all: $(NAME)
 
+cmake_build:
+	@mkdir -p $(BUILD_DIR)
+	@cd $(BUILD_DIR) && $(CMAKE) ..
+
 $(NAME): cmake_build
-	@$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS)
-	@echo ""
-	@mv $(BUILD_DIR)/$(PROJECT) $(PROJECT)
-	@echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}
-	@echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}
-	@echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}
+	@if [ ! -f $(PROJECT) ] || [ -n "$$(find CMakeLists.txt source include -newer $(PROJECT) -print -quit 2>/dev/null)" ]; then \
+		$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS); \
+		echo ""; \
+		echo ${STY_GRE}${STY_BOL} "✅ Build Complete" ${STY_RES}; \
+		echo ${STY_BLU} "➜ Project: " ${STY_WHI}${PROJECT}${STY_RES}; \
+		echo ${STY_BLU} "➜ Status: " ${STY_GRE} "Mandatory" ${STY_RES}; \
+	else \
+		echo ${STY_YEL}"No changes detected. Nothing to do."${STY_RES}; \
+	fi
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8
@@ -28,18 +35,13 @@ $(NAME): cmake_build
 bonus:
 	@echo $(STY_YEL)"[WARNING] Bonus part is not implemented yet"$(STY_RES)
 
-cmake_build:
-	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && $(CMAKE) ..
-
 clean:
 	@rm -rf $(BUILD_DIR)
-
-	@echo $(STY_GRE)"[INFO] Clean the build directory"$(STY_RES)
+	@echo $(STY_BLU)"[INFO] Clean the build directory"$(STY_RES)
 
 fclean: clean
 	@rm -f $(PROJECT)
-	@echo $(STY_GRE)"[INFO] Perform full clean"$(STY_RES)
+	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean
 	@sleep 1

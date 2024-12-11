@@ -9,6 +9,7 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <string>
+#include <sys/epoll.h>
 
 namespace webkernel
 {
@@ -56,7 +57,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
             _reactor->lookupServerId(fd),
             &buffer); // TODO: import read buffer and CONST request config ref
                       // body limit
-        _state[fd] = INITIAL;
+        resetState(fd);
     }
 
     while (i < buffer.size())
@@ -84,12 +85,13 @@ void RequestProcessor::process(int fd)
     RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
     EventProcessingState& state = _state[fd];
     webshell::Request request = _analyzer_pool[fd].request();
-    webshell::Response response =
-        manager->handleRequest(fd, state, request);
+    webshell::Response response = manager->handleRequest(fd, state, request);
+
+    if (request.method() == webshell::POST && (state & HANDLE_CHUNKED))
+        _reactor->modifyHandler(fd, 0, EPOLLIN);
     weblog::Logger::log(weblog::DEBUG,
                         "state: " + explainEventProcessingState(state));
     _handler->prepareWrite(fd, response.serialize());
-
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
     _analyzer_pool[fd].reset();

@@ -19,7 +19,7 @@
                 }
             ],
             "miDebuggerPath": "/usr/bin/gdb",
-            "preLaunchTask": "valgrind",
+            // "preLaunchTask": "valgrind",
         },
         {
             "name": "go run",

@@ -155,7 +155,7 @@ void ConnectionHandler::_handleWrite(int fd)
         _sendError(fd);
     else if (process_state & COMPELETED)
         _sendNormal(fd);
-    else if (process_state & WRITE_CHUNKED)
+    else if (process_state & HANDLE_CHUNKED)
     {
         _sendNormal(fd);
         _processor.process(fd);

@@ -30,7 +30,7 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
     _postProcess(request, _target_path, content);
     return (webshell::ResponseBuilder::buildResponse(
         webshell::OK, _response_headers, content,
-        state & WRITE_OTHERS_CHUNKED));
+        state & HANDLE_OTHERS_CHUNKED));
 }
 
 void GetHandler::_preProcess(const webshell::Request& request)
@@ -122,12 +122,13 @@ void GetHandler::_handle_chunked(int fd, EventProcessingState& state,
     if (!file.is_open())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Open file failed");
-    state = WRITE_CHUNKED;
+    state = HANDLE_CHUNKED;
     std::streampos& file_offset = _chunked_file_records[fd];
     if (file_offset == 0)
-        state = static_cast<EventProcessingState>(state | WRITE_FIRST_CHUNKED);
+        state = static_cast<EventProcessingState>(state | HANDLE_FIRST_CHUNKED);
     else
-        state = static_cast<EventProcessingState>(state | WRITE_OTHERS_CHUNKED);
+        state =
+            static_cast<EventProcessingState>(state | HANDLE_OTHERS_CHUNKED);
     file.seekg(file_offset);
     content.resize(CHUNKED_SIZE);
     file.read(&content[0], CHUNKED_SIZE);

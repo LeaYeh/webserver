@@ -98,10 +98,10 @@ std::string explainEventProcessingState(EventProcessingState state)
         explanation += "COMPELETED ";
     if (state & ERROR)
         explanation += "ERROR ";
-    if (state & WRITE_CHUNKED)
-        explanation += "WRITE_CHUNKED ";
-    if (state & WRITE_OTHERS_CHUNKED)
-        explanation += "WRITE_OTHERS_CHUNKED ";
+    if (state & HANDLE_CHUNKED)
+        explanation += "HANDLE_CHUNKED ";
+    if (state & HANDLE_OTHERS_CHUNKED)
+        explanation += "HANDLE_OTHERS_CHUNKED ";
 
     return (explanation);
 }

@@ -57,10 +57,10 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
         webshell::Response response = webshell::ResponseBuilder::buildResponse(
             webshell::CREATED, _response_headers,
             _upload_record_pool[fd]->serialize(), false);
-        // delete _upload_record_pool[fd];
         _upload_record_pool.erase(fd);
         return (response);
     }
+    state = static_cast<EventProcessingState>(state | HANDLE_CHUNKED);
     return webshell::Response();
 }
 

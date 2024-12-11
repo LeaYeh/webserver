@@ -133,9 +133,9 @@ int ARequestHandler::_get_respones_encoding(
     if (request.method() == webshell::GET &&
         _is_out_of_max_file_size(config, config.root + request.uri().path))
         encoding |= webkernel::CHUNKED;
-    if (request.has_header("Transfer-Encoding"))
+    if (request.has_header("transfer-encoding"))
     {
-        std::string transfer_encoding = request.get_header("Transfer-Encoding");
+        std::string transfer_encoding = request.get_header("transfer-encoding");
         if (transfer_encoding.find("chunked") != std::string::npos)
             encoding |= webkernel::CHUNKED;
         if (transfer_encoding.find("gzip") != std::string::npos)

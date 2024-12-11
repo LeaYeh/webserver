@@ -112,12 +112,8 @@ void Reactor::run(void)
             }
             catch (utils::HttpException& e)
             {
-                // When an exception is thrown, should respond with an error and
-                // close the connection
                 weblog::Logger::log(weblog::WARNING, e.what());
-                conn_handler->prepareError(fd, e.statusCode(),
-                                           e.reasonDetail());
-                conn_handler->closeConnection(fd, weblog::WARNING, "Closing connection cause of error");
+                conn_handler->prepareError(fd, e);
             }
         }
     }

@@ -87,19 +87,22 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
             throw utils::HttpException(
                 webshell::PAYLOAD_TOO_LARGE,
                 "Data size exceeds client_max_body_size");
-        throw utils::HttpException(webshell::CONTINUE, "Continue");
+        throw utils::HttpException(webshell::CONTINUE, "Continue",
+                                   webshell::TEXT_PLAIN);
     }
     weblog::Logger::log(weblog::DEBUG,
                         "PostHandler: handle the request with target path: " +
                             _target_path);
     if (!request.config().enable_upload)
         throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden upload is disabled");
+                                   "Forbidden upload is disabled",
+                                   webshell::TEXT_PLAIN);
     if (access(_target_path.c_str(), F_OK) == -1 ||
         access(_target_path.c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden cannot write to file: " +
-                                       _target_path);
+                                       _target_path,
+                                   webshell::TEXT_PLAIN);
 
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
     {

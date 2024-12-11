@@ -26,8 +26,7 @@ class ConnectionHandler : public IHandler
     void handleEvent(int fd, uint32_t events);
     void closeConnection(int fd, weblog::LogLevel level, std::string message);
     void prepareWrite(int fd, const std::string& buffer);
-    void prepareError(int fd, webshell::StatusCode status_code,
-                      const std::string& description);
+    void prepareError(int fd, const utils::HttpException& e);
 
   private:
     ConnectionHandler();

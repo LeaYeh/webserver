@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/12 16:37:48 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/12 17:20:56 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ RequestAnalyzer::RequestAnalyzer(int server_id, std::string* read_buffer)
 RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
     : _state(other._state), _rl_analyzer(other._rl_analyzer),
       _header_analyzer(other._header_analyzer), _server_id(other._server_id),
-      _read_buffer(other._read_buffer)
+      _read_buffer(other._read_buffer), _method(other._method), _uri(other._uri),
+      _version(other._version), _headers(other._headers), _body(other._body), _req(other._req)
 {
 }
 
@@ -48,6 +49,12 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
         _header_analyzer = other._header_analyzer;
         _server_id = other._server_id;
         _read_buffer = other._read_buffer;
+        _method = other._method;
+        _uri = other._uri;
+        _version = other._version;
+        _headers = other._headers;
+        _body = other._body;
+        _req = other._req;
     }
     return (*this);
 }
@@ -112,7 +119,7 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
     return (_state);
 }
 
-Request RequestAnalyzer::request(void) const
+const Request& RequestAnalyzer::request(void) const
 {
     return (_req);
 }

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/12 15:39:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/12 17:21:07 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class RequestAnalyzer
     bool isComplete(void) const;
     void reset(void);
     RequestAnalyzerState state(void) const;
-    Request request(void) const;
+    const Request& request(void) const;
 
   private:
     RequestAnalyzerState _state;

@@ -166,36 +166,36 @@ overflows (RFC 7230).
 */
 bool Request::_proceed_content_len(std::string& chunked_body)
 {
-    static size_t payload = atoi(_headers["content-length"].c_str());
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    static size_t max_payload = _config.client_max_body_size;
-    static size_t buffer_size = (*_read_buffer).size();
+    size_t payload = atoi(_headers["content-length"].c_str());
+    size_t max_payload = _config.client_max_body_size;
+    size_t buffer_size = (*_read_buffer).size();
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
                                    "Data size exceeds client_max_body_size");
 
-    if (payload - _processed > chunksize)
-    {
-        if (buffer_size < chunksize)
-        {
-            chunked_body = (*_read_buffer).substr(0, buffer_size);
-            _processed += buffer_size;
-            (*_read_buffer).clear();
-            return (false);
-        }
-        chunked_body = (*_read_buffer).substr(0, chunksize);
-        (*_read_buffer).erase(0, chunksize);
-        _processed += chunksize;
-        return (false);
-    }
-    else
+    if (buffer_size < chunksize)
     {
         if (payload - _processed > buffer_size)
         {
             chunked_body = (*_read_buffer).substr(0, buffer_size);
             _processed += buffer_size;
             (*_read_buffer).clear();
+            return (false);
+        }
+        chunked_body = (*_read_buffer).substr(0, payload - _processed);
+        (*_read_buffer).erase(0, payload - _processed);
+        _processed = 0;
+        return (true);
+    }
+    else
+    {
+        if (payload - _processed > chunksize)
+        {
+            chunked_body = (*_read_buffer).substr(0, chunksize);
+            (*_read_buffer).erase(0, chunksize);
+            _processed += chunksize;
             return (false);
         }
         chunked_body = (*_read_buffer).substr(0, payload - _processed);

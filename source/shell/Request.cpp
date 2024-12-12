@@ -31,7 +31,7 @@ Request::Request(std::string* buffer)
 Request::Request(const Request& other)
     : _processed(other._processed), _method(other._method), _uri(other._uri),
       _version(other._version), _headers(other._headers),
-      _read_buffer(other._read_buffer)
+      _read_buffer(other._read_buffer), _config(other._config)
 {
 }
 
@@ -45,6 +45,7 @@ Request& Request::operator=(const Request& other)
         _version = other._version;
         _headers = other._headers;
         _read_buffer = other._read_buffer;
+        _config = other._config;
     }
     return (*this);
 }

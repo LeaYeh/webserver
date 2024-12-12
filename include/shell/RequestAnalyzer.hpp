@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 14:42:31 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/12 15:39:49 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class RequestAnalyzer
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;
+    void _assemble_request(void);
 
     // webconfig::RequestConfig* _config;
     int _server_id;
@@ -50,6 +51,7 @@ class RequestAnalyzer
     float _version;
     std::map<std::string, std::string> _headers;
     std::string _body;
+    Request _req;
 };
 
 } // namespace webshell

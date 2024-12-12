@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 14:52:41 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/12 16:37:48 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ void RequestAnalyzer::feed(const char ch)
         if (_header_analyzer.done())
         {
             _headers = _header_analyzer.headers();
+            _assemble_request();
             _state = COMPLETE;
         }
         break;
@@ -101,6 +102,8 @@ void RequestAnalyzer::reset(void)
     _version = -0.0;
     _rl_analyzer.reset();
     _header_analyzer.reset();
+    Request empty;
+    _req = empty;
     _state = PARSING_REQUEST_LINE;
 }
 
@@ -111,24 +114,23 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
 
 Request RequestAnalyzer::request(void) const
 {
+    return (_req);
+}
+
+void RequestAnalyzer::_assemble_request()
+{
     std::cerr << "Assembling request struct. Method: " << _method
               << " Target: " << _uri.raw << " Version: " << _version
               << std::endl;
-    Request req;
-    req.setMethod(_method);
-    req.setUri(_uri);
-    req.setVersion(_version);
-    req.setHeaders(_headers);
-    req.setReference(_read_buffer);
-    if (!req.setupRequestConfig(_server_id))
+    _req.setMethod(_method);
+    _req.setUri(_uri);
+    _req.setVersion(_version);
+    _req.setHeaders(_headers);
+    _req.setReference(_read_buffer);
+    if (!_req.setupRequestConfig(_server_id))
         throw utils::HttpException(webshell::NOT_FOUND,
                                    "No matching location block found: " +
                                        _uri.path);
-
-    // std::string key = "Accept-Encoding";
-    // std::string value = "chunked";
-    // req.addHeader(key, value);
-    return (req);
 }
 
 } // namespace webshell

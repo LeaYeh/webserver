@@ -140,6 +140,11 @@ void Request::addHeader(std::string& name, std::string& value)
     _headers[name] = value;
 }
 
+bool Request::empty_buffer() const
+{
+    return ((*_read_buffer).empty());
+}
+
 bool Request::read_chunked_body(std::string& chunked_body)
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());

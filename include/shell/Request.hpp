@@ -25,6 +25,7 @@ class Request
     const std::map<std::string, std::string>& headers() const;
     const std::string& get_header(const std::string& name) const;
     const std::string serialize() const;
+    bool empty_buffer() const;
     bool has_header(const std::string& name) const;
 
     bool read_chunked_body(std::string& chunked_body);

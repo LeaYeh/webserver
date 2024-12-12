@@ -139,8 +139,12 @@ void ConnectionHandler::_handleRead(int fd)
         weblog::Logger::log(weblog::DEBUG,
                             "Read content: \n" + utils::replaceCRLF(std::string(
                                                      buffer, bytes_read)));
+        EventProcessingState process_state = _processor.state(fd);
         _read_buffer[fd].append(std::string(buffer, bytes_read));
-        _processor.analyze(fd, _read_buffer[fd]);
+        if (!(process_state & PROCESSING))
+            _processor.analyze(fd, _read_buffer[fd]);
+        else
+            _processor.process(fd);
     }
 }
 
@@ -151,7 +155,7 @@ void ConnectionHandler::_handleWrite(int fd)
                             " with state: " +
                             explainEventProcessingState(_processor.state(fd)));
 
-    const EventProcessingState& process_state = _processor.state(fd);
+    EventProcessingState process_state = _processor.state(fd);
     if (process_state & ERROR)
         _sendError(fd);
     else if (process_state & COMPELETED)

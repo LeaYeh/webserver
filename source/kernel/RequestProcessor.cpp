@@ -89,12 +89,22 @@ void RequestProcessor::process(int fd)
 
     if (request.method() == webshell::POST && (state & HANDLE_CHUNKED))
         _reactor->modifyHandler(fd, 0, EPOLLIN);
+    if (request.method() == webshell::POST && request.empty_buffer())
+        _reactor->modifyHandler(fd, EPOLLIN, 0);
     weblog::Logger::log(weblog::DEBUG,
                         "state: " + explainEventProcessingState(state));
-    _handler->prepareWrite(fd, response.serialize());
+
+    if (request.method() == webshell::POST && (state & COMPELETED))
+        _handler->prepareWrite(fd, response.serialize());
+    else if (request.method() == webshell::GET)
+        _handler->prepareWrite(fd, response.serialize());
+
     // TODO: After processing the request, we need to reset the analyzer or when
     // it is times out we need to remove it
-    _analyzer_pool[fd].reset();
+    if (request.method() == webshell::POST && (state & COMPELETED))
+        _analyzer_pool[fd].reset();
+    else if (request.method() == webshell::GET)
+        _analyzer_pool[fd].reset();
 }
 
 void RequestProcessor::removeAnalyzer(int fd)
@@ -102,11 +112,10 @@ void RequestProcessor::removeAnalyzer(int fd)
     _analyzer_pool.erase(fd);
 }
 
-const EventProcessingState& RequestProcessor::state(int fd) const
+EventProcessingState RequestProcessor::state(int fd) const
 {
     if (_state.find(fd) == _state.end())
-        throw std::runtime_error("No state found for fd: " +
-                                 utils::toString(fd));
+        return (UNKNOWN);
     return (_state.at(fd));
 }
 

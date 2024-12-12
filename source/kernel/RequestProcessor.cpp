@@ -84,7 +84,7 @@ void RequestProcessor::process(int fd)
 {
     RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
     EventProcessingState& state = _state[fd];
-    webshell::Request request = _analyzer_pool[fd].request();
+    webshell::Request& request = _analyzer_pool[fd].request();
     webshell::Response response = manager->handleRequest(fd, state, request);
 
     if (request.method() == webshell::POST && (state & HANDLE_CHUNKED))

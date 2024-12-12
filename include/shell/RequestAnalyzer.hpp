@@ -34,7 +34,7 @@ class RequestAnalyzer
     bool isComplete(void) const;
     void reset(void);
     RequestAnalyzerState state(void) const;
-    const Request& request(void) const;
+    Request& request(void);
 
   private:
     RequestAnalyzerState _state;

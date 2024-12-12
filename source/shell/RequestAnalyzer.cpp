@@ -119,7 +119,7 @@ RequestAnalyzerState RequestAnalyzer::state(void) const
     return (_state);
 }
 
-const Request& RequestAnalyzer::request(void) const
+Request& RequestAnalyzer::request(void)
 {
     return (_req);
 }

@@ -185,9 +185,13 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     }
     else
     {
-        if ((*_read_buffer).size() < payload - _processed)
-            throw utils::HttpException(webshell::BAD_REQUEST,
-                                       "Mismatched Body Size");
+        if (payload - _processed > buffer_size)
+        {
+            chunked_body = (*_read_buffer).substr(0, buffer_size);
+            _processed += buffer_size;
+            (*_read_buffer).clear();
+            return (false);
+        }
         chunked_body = (*_read_buffer).substr(0, payload - _processed);
         (*_read_buffer).erase(0, payload - _processed);
         _processed = 0;

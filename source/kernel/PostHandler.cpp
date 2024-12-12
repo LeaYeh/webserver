@@ -93,8 +93,11 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden upload is disabled",
                                    webshell::TEXT_PLAIN);
-    if (access(_target_path.c_str(), F_OK) == -1 ||
-        access(_target_path.c_str(), W_OK) == -1)
+    if (access(_target_path.c_str(), F_OK) == -1)
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "Not found upload path: " + _target_path,
+                                   webshell::TEXT_PLAIN);
+    if (access(_target_path.c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden cannot write to file: " +
                                        _target_path,

@@ -76,6 +76,7 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
     _reactor->modifyHandler(fd, EPOLLOUT, 0);
 }
 
+// TODO: Consider to use the same buffer for error and normal response
 void ConnectionHandler::prepareError(int fd, const utils::HttpException& e)
 {
     weblog::Logger::log(weblog::DEBUG,
@@ -86,7 +87,7 @@ void ConnectionHandler::prepareError(int fd, const utils::HttpException& e)
     // TODO: Here might occour OOM, need to consider closing the connection
     // directly. ref: PR#65
     webshell::Response err_response =
-        webshell::ResponseBuilder::buildErrorResponse(
+        webshell::ResponseBuilder::error(
             e.statusCode(), e.reasonDetail(), e.contentType());
 
     weblog::Logger::log(weblog::WARNING,

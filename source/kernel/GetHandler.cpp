@@ -24,11 +24,14 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
         _preProcess(request);
         state = PROCESSING;
     }
+    if (!request.config().redirect.empty())
+        return (webshell::ResponseBuilder::redirect(
+            webshell::MOVED_PERMANENTLY, request.config().redirect));
     content = _process(fd, state, request);
     // prepare headers in post process and encode the content if needed e.g.
     // gzip
     _postProcess(request, _target_path, content);
-    return (webshell::ResponseBuilder::buildResponse(
+    return (webshell::ResponseBuilder::ok(
         webshell::OK, _response_headers, content,
         state & HANDLE_OTHERS_CHUNKED));
 }
@@ -54,9 +57,9 @@ std::string GetHandler::_process(int fd, EventProcessingState& state,
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden no read permission on file: " +
                                        _target_path);
-    if (!config.redirect.empty())
-        throw utils::HttpException(webshell::MOVED_PERMANENTLY,
-                                   "Redirect to " + config.redirect);
+    // if (!config.redirect.empty())
+    //     throw utils::HttpException(webshell::MOVED_PERMANENTLY,
+    //                                "Redirect to: " + config.redirect);
     if (utils::isDirectory(_target_path))
     {
         if (!config.autoindex)

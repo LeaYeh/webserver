@@ -3,10 +3,9 @@
 # Variables
 file="$1"        # File to upload
 url="$2"         # Target server URL
-chunk_size="$3"  # Chunk size in bytes
 
-if [[ -z "$file" || -z "$url" || -z "$chunk_size" ]]; then
-    echo "Usage: $0 <file> <url> <chunk_size>"
+if [[ -z "$file" || -z "$url" ]]; then
+    echo "Usage: $0 <file> <url>"
     exit 1
 fi
 
@@ -18,38 +17,20 @@ fi
 
 # Read file size
 file_size=$(stat -c%s "$file")
-echo "Uploading $file ($file_size bytes) to $url with chunk size $chunk_size bytes"
+echo "Uploading $file ($file_size bytes) to $url with default chunk size"
+echo "Please wait..."
 
-# Offset to track how much data has been read
-offset=0
+# Use curl to directly stream the file with chunked encoding
+curl -X POST \
+     -H "Transfer-Encoding: chunked" \
+     -H "Content-Type: application/octet-stream" \
+     --data-binary "@$file" \
+     "$url"
 
-# Process the first chunk with headers
-chunk=$(dd if="$file" bs=1 count="$chunk_size" skip=$offset 2>/dev/null)
-if [[ -n "$chunk" ]]; then
-    echo "Sending first chunk with headers..."
-    curl -X POST \
-         -H "X-File-Name: $(basename "$file")" \
-         -H "Transfer-Encoding: chunked" \
-         -H "Content-Type: application/octet-stream" \
-         --data-binary "$chunk" \
-         "$url"
-    offset=$((offset + chunk_size))
+# Check if curl succeeded
+if [[ $? -ne 0 ]]; then
+    echo "Error: File upload failed with curl. Shutting down Shell."
+    exit 1 # Exit with error status
 fi
-
-# Send subsequent chunks without headers
-while [[ $offset -lt $file_size ]]; do
-    chunk=$(dd if="$file" bs=1 count="$chunk_size" skip=$offset 2>/dev/null)
-
-    if [[ -z "$chunk" ]]; then
-        break
-    fi
-
-    echo "Sending subsequent chunk from offset $offset..."
-    curl -X POST \
-         --data-binary "$chunk" \
-         "$url"
-
-    offset=$((offset + chunk_size))
-done
 
 echo "Upload complete."

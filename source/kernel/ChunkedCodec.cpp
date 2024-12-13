@@ -1,7 +1,7 @@
 #include "ChunkedCodec.hpp"
 #include "HttpException.hpp"
-#include "defines.hpp"
 #include "OperationInterrupt.hpp"
+#include "defines.hpp"
 #include <sstream>
 
 namespace webkernel
@@ -103,7 +103,7 @@ std::string ChunkedCodec::decode_single(std::string& content) const
     newline_pos = content.find("\r\n", 0);
     if (newline_pos == std::string::npos)
         throw utils::HttpException(webshell::BAD_REQUEST,
-                                    "Invalid chunked data format");
+                                   "Invalid chunked data format");
 
     std::string chunk_size_str = content.substr(0, newline_pos);
     int chunk_size = -1;
@@ -111,24 +111,34 @@ std::string ChunkedCodec::decode_single(std::string& content) const
     std::istringstream(chunk_size_str) >> std::hex >> chunk_size;
     if (chunk_size < 0)
         throw utils::HttpException(webshell::BAD_REQUEST,
-                                    "Invalid chunked data size: " +
-                                        chunk_size_str);
+                                   "Invalid chunked data size: " +
+                                       chunk_size_str);
 
-    if (chunk_size == 0)
+    else if (chunk_size == 0)
     {
         content.erase(0, newline_pos + 2);
         throw OperationInterrupt(UNPRIMED);
+    }
+    else
+    {
+        // if (chunk_size > buffer_size)
+        //     throw
+        // _processed += chunk_size;
+        // if (_processed > max_payload)
+        //     throw utils::HttpException(
+        //         webshell::PAYLOAD_TOO_LARGE,
+        //         "Chunked data size exceeds client_max_body_size");
     }
     size_t pos = newline_pos + 2;
 
     newline_pos = content.find("\r\n", pos);
     if (newline_pos == std::string::npos)
         throw utils::HttpException(webshell::BAD_REQUEST,
-                                    "Invalid chunked data format");
+                                   "Invalid chunked data format");
     std::string chunk_content_str = content.substr(pos, newline_pos - pos);
     if ((size_t)chunk_size > chunk_content_str.size())
         throw utils::HttpException(webshell::BAD_REQUEST,
-                                    "Chunked data size mismatch");
+                                   "Chunked data size mismatch");
 
     content.erase(0, newline_pos + 2);
     return (chunk_content_str);

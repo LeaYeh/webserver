@@ -8,6 +8,7 @@
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
+#include "ConnectionHandler.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
@@ -209,10 +210,21 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
     static size_t max_payload = _config.client_max_body_size;
+    static std::string buffer(webkernel::BUFFER_SIZE * 2, '\0');
+    // static size_t cnt_crlf = 0;
+
+    // buffer = (*_read_buffer) to 2 crlf or end of _read_buffer;
+    // if (buffer is full && not 2 crlf)
+    //     throw utils::HttpException(webshell::BAD_REQUEST,
+    //                                "Each chunk should end with CRLF");
+    // if (not 2 crlf)
+    //     chunked_body = "";
+    //     return (false);
 
     try
     {
-        chunked_body = _codec.decode_single(*_read_buffer);
+        // chunked_body = _codec.decode_single(buffer);
+        chunked_body = _codec.decode_single(*(_read_buffer));
     }
     catch (OperationInterrupt& e)
     {

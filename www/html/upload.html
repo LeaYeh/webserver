@@ -92,7 +92,6 @@
             <div id="myDropzone" class="dropzone"></div>
             <div class="upload-buttons">
                 <button id="uploadEntire" class="upload-button">Upload Entire File</button>
-                <button id="uploadChunked" class="upload-button">Upload via Chunks</button>
             </div>
             <div id="message-area"></div>
         </section>
@@ -189,53 +188,6 @@
             };
 
             reader.readAsArrayBuffer(file);
-        });
-
-        document.getElementById('uploadChunked').addEventListener('click', async function () {
-            if (myDropzone.files.length === 0) {
-                showMessage('Please add a file first.', true);
-                return;
-            }
-
-            const file = myDropzone.files[0];
-            const chunkSize = 1024 * 1024; // 1MB chunks
-            const totalChunks = Math.ceil(file.size / chunkSize);
-
-            for (let i = 0; i < totalChunks; i++) {
-                const start = i * chunkSize;
-                const end = Math.min(start + chunkSize, file.size);
-                const chunk = file.slice(start, end);
-
-                const reader = new FileReader();
-                reader.onload = async function (event) {
-                    try {
-                        const response = await fetch(serverUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/octet-stream',
-                                'Content-Range': `bytes ${start}-${end - 1}/${file.size}`,
-                            },
-                            body: event.target.result,
-                        });
-
-                        const result = await handleResponse(response);
-                        if (!result.success) {
-                            throw new Error(result.message);
-                        }
-
-                        showMessage(`Uploaded chunk ${i + 1}/${totalChunks}`);
-                    } catch (error) {
-                        console.error('Error:', error);
-                        showMessage(`Chunk ${i + 1} failed to upload: ${error.message}`, true);
-                        return;
-                    }
-                };
-
-                reader.readAsArrayBuffer(chunk);
-                await new Promise(resolve => reader.onloadend = resolve);
-            }
-
-            showMessage('All chunks uploaded successfully');
         });
     </script>
 </body>

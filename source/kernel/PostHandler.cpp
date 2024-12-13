@@ -48,13 +48,13 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
     catch (std::exception& e)
     {
         weblog::Logger::log(weblog::ERROR, e.what());
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what());
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what(), webshell::TEXT_PLAIN);
     }
     if (state & COMPELETED)
     {
         _postProcess(request, _upload_record_pool[fd]->target_filename(),
                      _upload_record_pool[fd]->serialize());
-        webshell::Response response = webshell::ResponseBuilder::buildResponse(
+        webshell::Response response = webshell::ResponseBuilder::ok(
             webshell::CREATED, _response_headers,
             _upload_record_pool[fd]->serialize(), false);
         _upload_record_pool.erase(fd);
@@ -82,7 +82,7 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
         if (content_length > request.config().client_max_body_size)
             throw utils::HttpException(
                 webshell::PAYLOAD_TOO_LARGE,
-                "Data size exceeds client_max_body_size");
+                "Data size exceeds client_max_body_size", webshell::TEXT_PLAIN);
         throw utils::HttpException(webshell::CONTINUE, "Continue",
                                    webshell::TEXT_PLAIN);
     }
@@ -132,7 +132,8 @@ void PostHandler::_postProcess(const webshell::Request& request,
     (void)request;
 
     _response_headers.clear();
-    _response_headers["Content-Type"] = webshell::APPLICATION_JSON;
+    _response_headers["Content-Type"] = webshell::contentTypeToString(
+        webshell::APPLICATION_JSON);
     _response_headers["Content-Length"] = utils::toString(content.size());
     _response_headers["Location"] = target_path;
 }
@@ -188,26 +189,26 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
     {
         if (access(safe_file_path.c_str(), F_OK) == -1)
             throw utils::HttpException(
-                webshell::NOT_FOUND, "Directory not found: " + safe_file_path);
+                webshell::NOT_FOUND, "Directory not found: " + safe_file_path, webshell::TEXT_PLAIN);
         if (safe_file_path[safe_file_path.size() - 1] != '/')
             safe_file_path += "/";
         std::string file_name = _determine_file_name(request);
         if (file_name.empty())
             throw utils::HttpException(
                 webshell::NOT_FOUND,
-                "Can not determine upload file name from request");
+                "Can not determine upload file name from request", webshell::TEXT_PLAIN);
         safe_file_path += file_name;
     }
     if (access(utils::basefolder(safe_file_path).c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Not found folder: " + safe_file_path);
+                                   "Not found folder: " + safe_file_path, webshell::TEXT_PLAIN);
     if (access(safe_file_path.c_str(), F_OK) == -1)
     {
         std::ofstream file(safe_file_path.c_str(),
                            std::ios::out | std::ios::trunc);
         if (!file.is_open())
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "Open file failed: " + safe_file_path);
+                                       "Open file failed: " + safe_file_path, webshell::TEXT_PLAIN);
         file.close();
     }
     return (safe_file_path);
@@ -217,14 +218,14 @@ void PostHandler::_write_chunked_file(int fd, const std::string& content)
 {
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream not found");
+                                   "File stream not found", webshell::TEXT_PLAIN);
     std::ofstream* file_stream = _upload_record_pool[fd]->file_stream();
     size_t remaining = content.size();
     size_t offset = 0;
 
     if (!file_stream->is_open())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream is not open");
+                                   "File stream is not open", webshell::TEXT_PLAIN);
     while (remaining > 0)
     {
         size_t write_size =

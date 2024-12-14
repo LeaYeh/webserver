@@ -210,21 +210,48 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
     static size_t max_payload = _config.client_max_body_size;
-    static std::string buffer(webkernel::BUFFER_SIZE * 2, '\0');
-    // static size_t cnt_crlf = 0;
+    static std::string buffer;
+    static size_t crlf_ctr = 0;
 
-    // buffer = (*_read_buffer) to 2 crlf or end of _read_buffer;
-    // if (buffer is full && not 2 crlf)
-    //     throw utils::HttpException(webshell::BAD_REQUEST,
-    //                                "Each chunk should end with CRLF");
-    // if (not 2 crlf)
-    //     chunked_body = "";
-    //     return (false);
+    size_t pos = (*_read_buffer).find(CRLF);
+    if (pos == std::string::npos)
+    {
+        if (buffer.size() > webkernel::BUFFER_SIZE)
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size should not exceed BUFFER SIZE");
+        buffer += (*_read_buffer);
+        (*_read_buffer).clear();
+        chunked_body = "";
+        return false;
+    }
+    else if (crlf_ctr == 1)
+    {
+        buffer += (*_read_buffer).substr(0, pos + 2);
+        (*_read_buffer) = (*_read_buffer).substr(pos + 2);
+        crlf_ctr = 0;
+    }
+    else
+    {
+        size_t pos_2nd = (*_read_buffer).find(CRLF, pos + 2);
+        if (pos_2nd == std::string::npos)
+        {
+            if (buffer.size() > webkernel::BUFFER_SIZE)
+                throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                    "Chunk size should not exceed BUFFER SIZE");
+            buffer += (*_read_buffer);
+            (*_read_buffer).clear();
+            chunked_body = "";
+            crlf_ctr = 1;
+            return false;
+        }
+        buffer += (*_read_buffer).substr(0, pos_2nd + 2);
+        (*_read_buffer) = (*_read_buffer).substr(pos_2nd + 2);
+    }
 
     try
     {
-        // chunked_body = _codec.decode_single(buffer);
-        chunked_body = _codec.decode_single(*(_read_buffer));
+        chunked_body = _codec.decode_single(buffer);
+        buffer.clear();
     }
     catch (OperationInterrupt& e)
     {

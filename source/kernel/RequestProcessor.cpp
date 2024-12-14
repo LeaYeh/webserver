@@ -88,7 +88,7 @@ void RequestProcessor::process(int fd)
     webshell::Response response = manager->handleRequest(fd, state, request);
 
     if (request.method() == webshell::POST && (state & HANDLE_CHUNKED))
-        _reactor->modifyHandler(fd, 0, EPOLLIN);
+        _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
     if (request.method() == webshell::POST && request.empty_buffer())
         _reactor->modifyHandler(fd, EPOLLIN, 0);
     weblog::Logger::log(weblog::DEBUG,

@@ -32,10 +32,6 @@ UploadRecord::UploadRecord(const std::string& target_filename,
                        std::ios::out | std::ios::binary);
     if (!_file_stream->is_open() || !_file_stream->good())
         throw std::runtime_error("UploadRecord: failed to open file stream");
-    weblog::Logger::log(weblog::WARNING,
-                        "UploadRecord: constructor: " + _temp_filename + " " +
-                            _target_filename +
-                            " address: " + utils::toString((size_t)this));
 }
 
 UploadRecord::~UploadRecord()

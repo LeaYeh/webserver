@@ -17,21 +17,6 @@ ConnectionHandler::ConnectionHandler(Reactor* reactor)
 {
 }
 
-ConnectionHandler::ConnectionHandler(const ConnectionHandler& other)
-    : _reactor(other._reactor), _processor(other._processor)
-{
-}
-
-ConnectionHandler& ConnectionHandler::operator=(const ConnectionHandler& other)
-{
-    if (this != &other)
-    {
-        _reactor = other._reactor;
-        _processor = other._processor;
-    }
-    return (*this);
-}
-
 ConnectionHandler::~ConnectionHandler()
 {
     weblog::Logger::log(weblog::DEBUG, "ConnectionHandler destroyed");
@@ -84,26 +69,32 @@ void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
     weblog::Logger::log(weblog::DEBUG,
                         "Prepare to write " + utils::toString(buffer.size()) +
                             " bytes to fd: " + utils::toString(fd));
-    _write_buffer[fd] = buffer;
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
+    if (_write_buffer.find(fd) == _write_buffer.end())
+        _write_buffer[fd].reserve(BUFFER_SIZE);
+
+    _write_buffer[fd].append(buffer);
+    _reactor->modifyHandler(fd, EPOLLOUT, 0);
 }
 
-void ConnectionHandler::prepareError(int fd, webshell::StatusCode status_code,
-                                     const std::string& description)
+void ConnectionHandler::prepareError(int fd, const utils::HttpException& e)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "Prepare to write error response to fd: " +
                             utils::toString(fd));
+    if (_error_buffer.find(fd) == _error_buffer.end())
+        _error_buffer[fd].reserve(BUFFER_SIZE);
     // TODO: Here might occour OOM, need to consider closing the connection
     // directly. ref: PR#65
     webshell::Response err_response =
-        webshell::ResponseBuilder::buildErrorResponse(status_code, description);
+        webshell::ResponseBuilder::buildErrorResponse(
+            e.statusCode(), e.reasonDetail(), e.contentType());
 
     weblog::Logger::log(weblog::WARNING,
                         "Error response: \n" + err_response.serialize());
-    _error_buffer[fd] = err_response.serialize();
+    _error_buffer[fd].append(err_response.serialize());
+
+    _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
     _processor.setState(fd, ERROR);
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLOUT | EPOLLHUP | EPOLLERR);
 }
 
 /*
@@ -115,6 +106,16 @@ state
 */
 void ConnectionHandler::_handleRead(int fd)
 {
+    if (_read_buffer.find(fd) == _read_buffer.end())
+        _read_buffer[fd].reserve(BUFFER_SIZE);
+    if (_is_buffer_full(_read_buffer[fd]))
+    {
+        weblog::Logger::log(
+            weblog::DEBUG,
+            "Read buffer is full, need to consume the buffer first.");
+        _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
+        return;
+    }
     char buffer[CHUNKED_SIZE];
     ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
 
@@ -136,10 +137,14 @@ void ConnectionHandler::_handleRead(int fd)
     else
     {
         weblog::Logger::log(weblog::DEBUG,
-                            "Read content: \n" +
-                                utils::replaceCRLF(std::string(buffer, bytes_read)));
-        _read_buffer[fd] += std::string(buffer, bytes_read);
-        _processor.analyze(fd, _read_buffer[fd]);
+                            "Read content: \n" + utils::replaceCRLF(std::string(
+                                                     buffer, bytes_read)));
+        EventProcessingState process_state = _processor.state(fd);
+        _read_buffer[fd].append(std::string(buffer, bytes_read));
+        if (!(process_state & PROCESSING))
+            _processor.analyze(fd, _read_buffer[fd]);
+        else
+            _processor.process(fd);
     }
 }
 
@@ -150,12 +155,15 @@ void ConnectionHandler::_handleWrite(int fd)
                             " with state: " +
                             explainEventProcessingState(_processor.state(fd)));
 
-    const EventProcessingState& process_state = _processor.state(fd);
+    EventProcessingState process_state = _processor.state(fd);
     if (process_state & ERROR)
         _sendError(fd);
     else if (process_state & COMPELETED)
+    {
         _sendNormal(fd);
-    else if (process_state & WRITE_CHUNKED)
+        _reactor->modifyHandler(fd, EPOLLIN, EPOLLOUT);
+    }
+    else if (process_state & HANDLE_CHUNKED)
     {
         _sendNormal(fd);
         _processor.process(fd);
@@ -202,8 +210,6 @@ void ConnectionHandler::_sendNormal(int fd)
                             "Sent " + utils::toString(bytes_sent) +
                                 " bytes to fd: " + utils::toString(fd));
     }
-    _reactor->modifyHandler(fd, EPOLLIN | EPOLLHUP | EPOLLERR);
-    _processor.resetState(fd);
     _write_buffer.erase(it);
 }
 
@@ -237,6 +243,11 @@ void ConnectionHandler::_sendError(int fd)
                                 utils::toString(fd));
         }
     }
+}
+
+bool ConnectionHandler::_is_buffer_full(const std::string& buffer) const
+{
+    return (buffer.size() + CHUNKED_SIZE > BUFFER_SIZE);
 }
 
 // TODO: Consider implementing the keep-alive timeout in the processor,

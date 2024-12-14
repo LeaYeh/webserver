@@ -24,7 +24,7 @@ class RequestProcessor
     void process(int fd);
     void removeAnalyzer(int fd);
 
-    const EventProcessingState& state(int fd) const;
+    EventProcessingState state(int fd) const;
     void setState(int fd, EventProcessingState state);
     void resetState(int fd);
 

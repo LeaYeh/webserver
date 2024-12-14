@@ -112,11 +112,8 @@ void Reactor::run(void)
             }
             catch (utils::HttpException& e)
             {
-                // When an exception is thrown, should respond with an error and
-                // close the connection
                 weblog::Logger::log(weblog::WARNING, e.what());
-                conn_handler->prepareError(fd, e.statusCode(),
-                                           e.reasonDetail());
+                conn_handler->prepareError(fd, e);
             }
         }
     }
@@ -139,16 +136,31 @@ void Reactor::registerHandler(int fd, int server_id, IHandler* handler,
     _server_map[fd] = server_id;
 }
 
-void Reactor::modifyHandler(int fd, uint32_t events)
+void Reactor::modifyHandler(int fd, uint32_t events_to_add,
+                            uint32_t events_to_remove)
 {
     struct epoll_event ev = {.events = 0, .data = {0}};
-    ev.events = events;
-    ev.data.fd = fd;
 
-    weblog::Logger::log(weblog::DEBUG,
-                        "Modifying handler with fd: " + utils::toString(fd));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
-        throw std::runtime_error("epoll_ctl failed");
+    {
+        if (errno != ENOENT)
+        {
+            throw std::runtime_error("epoll_ctl failed to get current events");
+        }
+        ev.events = 0;
+    }
+
+    ev.events |= events_to_add;
+    ev.events &= ~events_to_remove;
+    ev.data.fd = fd;
+    weblog::Logger::log(weblog::DEBUG,
+                        "Modifying handler with fd: " + utils::toString(fd) +
+                            ", new events: " + explainEpollEvent(ev.events));
+
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+    {
+        throw std::runtime_error("epoll_ctl failed to modify events");
+    }
 }
 
 void Reactor::removeHandler(int fd)

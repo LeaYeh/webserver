@@ -121,7 +121,8 @@ enum CacheState
     C_DIRECTIVE,
     C_ARGUMENT_START,
     C_ARGUMENT,
-    C_QUOTED, //RFC 7234 5.2.1: "A sender SHOULD NOT generate the quoted string form"
+    C_QUOTED, // RFC 7234 5.2.1: "A sender SHOULD NOT generate the quoted string
+              // form"
     C_INQUOTE_ESCAPE
 };
 
@@ -242,13 +243,14 @@ enum EncodingMode
 
 enum EventProcessingState
 {
-    INITIAL                 = 0b00000000,
-    PROCESSING              = 0b00000001,
-    WRITE_OTHERS_CHUNKED    = 0b00000010,
-    WRITE_FIRST_CHUNKED     = 0b00000100,
-    WRITE_CHUNKED           = 0b00001000,
-    COMPELETED              = 0b01000000,
-    ERROR                   = 0b10000000
+    INITIAL = 0b00000000,
+    PROCESSING = 0b00000001,
+    HANDLE_OTHERS_CHUNKED = 0b00000010,
+    HANDLE_FIRST_CHUNKED = 0b00000100,
+    HANDLE_CHUNKED = 0b00001000,
+    COMPELETED = 0b00010000,
+    ERROR = 0b01000000,
+    UNKNOWN = 0b10000000
 };
 
 } // namespace webkernel

@@ -83,7 +83,7 @@ bool Response::empty() const
 /*
 HTTP/1.1 200 OK
 Content-Type: text/plain
-Content-Length: 13
+content-length: 13
 Connection: close
 
 Hello, World!
@@ -103,7 +103,7 @@ std::string Response::serialize() const
     if (_headers.size() > 0 && it == _headers.end())
         response += "\r\n";
     response += _body;
-    if (_headers.find("Transfer-Encoding") == _headers.end())
+    if (_headers.find("transfer-encoding") == _headers.end())
         response += "\r\n";
 
     return (response);

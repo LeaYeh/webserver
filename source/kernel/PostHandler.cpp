@@ -57,10 +57,10 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
         webshell::Response response = webshell::ResponseBuilder::buildResponse(
             webshell::CREATED, _response_headers,
             _upload_record_pool[fd]->serialize(), false);
-        // delete _upload_record_pool[fd];
         _upload_record_pool.erase(fd);
         return (response);
     }
+    state = static_cast<EventProcessingState>(state | HANDLE_CHUNKED);
     return webshell::Response();
 }
 
@@ -75,31 +75,33 @@ void PostHandler::_preProcess(const webshell::Request& request)
 std::string PostHandler::_process(int fd, EventProcessingState& state,
                                   webshell::Request& request)
 {
-    if (request.has_header("Expect") &&
-        request.get_header("Expect") == "100-continue")
+    if (request.has_header("expect"))
     {
-        if (!request.has_header("Content-Length"))
-            throw utils::HttpException(webshell::FORBIDDEN,
-                                       "Upload length required");
         unsigned int content_length =
             utils::stoi(request.get_header("content-length"));
         if (content_length > request.config().client_max_body_size)
             throw utils::HttpException(
                 webshell::PAYLOAD_TOO_LARGE,
                 "Data size exceeds client_max_body_size");
-        throw utils::HttpException(webshell::CONTINUE, "Continue");
+        throw utils::HttpException(webshell::CONTINUE, "Continue",
+                                   webshell::TEXT_PLAIN);
     }
     weblog::Logger::log(weblog::DEBUG,
                         "PostHandler: handle the request with target path: " +
                             _target_path);
     if (!request.config().enable_upload)
         throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden upload is disabled");
-    if (access(_target_path.c_str(), F_OK) == -1 ||
-        access(_target_path.c_str(), W_OK) == -1)
+                                   "Forbidden upload is disabled",
+                                   webshell::TEXT_PLAIN);
+    if (access(_target_path.c_str(), F_OK) == -1)
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "Not found upload path: " + _target_path,
+                                   webshell::TEXT_PLAIN);
+    if (access(_target_path.c_str(), W_OK) == -1)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden cannot write to file: " +
-                                       _target_path);
+                                       _target_path,
+                                   webshell::TEXT_PLAIN);
 
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
     {
@@ -113,7 +115,7 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
 
     _write_chunked_file(fd, content);
     _upload_record_pool[fd]->update(is_eof);
-    state = static_cast<EventProcessingState>(state | WRITE_CHUNKED);
+    state = static_cast<EventProcessingState>(state | HANDLE_CHUNKED);
     if (is_eof && _upload_record_pool[fd]->success())
     {
         state = COMPELETED;
@@ -141,11 +143,12 @@ std::string PostHandler::_determine_file_name(const webshell::Request& request)
 
     if (utils::basename(request.uri().path) != "")
         file_name = utils::basename(request.uri().path);
-    else if (request.has_header("X-Filename"))
-        file_name = request.get_header("X-Filename");
+    if (request.has_header("x-file-name"))
+        file_name = request.get_header("x-file-name");
     else if (!request.uri().query.empty())
         file_name = request.uri().query;
 
+    weblog::Logger::log(weblog::DEBUG, "Upload File name: " + file_name);
     return (file_name);
 }
 

@@ -10,7 +10,6 @@
                 "--show-leak-kinds=all",
                 "--track-origins=yes",
                 "--verbose",
-                "--log-file=${workspaceFolder}/valgrind-out.txt",
                 "${workspaceFolder}/webserv",
                 "${workspaceFolder}/configs/default.conf"
             ],

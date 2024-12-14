@@ -1,15 +1,15 @@
 #include "HttpException.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
-#include "utils.hpp"
-#include "Logger.hpp"
 
 namespace utils
 {
 
 HttpException::HttpException(const webshell::StatusCode& statusCode,
-                             const std::string& reasonDetail)
-    : _statusCode(statusCode), _reasonDetail(reasonDetail)
+                             const std::string& reasonDetail,
+                             webshell::ContentType content_type)
+    : _statusCode(statusCode), _reasonDetail(reasonDetail),
+      _content_type(content_type)
 {
 }
 
@@ -33,6 +33,11 @@ webshell::StatusCode HttpException::statusCode() const
 std::string HttpException::reasonDetail() const
 {
     return (_reasonDetail);
+}
+
+webshell::ContentType HttpException::contentType() const
+{
+    return (_content_type);
 }
 
 } // namespace utils

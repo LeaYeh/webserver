@@ -30,7 +30,7 @@ webshell::Response GetHandler::handle(int fd, EventProcessingState& state,
     _postProcess(request, _target_path, content);
     return (webshell::ResponseBuilder::buildResponse(
         webshell::OK, _response_headers, content,
-        state & WRITE_OTHERS_CHUNKED));
+        state & HANDLE_OTHERS_CHUNKED));
 }
 
 void GetHandler::_preProcess(const webshell::Request& request)
@@ -82,18 +82,18 @@ void GetHandler::_postProcess(const webshell::Request& request,
                               const std::string& content)
 {
     if (utils::isDirectory(target_path))
-        _response_headers["Content-Type"] = "text/html";
+        _response_headers["content-type"] = "text/html";
     else
-        _response_headers["Content-Type"] = _getMimeType(target_path);
+        _response_headers["content-type"] = _getMimeType(target_path);
     if (!utils::isDirectory(target_path) &&
         (_get_respones_encoding(request) & webkernel::CHUNKED))
     {
         int encoding = _get_respones_encoding(request);
         std::string tmp = _get_encoding_string(encoding);
-        _response_headers["Transfer-Encoding"] = tmp;
+        _response_headers["transfer-encoding"] = tmp;
     }
     else
-        _response_headers["Content-Length"] = utils::toString(content.size());
+        _response_headers["content-length"] = utils::toString(content.size());
 }
 
 void GetHandler::_handle_standard(EventProcessingState& state,
@@ -122,12 +122,13 @@ void GetHandler::_handle_chunked(int fd, EventProcessingState& state,
     if (!file.is_open())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Open file failed");
-    state = WRITE_CHUNKED;
+    state = HANDLE_CHUNKED;
     std::streampos& file_offset = _chunked_file_records[fd];
     if (file_offset == 0)
-        state = static_cast<EventProcessingState>(state | WRITE_FIRST_CHUNKED);
+        state = static_cast<EventProcessingState>(state | HANDLE_FIRST_CHUNKED);
     else
-        state = static_cast<EventProcessingState>(state | WRITE_OTHERS_CHUNKED);
+        state =
+            static_cast<EventProcessingState>(state | HANDLE_OTHERS_CHUNKED);
     file.seekg(file_offset);
     content.resize(CHUNKED_SIZE);
     file.read(&content[0], CHUNKED_SIZE);

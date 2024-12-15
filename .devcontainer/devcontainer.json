@@ -36,7 +36,7 @@
 	],
 	"workspaceFolder": "/workspace",
 	"initializeCommand": "touch ${env:HOME}/.ssh ${env:HOME}/.gitconfig ${env:HOME}/.zshrc ${env:HOME}/.some_alias && docker network inspect share_network >/dev/null 2>&1 || docker network create share_network",
-	"postCreateCommand": "(sudo -u www-data /usr/sbin/fcgiwrap -s unix:/tmp/fcgiwrap.sock &) && sleep 3 && sudo chmod 766 /tmp/fcgiwrap.sock && nginx -c /workspace/configs/refs/nginx_reference.conf",
+	// "postCreateCommand": "(sudo -u www-data /usr/sbin/fcgiwrap -s unix:/tmp/fcgiwrap.sock &) && sleep 3 && sudo chmod 766 /tmp/fcgiwrap.sock && nginx -c /workspace/configs/refs/nginx_reference.conf",
 	// "postCreateCommand": "service supervisor start && supervisorctl reread && supervisorctl update && supervisorctl restart fcgiwrap",
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
 	"remoteUser": "root"

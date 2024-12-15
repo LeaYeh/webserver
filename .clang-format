@@ -51,6 +51,7 @@ PointerAlignment: Left
 ReflowComments: true
 SortIncludes: true
 SortUsingDeclarations: true
+SpaceAfterTemplateKeyword: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceBeforeAssignmentOperators: true

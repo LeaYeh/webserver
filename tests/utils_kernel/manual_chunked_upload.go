@@ -103,7 +103,7 @@ func main() {
 
 	fmt.Println("All chunks sent. Waiting for response...")
 
-	response, err := bufio.NewReader(conn).ReadString('\u0000')
+	response, err := bufio.NewReader(conn).ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading response:", err)
 		return

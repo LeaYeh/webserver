@@ -239,7 +239,7 @@ bool Request::_proceed_chunked(std::string& chunked_body)
                 if (_check_body_crlf(c))
                 {
                     chunked_body = _chunkbuf;
-                    (*_read_buffer) = (*_read_buffer).substr(idx);
+                    (*_read_buffer) = (*_read_buffer).substr(idx + 1);
                     _chunksize.clear();
                     if (_chunkbuf.empty())
                         return (true);

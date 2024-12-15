@@ -117,10 +117,10 @@ enum URIState
 enum ChunkState
 {
     CHUNKSIZE = 0,
-    SIZE_CR,
+    SIZE_CRLF,
     SIZE_LF,
     CHUNKBODY,
-    BODY_CR,
+    BODY_CRLF,
     BODY_LF
 };
 

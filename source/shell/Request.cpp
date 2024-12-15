@@ -212,7 +212,15 @@ bool Request::_proceed_chunked(std::string& chunked_body)
     // static size_t max_payload = _config.client_max_body_size;
     // static std::string buffer;
     // static size_t crlf_ctr = 0;
-    (void) chunked_body;
+    chunked_body = "";
+    // for (size_t idx = 0; idx < (*_read_buffer).size(); idx++)
+    // {
+    //     switch (_state)
+    //     {
+    //         case CHUNKSIZE
+    //     }
+
+    // }
     
     return (false);
 }
@@ -222,11 +230,11 @@ bool Request::setupRequestConfig(int server_id)
     webconfig::ConfigLocationBlock* location_config = NULL;
     webconfig::Config *config = webconfig::Config::instance();
 
-    std::cout << config << std::endl;
+    // std::cout << config << std::endl;
     webconfig::ConfigHttpBlock http_config =
-        webconfig::Config::instance()->httpBlock();
+        config->httpBlock();
     webconfig::ConfigServerBlock server_config =
-        webconfig::Config::instance()->serverBlockList()[server_id];
+        config->serverBlockList()[server_id];
 
     for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
     {
@@ -266,12 +274,14 @@ bool Request::setupRequestConfig(int server_id)
 
 void Request::_check_hexdigit(unsigned char c)
 {
-    _chunkbuf.push_back(c);
     if (isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+    {
+        _chunksize.push_back(c);
         return ;
+    }
     else if (c == '\r')
     {
-        _state = SIZE_CR;
+        _state = SIZE_CRLF;
         return ;
     }
     throw utils::HttpException(webshell::BAD_REQUEST,
@@ -279,29 +289,34 @@ void Request::_check_hexdigit(unsigned char c)
                                    webshell::TEXT_PLAIN);
 }
 
-void Request::_check_size_cr(unsigned char c)
+void Request::_check_size_crlf(unsigned char c)
 {
-    (void)c;
-}
-
-void Request::_check_size_lf(unsigned char c)
-{
-    (void)c;
+    if (c == '\n')
+        _state = CHUNKBODY;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                "Malformed chunk size: should end with CRLF",
+                                   webshell::TEXT_PLAIN);
 }
 
 void Request::_check_body(unsigned char c)
 {
-    (void)c;
+    if (c == '\r')
+        _state = BODY_CRLF;
+    else
+        _chunkbuf.push_back(c);
 }
 
-void Request::_check_body_cr(unsigned char c)
+bool Request::_check_body_crlf(unsigned char c)
 {
-    (void)c;
-}
-
-void Request::_check_body_lf(unsigned char c)
-{
-    (void)c;
+    if (c == '\n')
+        return true;
+    else
+    {
+        _chunkbuf.push_back('\r');
+        _chunkbuf.push_back(c);
+    }
+    return false;
 }
 
 } // namespace webshell

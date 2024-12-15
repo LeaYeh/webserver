@@ -116,7 +116,8 @@ std::string ChunkedCodec::decode_single(std::string& content) const
 
     else if (chunk_size == 0)
     {
-        content.erase(0, newline_pos + 2);
+        // content.erase(0, newline_pos + 4);
+        content.clear();
         throw OperationInterrupt(UNPRIMED);
     }
     else

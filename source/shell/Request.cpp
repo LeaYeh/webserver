@@ -3,6 +3,7 @@
 #include "ConfigHttpBlock.hpp"
 #include "ConfigLocationBlock.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
@@ -239,10 +240,12 @@ bool Request::_proceed_chunked(std::string& chunked_body)
                 {
                     chunked_body = _chunkbuf;
                     (*_read_buffer) = (*_read_buffer).substr(idx);
+                    _chunksize.clear();
+                    if (_chunkbuf.empty())
+                        return (true);
                     _processed += _chunkbuf.size();
                     _chunkbuf.clear();
-                    _chunksize.clear();
-                    return (true);
+                    return (false);
                 }
                 break;
             }

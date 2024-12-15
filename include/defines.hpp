@@ -114,6 +114,16 @@ enum URIState
     END_URI_PARSER
 };
 
+enum ChunkState
+{
+    CHUNKSIZE = 0,
+    SIZE_CR,
+    SIZE_LF,
+    CHUNKBODY,
+    BODY_CR,
+    BODY_LF
+};
+
 enum CacheState
 {
     C_ERROR = -1,

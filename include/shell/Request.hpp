@@ -45,8 +45,17 @@ class Request
     bool _proceed_content_len(std::string& chunked_body);
     bool _proceed_chunked(std::string& chunked_body);
 
+    void _check_hexdigit(unsigned char c);
+    void _check_size_cr(unsigned char c);
+    void _check_size_lf(unsigned char c);
+    void _check_body(unsigned char c);
+    void _check_body_cr(unsigned char c);
+    void _check_body_lf(unsigned char c);
+
     webkernel::ChunkedCodec _codec;
     size_t _processed;
+    ChunkState _state;
+    std::string _chunkbuf;
 
     RequestMethod _method;
     Uri _uri;

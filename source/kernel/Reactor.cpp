@@ -70,52 +70,13 @@ Reactor::~Reactor()
 
 void Reactor::run(void)
 {
+    weblog::Logger::log(weblog::DEBUG, "Reactor::run()");
     struct epoll_event events[MAX_EVENTS];
 
     while (true)
     {
-        if (stop_flag)
-        {
-            weblog::Logger::log(weblog::INFO,
-                                "Reactor received interrupt signal");
-            throw InterruptException();
-        }
-        weblog::Logger::log(weblog::INFO,
-                            "Reactor is waiting for epoll events");
-        int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
-
-        if (nfds == -1 && !stop_flag)
-        {
-            weblog::Logger::log(weblog::ERROR,
-                                "epoll_wait failed: " +
-                                    std::string(strerror(errno)));
-            // TODO: the errno is forbidden by the subject, maybe we should just
-            // continue and assume the error case never happens
-            if (errno == EINTR)
-                continue;
-            throw std::runtime_error("epoll_wait failed");
-        }
-
-        weblog::Logger::log(weblog::DEBUG, "Reactor received " +
-                                               utils::toString(nfds) +
-                                               " events");
-        for (int i = 0; i < nfds; i++)
-        {
-            int fd = events[i].data.fd;
-
-            if (_handlers.find(fd) == _handlers.end())
-                throw std::runtime_error("Handler not found for fd: " +
-                                         utils::toString(fd));
-            try
-            {
-                _handlers[fd]->handleEvent(fd, events[i].events);
-            }
-            catch (utils::HttpException& e)
-            {
-                weblog::Logger::log(weblog::WARNING, e.what());
-                conn_handler->prepareError(fd, e);
-            }
-        }
+        _check_interrupt();
+        _wait_for_events(events);
     }
     weblog::Logger::log(weblog::DEBUG, "Reactor is shutting down");
 }
@@ -190,6 +151,50 @@ int Reactor::lookupServerId(int fd) const
 int Reactor::epollFd(void) const
 {
     return (_epoll_fd);
+}
+
+void Reactor::_check_interrupt(void) const
+{
+    if (stop_flag)
+    {
+        weblog::Logger::log(weblog::INFO, "Reactor received interrupt signal");
+        throw InterruptException();
+    }
+}
+
+void Reactor::_wait_for_events(struct epoll_event* events)
+{
+    int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
+
+    if (nfds == -1 && !stop_flag)
+    {
+        weblog::Logger::log(weblog::ERROR,
+                            "epoll_wait failed: " + std::string(strerror(errno)));
+        throw std::runtime_error("epoll_wait failed");
+    }
+    weblog::Logger::log(weblog::DEBUG, "Reactor received " +
+                                           utils::toString(nfds) + " events");
+    _handle_events(events, nfds);
+}
+
+void Reactor::_handle_events(struct epoll_event* events, int nfds)
+{
+    for (int i = 0; i < nfds; i++)
+    {
+        int fd = events[i].data.fd;
+
+        if (_handlers.find(fd) == _handlers.end())
+            throw std::runtime_error("Handler not found for fd: " + utils::toString(fd));
+        try
+        {
+            _handlers[fd]->handleEvent(fd, events[i].events);
+        }
+        catch (utils::HttpException& e)
+        {
+            weblog::Logger::log(weblog::ERROR, e.what());
+            conn_handler->prepareError(fd, e);
+        }
+    }
 }
 
 } // namespace webkernel

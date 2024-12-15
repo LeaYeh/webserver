@@ -173,7 +173,8 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
     if (payload > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-                                   "Data size exceeds client_max_body_size");
+                                   "Data size exceeds client_max_body_size 2",
+                                   webshell::TEXT_PLAIN);
 
     if (buffer_size < chunksize)
     {

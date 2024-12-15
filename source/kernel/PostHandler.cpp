@@ -45,10 +45,16 @@ webshell::Response PostHandler::handle(int fd, EventProcessingState& state,
     {
         _process(fd, state, request);
     }
+    catch (utils::HttpException& e)
+    {
+        weblog::Logger::log(weblog::ERROR, e.what());
+        throw utils::HttpException(e.statusCode(), e.what(), e.contentType());
+    }
     catch (std::exception& e)
     {
         weblog::Logger::log(weblog::ERROR, e.what());
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what(), webshell::TEXT_PLAIN);
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what(),
+                                   webshell::TEXT_PLAIN);
     }
     if (state & COMPELETED)
     {

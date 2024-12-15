@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <ios>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 // #include <sys/siginfo.h>
@@ -23,19 +24,19 @@ namespace webshell
 {
 
 Request::Request()
-    : _processed(0), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
+    : _processed(0), _state(CHUNKSIZE), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
       _read_buffer()
 {
 }
 
 Request::Request(std::string* buffer)
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+    : _processed(0), _state(CHUNKSIZE), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
       _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
-    : _processed(other._processed), _method(other._method), _uri(other._uri),
+    : _processed(other._processed), _state(other._state), _size_num(other._size_num), _method(other._method), _uri(other._uri),
       _version(other._version), _headers(other._headers),
       _read_buffer(other._read_buffer), _config(other._config)
 {
@@ -46,6 +47,8 @@ Request& Request::operator=(const Request& other)
     if (this != &other)
     {
         _processed = other._processed;
+        _state = other._state;
+        _size_num = other._size_num;
         _method = other._method;
         _uri = other._uri;
         _version = other._version;

@@ -8,6 +8,7 @@
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
+#include "ConnectionHandler.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
@@ -209,10 +210,48 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
     static size_t max_payload = _config.client_max_body_size;
+    static std::string buffer;
+    static size_t crlf_ctr = 0;
+
+    size_t pos = (*_read_buffer).find(CRLF);
+    if (pos == std::string::npos)
+    {
+        if (buffer.size() > webkernel::BUFFER_SIZE)
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size should not exceed BUFFER SIZE");
+        buffer += (*_read_buffer);
+        (*_read_buffer).clear();
+        chunked_body = "";
+        return false;
+    }
+    else if (crlf_ctr == 1)
+    {
+        buffer += (*_read_buffer).substr(0, pos + 2);
+        (*_read_buffer) = (*_read_buffer).substr(pos + 2);
+        crlf_ctr = 0;
+    }
+    else
+    {
+        size_t pos_2nd = (*_read_buffer).find(CRLF, pos + 2);
+        if (pos_2nd == std::string::npos)
+        {
+            if (buffer.size() > webkernel::BUFFER_SIZE)
+                throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                    "Chunk size should not exceed BUFFER SIZE");
+            buffer += (*_read_buffer);
+            (*_read_buffer).clear();
+            chunked_body = "";
+            crlf_ctr = 1;
+            return false;
+        }
+        buffer += (*_read_buffer).substr(0, pos_2nd + 2);
+        (*_read_buffer) = (*_read_buffer).substr(pos_2nd + 2);
+    }
 
     try
     {
-        chunked_body = _codec.decode_single(*_read_buffer);
+        chunked_body = _codec.decode_single(buffer);
+        buffer.clear();
     }
     catch (OperationInterrupt& e)
     {

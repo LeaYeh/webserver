@@ -20,6 +20,7 @@ namespace webkernel
 class ChunkedCodec : public ICodec
 {
   public:
+
     ChunkedCodec();
     ChunkedCodec(const ChunkedCodec& other);
     ChunkedCodec& operator=(const ChunkedCodec& other);

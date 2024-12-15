@@ -9,6 +9,8 @@
 namespace webshell
 {
 
+#define CRLF "\r\n"
+
 class Request
 {
   public:

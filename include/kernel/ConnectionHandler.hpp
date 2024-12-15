@@ -14,10 +14,10 @@
 namespace webkernel
 {
 
+static const size_t BUFFER_SIZE = 4096;
 class ConnectionHandler : public IHandler
 {
   public:
-    static const size_t BUFFER_SIZE = 4096;
 
     ConnectionHandler(Reactor* reactor);
     ~ConnectionHandler();

@@ -164,6 +164,8 @@ void Reactor::_check_interrupt(void) const
 
 void Reactor::_wait_for_events(struct epoll_event* events)
 {
+    weblog::Logger::log(weblog::DEBUG, "Reactor is waiting for events: " +
+                                           explainEpollEvent(events->events));
     int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
 
     if (nfds == -1 && !stop_flag)

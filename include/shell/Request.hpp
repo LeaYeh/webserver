@@ -3,6 +3,7 @@
 #include "RequestConfig.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
+#include <cstddef>
 #include <map>
 #include <string>
 
@@ -56,6 +57,7 @@ class Request
     size_t _processed;
     ChunkState _state;
     std::string _chunksize;
+    size_t _size_num;
     std::string _chunkbuf;
 
     RequestMethod _method;

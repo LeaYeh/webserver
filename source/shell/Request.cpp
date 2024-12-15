@@ -11,14 +11,18 @@
 #include "ConnectionHandler.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
+#include <stdexcept>
 #include <string>
+// #include <sys/siginfo.h>
+#include <sys/stat.h>
 
 namespace webshell
 {
 
 Request::Request()
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+    : _processed(0), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
       _read_buffer()
 {
 }
@@ -209,19 +213,48 @@ bool Request::_proceed_content_len(std::string& chunked_body)
 
 bool Request::_proceed_chunked(std::string& chunked_body)
 {
-    // static size_t max_payload = _config.client_max_body_size;
-    // static std::string buffer;
-    // static size_t crlf_ctr = 0;
-    chunked_body = "";
-    // for (size_t idx = 0; idx < (*_read_buffer).size(); idx++)
-    // {
-    //     switch (_state)
-    //     {
-    //         case CHUNKSIZE
-    //     }
+    static size_t max_payload = _config.client_max_body_size;
 
-    // }
-    
+    chunked_body = "";
+    if (_processed > max_payload)
+        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+            "Payload exceeding client max body size");
+    for (size_t idx = 0; idx < (*_read_buffer).size(); idx++)
+    {
+        unsigned char c = (*_read_buffer)[idx];
+        switch (_state)
+        {
+            case CHUNKSIZE:
+                _check_hexdigit(c);
+                break;
+            case SIZE_CRLF:
+                _check_size_crlf(c);
+                break;
+            case CHUNKBODY:
+                _check_body(c);
+                break;
+            case BODY_CRLF:
+            {
+                if (_check_body_crlf(c))
+                {
+                    chunked_body = _chunkbuf;
+                    (*_read_buffer) = (*_read_buffer).substr(idx);
+                    _processed += _chunkbuf.size();
+                    _chunkbuf.clear();
+                    _chunksize.clear();
+                    return (true);
+                }
+                break;
+            }
+            default:
+                throw std::runtime_error("wtf");
+        }
+        if (_chunkbuf.size() > webkernel::BUFFER_SIZE * 2)
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size cannot be bigger than "
+                + utils::toString(webkernel::BUFFER_SIZE * 2), webshell::TEXT_PLAIN);
+    }
+    (*_read_buffer).clear();
     return (false);
 }
 
@@ -281,6 +314,13 @@ void Request::_check_hexdigit(unsigned char c)
     }
     else if (c == '\r')
     {
+        std::istringstream(_chunksize) >> std::hex >> _size_num;
+        if (_size_num > webkernel::BUFFER_SIZE * 2)
+        {
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size cannot be bigger than "
+                + utils::toString(webkernel::BUFFER_SIZE * 2), webshell::TEXT_PLAIN);
+        }
         _state = SIZE_CRLF;
         return ;
     }
@@ -310,7 +350,15 @@ void Request::_check_body(unsigned char c)
 bool Request::_check_body_crlf(unsigned char c)
 {
     if (c == '\n')
+    {
+        if (_chunkbuf.size() != _size_num)
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Malformed chunk size: not matching chunk length",
+                                   webshell::TEXT_PLAIN);
+        _size_num = -1;
+        _state = CHUNKSIZE;
         return true;
+    }
     else
     {
         _chunkbuf.push_back('\r');

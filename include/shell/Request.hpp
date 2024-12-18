@@ -49,7 +49,7 @@ class Request
     void _check_hexdigit(unsigned char c);
     void _check_size_crlf(unsigned char c);
     void _check_body(unsigned char c);
-    bool _check_body_crlf(unsigned char c);
+    void _check_body_crlf(unsigned char c);
 
     webkernel::ChunkedCodec _codec;
     size_t _processed;

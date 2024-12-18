@@ -3,7 +3,6 @@
 #include "ConfigHttpBlock.hpp"
 #include "ConfigLocationBlock.hpp"
 #include "HttpException.hpp"
-#include "OperationInterrupt.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
@@ -11,26 +10,30 @@
 #include "ConnectionHandler.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
+#include <sys/stat.h>
 
 namespace webshell
 {
 
 Request::Request()
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+    : _processed(0), _state(CHUNKSIZE), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
       _read_buffer()
 {
 }
 
 Request::Request(std::string* buffer)
-    : _processed(0), _method(UNKNOWN), _uri(), _version(), _headers(),
+    : _processed(0), _state(CHUNKSIZE), _size_num(-1), _method(UNKNOWN), _uri(), _version(), _headers(),
       _read_buffer(buffer)
 {
 }
 
 Request::Request(const Request& other)
-    : _processed(other._processed), _method(other._method), _uri(other._uri),
+    : _processed(other._processed), _state(other._state), _size_num(other._size_num), _method(other._method), _uri(other._uri),
       _version(other._version), _headers(other._headers),
       _read_buffer(other._read_buffer), _config(other._config)
 {
@@ -41,6 +44,8 @@ Request& Request::operator=(const Request& other)
     if (this != &other)
     {
         _processed = other._processed;
+        _state = other._state;
+        _size_num = other._size_num;
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
@@ -147,7 +152,7 @@ bool Request::empty_buffer() const
     return ((*_read_buffer).empty());
 }
 
-bool Request::read_chunked_body(std::string& chunked_body)
+bool Request::read_chunked_body(std::vector<char>& chunked_body)
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());
 
@@ -165,7 +170,7 @@ payload, a recipient MUST anticipate potentially large decimal
 numerals and prevent parsing errors due to integer conversion
 overflows (RFC 7230).
 */
-bool Request::_proceed_content_len(std::string& chunked_body)
+bool Request::_proceed_content_len(std::vector<char>& chunked_body)
 {
     static size_t chunksize = webkernel::CHUNKED_SIZE;
     size_t payload = atoi(_headers["content-length"].c_str());
@@ -181,13 +186,13 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if (payload - _processed > buffer_size)
         {
-            chunked_body = (*_read_buffer).substr(0, buffer_size);
+            chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + buffer_size);
             _processed += buffer_size;
-            (*_read_buffer).clear();
+            _read_buffer->clear();
             return (false);
         }
-        chunked_body = (*_read_buffer).substr(0, payload - _processed);
-        (*_read_buffer).erase(0, payload - _processed);
+        chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + payload - _processed);
+        _read_buffer->erase(0, payload - _processed);
         _processed = 0;
         return (true);
     }
@@ -195,74 +200,61 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if (payload - _processed > chunksize)
         {
-            chunked_body = (*_read_buffer).substr(0, chunksize);
+            chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + chunksize);
             (*_read_buffer).erase(0, chunksize);
             _processed += chunksize;
             return (false);
         }
-        chunked_body = (*_read_buffer).substr(0, payload - _processed);
-        (*_read_buffer).erase(0, payload - _processed);
+        chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + payload - _processed);
+        _read_buffer->erase(0, payload - _processed);
         _processed = 0;
         return (true);
     }
 }
 
-bool Request::_proceed_chunked(std::string& chunked_body)
+bool Request::_proceed_chunked(std::vector<char>& chunked_body)
 {
     static size_t max_payload = _config.client_max_body_size;
-    static std::string buffer;
-    static size_t crlf_ctr = 0;
 
-    size_t pos = (*_read_buffer).find(CRLF);
-    if (pos == std::string::npos)
-    {
-        if (buffer.size() > webkernel::BUFFER_SIZE)
-            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-                "Chunk size should not exceed BUFFER SIZE");
-        buffer += (*_read_buffer);
-        (*_read_buffer).clear();
-        chunked_body = "";
-        return false;
-    }
-    else if (crlf_ctr == 1)
-    {
-        buffer += (*_read_buffer).substr(0, pos + 2);
-        (*_read_buffer) = (*_read_buffer).substr(pos + 2);
-        crlf_ctr = 0;
-    }
-    else
-    {
-        size_t pos_2nd = (*_read_buffer).find(CRLF, pos + 2);
-        if (pos_2nd == std::string::npos)
-        {
-            if (buffer.size() > webkernel::BUFFER_SIZE)
-                throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-                    "Chunk size should not exceed BUFFER SIZE");
-            buffer += (*_read_buffer);
-            (*_read_buffer).clear();
-            chunked_body = "";
-            crlf_ctr = 1;
-            return false;
-        }
-        buffer += (*_read_buffer).substr(0, pos_2nd + 2);
-        (*_read_buffer) = (*_read_buffer).substr(pos_2nd + 2);
-    }
-
-    try
-    {
-        chunked_body = _codec.decode_single(buffer);
-        buffer.clear();
-    }
-    catch (OperationInterrupt& e)
-    {
-        _processed = 0;
-        return (true);
-    }
-    _processed += chunked_body.size();
+    chunked_body.clear();
     if (_processed > max_payload)
-        throw utils::HttpException(
-            webshell::PAYLOAD_TOO_LARGE,
-            "Chunked data size exceeds client_max_body_size");
+        throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+            "Payload exceeding client max body size");
+    for (size_t idx = 0; idx < _read_buffer->size(); idx++)
+    {
+        unsigned char c = (*_read_buffer)[idx];
+        switch (_state)
+        {
+            case CHUNKSIZE:
+                _check_hexdigit(c);
+                break;
+            case SIZE_CRLF:
+                _check_size_crlf(c);
+                break;
+            case CHUNKBODY:
+                _check_body(c);
+                break;
+            case BODY_CRLF:
+            {
+                _check_body_crlf(c);
+                chunked_body = _chunkbuf;
+                (*_read_buffer) = _read_buffer->substr(idx + 1);
+                _chunksize.clear();
+                if (_chunkbuf.empty())
+                    return (true);
+                _processed += _chunkbuf.size();
+                _chunkbuf.clear();
+                return (false);
+            }
+            default:
+                throw std::runtime_error("wtf");
+        }
+        if (_chunkbuf.size() > webkernel::BUFFER_SIZE * 2)
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size cannot be bigger than "
+                + utils::toString(webkernel::BUFFER_SIZE * 2), webshell::TEXT_PLAIN);
+    }
+    _read_buffer->clear();
     return (false);
 }
 
@@ -271,11 +263,11 @@ bool Request::setupRequestConfig(int server_id)
     webconfig::ConfigLocationBlock* location_config = NULL;
     webconfig::Config *config = webconfig::Config::instance();
 
-    std::cout << config << std::endl;
+    // std::cout << config << std::endl;
     webconfig::ConfigHttpBlock http_config =
-        webconfig::Config::instance()->httpBlock();
+        config->httpBlock();
     webconfig::ConfigServerBlock server_config =
-        webconfig::Config::instance()->serverBlockList()[server_id];
+        config->serverBlockList()[server_id];
 
     for (std::size_t i = 0; i < server_config.locationBlockList().size(); i++)
     {
@@ -313,9 +305,71 @@ bool Request::setupRequestConfig(int server_id)
     return (true);
 }
 
-// void Request::setBody(std::string& body)
-// {
-//     _body = body;
-// }
+void Request::_check_hexdigit(unsigned char c)
+{
+    if (isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+    {
+        _chunksize.push_back(c);
+        return ;
+    }
+    else if (c == '\r')
+    {
+        std::istringstream(_chunksize) >> std::hex >> _size_num;
+        if (_size_num > webkernel::BUFFER_SIZE * 2)
+        {
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
+                "Chunk size cannot be bigger than "
+                + utils::toString(webkernel::BUFFER_SIZE * 2), webshell::TEXT_PLAIN);
+        }
+        _state = SIZE_CRLF;
+        return ;
+    }
+    throw utils::HttpException(webshell::BAD_REQUEST,
+                "Malformed chunk size: should be hexdigit",
+                                   webshell::TEXT_PLAIN);
+}
+
+void Request::_check_size_crlf(unsigned char c)
+{
+    if (c == '\n')
+        _state = CHUNKBODY;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                "Malformed chunk size: should end with CRLF",
+                                   webshell::TEXT_PLAIN);
+}
+
+void Request::_check_body(unsigned char c)
+{
+    if (_size_num > 0)
+    {
+        _chunkbuf.push_back(c);
+        _size_num--;
+    }
+    else if (_size_num == 0 && c == '\r')
+        _state = BODY_CRLF;
+    else
+    {
+        std::cout << "SIZE: " << _size_num << " CHAR: |" << c << "|" << std::endl;
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Malformed chunk size: not matching chunk length",
+                                   webshell::TEXT_PLAIN);
+    }
+}
+
+void Request::_check_body_crlf(unsigned char c)
+{
+    if (c == '\n')
+    {
+        _size_num = -1;
+        _state = CHUNKSIZE;
+    }
+    else
+    {
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Chunk should end with CRLF",
+            webshell::TEXT_PLAIN);
+    }
+}
 
 } // namespace webshell

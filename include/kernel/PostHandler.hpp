@@ -35,7 +35,7 @@ class PostHandler : public ARequestHandler
     std::string _determine_content_type(const webshell::Request& request);
     std::string _generate_safe_file_path(const webshell::Request& request);
 
-    void _write_chunked_file(int fd, const std::string& content);
+    void _write_chunked_file(int fd, const std::vector<char>& content);
 
   private:
     PostHandler(const PostHandler& other);

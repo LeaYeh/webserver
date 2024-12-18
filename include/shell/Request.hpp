@@ -31,34 +31,32 @@ class Request
     bool empty_buffer() const;
     bool has_header(const std::string& name) const;
 
-    bool read_chunked_body(std::string& chunked_body);
+    bool read_chunked_body(std::vector<char>& chunked_body);
 
     void setMethod(RequestMethod method);
     void setUri(Uri uri);
     void setVersion(float version);
     void setHeaders(std::map<std::string, std::string> headers);
-    void setBody(std::string& body);
+    // void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
     void setReference(std::string* read_buffer);
     bool setupRequestConfig(int server_id);
 
   private:
-    bool _proceed_content_len(std::string& chunked_body);
-    bool _proceed_chunked(std::string& chunked_body);
+    bool _proceed_content_len(std::vector<char>& chunked_body);
+    bool _proceed_chunked(std::vector<char>& chunked_body);
 
     void _check_hexdigit(unsigned char c);
     void _check_size_crlf(unsigned char c);
-    // void _check_size_lf(unsigned char c);
     void _check_body(unsigned char c);
     bool _check_body_crlf(unsigned char c);
-    // void _check_body_lf(unsigned char c);
 
     webkernel::ChunkedCodec _codec;
     size_t _processed;
     ChunkState _state;
     std::string _chunksize;
     size_t _size_num;
-    std::string _chunkbuf;
+    std::vector<char> _chunkbuf;
 
     RequestMethod _method;
     Uri _uri;

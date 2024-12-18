@@ -155,7 +155,7 @@ bool Request::empty_buffer() const
     return ((*_read_buffer).empty());
 }
 
-bool Request::read_chunked_body(std::string& chunked_body)
+bool Request::read_chunked_body(std::vector<char>& chunked_body)
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());
 
@@ -173,7 +173,7 @@ payload, a recipient MUST anticipate potentially large decimal
 numerals and prevent parsing errors due to integer conversion
 overflows (RFC 7230).
 */
-bool Request::_proceed_content_len(std::string& chunked_body)
+bool Request::_proceed_content_len(std::vector<char>& chunked_body)
 {
     static size_t chunksize = webkernel::CHUNKED_SIZE;
     size_t payload = atoi(_headers["content-length"].c_str());
@@ -189,13 +189,13 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if (payload - _processed > buffer_size)
         {
-            chunked_body = (*_read_buffer).substr(0, buffer_size);
+            chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + buffer_size);
             _processed += buffer_size;
-            (*_read_buffer).clear();
+            _read_buffer->clear();
             return (false);
         }
-        chunked_body = (*_read_buffer).substr(0, payload - _processed);
-        (*_read_buffer).erase(0, payload - _processed);
+        chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + payload - _processed);
+        _read_buffer->erase(0, payload - _processed);
         _processed = 0;
         return (true);
     }
@@ -203,23 +203,23 @@ bool Request::_proceed_content_len(std::string& chunked_body)
     {
         if (payload - _processed > chunksize)
         {
-            chunked_body = (*_read_buffer).substr(0, chunksize);
+            chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + chunksize);
             (*_read_buffer).erase(0, chunksize);
             _processed += chunksize;
             return (false);
         }
-        chunked_body = (*_read_buffer).substr(0, payload - _processed);
-        (*_read_buffer).erase(0, payload - _processed);
+        chunked_body = std::vector<char>(_read_buffer->begin(), _read_buffer->begin() + payload - _processed);
+        _read_buffer->erase(0, payload - _processed);
         _processed = 0;
         return (true);
     }
 }
 
-bool Request::_proceed_chunked(std::string& chunked_body)
+bool Request::_proceed_chunked(std::vector<char>& chunked_body)
 {
     static size_t max_payload = _config.client_max_body_size;
 
-    chunked_body = "";
+    chunked_body.clear();
     if (_processed > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
             "Payload exceeding client max body size");

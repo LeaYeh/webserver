@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/20 21:09:09 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/20 21:37:40 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,11 +197,8 @@ void UriAnalyzer::parse_uri(std::string& uri)
 
 void UriAnalyzer::_feed(unsigned char c)
 {
-    //TODO: this is not good!!! I interpret metachars!! Gotta place it back into functions!!!
-    // if (c == '%')
-    //     c = _decode_percent();
-    //BUT i still need to parse it after decoding...
-    //fuckk this loll
+    if (c == '%')
+        c = _decode_num_and_alpha();
     switch (_state)
     {
         case URI_START:
@@ -255,7 +252,7 @@ void UriAnalyzer::_uri_start(unsigned char c)
         _path.push_back(c);
         _state = URI_REL_START;
     }
-    else if (_is_pchar(c))
+    else if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -272,7 +269,7 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
         _path.erase(_path.size() - 1);
         _state = URI_HOST_TRIAL;
     }
-    else if (_is_pchar(c))
+    else if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -308,7 +305,7 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
     _host.push_back(c);
     if (isdigit(c))
         _state = URI_HOST_IPV4;
-    else if (_is_unreserved(c) || _is_sub_delim(c))
+    else if (_is_unreserved(c) || _is_sub_delim(c) || c == '%')
         _state = URI_HOST_REGNAME;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -353,7 +350,7 @@ void UriAnalyzer::_uri_host_ipv4(unsigned char c)
 
 void UriAnalyzer::_uri_host_regname(unsigned char c)
 {
-    if (_is_unreserved(c) || _is_sub_delim(c))
+    if (_is_unreserved(c) || _is_sub_delim(c) || c == '%')
         _host.push_back(c);
     else if (c == '/')
     {
@@ -362,8 +359,6 @@ void UriAnalyzer::_uri_host_regname(unsigned char c)
     }
     else if (c == ':')
         _state = URI_PORT;
-    // else if (c == '%')
-    //     _path.push_back(_decode_percent()); //TODO: need to parse!!
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed at regname host");
@@ -385,7 +380,7 @@ void UriAnalyzer::_uri_port(unsigned char c)
 
 void UriAnalyzer::_uri_path_trial(unsigned char c)
 {
-    if (_is_pchar(c))
+    if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -400,7 +395,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
     //segment is 0 or more pchar, so we could in theory keep receiving just slashes,
     //except for the beginning which is reserved to signal authority start, but i cover
     //that at URI_REL_START
-    if (c == '/' || _is_pchar(c))
+    if (c == '/' || _is_pchar(c) || c == '%')
         _path.push_back(c);
     else if (c == '?')
         _state = URI_QUERY;
@@ -413,7 +408,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
 
 void UriAnalyzer::_uri_query(unsigned char c)
 {
-    if (_is_query_or_fragment_part(c))
+    if (_is_query_or_fragment_part(c) || c == '%')
         _query.push_back(c);
     else if (c == '#')
         _state = URI_FRAGMENT;
@@ -424,7 +419,7 @@ void UriAnalyzer::_uri_query(unsigned char c)
 
 void UriAnalyzer::_uri_fragment(unsigned char c)
 {
-    if (_is_query_or_fragment_part(c))
+    if (_is_query_or_fragment_part(c) || c == '%')
         _fragment.push_back(c);
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -439,12 +434,29 @@ unsigned char UriAnalyzer::_decode_percent(std::string& str)
 
     unsigned char first = str[_idx + 1];
     unsigned char second = str[_idx + 2];
+    _idx += 3;
+    return (_hexval(first) * 16 + _hexval(second));
+}
+
+unsigned char UriAnalyzer::_decode_num_and_alpha()
+{
+    if (_idx > _uri.size() - 3)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "URIAnalyzer failed: percent code cut short");
+
+    unsigned char first = _uri[_idx + 1];
+    unsigned char second = _uri[_idx + 2];
     if (!_valid_hexdigit(first) || !_valid_hexdigit(second))
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: not a valid hexdigit at encoding");
 
-    _idx += 3;
-    return (_hexval(first) * 16 + _hexval(second));
+    unsigned char value = _hexval(first) * 16 + _hexval(second);
+    if (_is_unreserved(value))
+    {
+        _idx += 3;
+        return (value);
+    }
+    return ('%');
 }
 
 bool UriAnalyzer::_valid_hexdigit(unsigned char c)

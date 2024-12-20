@@ -42,6 +42,7 @@ class UriAnalyzer
     bool _is_query_or_fragment_part(unsigned char c);
 
     unsigned char _decode_percent(std::string& str);
+    unsigned char _decode_num_and_alpha();
     void _decode(std::string& str);
     void _percent_decode_all();
     unsigned char _hexval(unsigned char c);

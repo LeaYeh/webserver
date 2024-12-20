@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 22:26:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/20 21:09:09 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
+#include <cstddef>
 
 namespace webshell
 {
@@ -132,6 +133,32 @@ std::string UriAnalyzer::_remove_dot_segments() const
     return (output_buffer);
 }
 
+void UriAnalyzer::_decode(std::string& str)
+{
+    std::string buf;
+    _idx = 0;
+    while (_idx < str.size())
+    {
+        if (str[_idx] == '%')
+            buf.push_back(_decode_percent(str));
+        else
+        {
+            buf.push_back(str[_idx]);
+            _idx++;
+        }
+    }
+    str = buf;
+}
+
+void UriAnalyzer::_percent_decode_all()
+{
+    _decode(_uri);
+    _decode(_host);
+    _decode(_port);
+    _decode(_path);
+    _decode(_query);
+}
+
 Uri UriAnalyzer::take_uri() const
 {
     Uri ret;
@@ -140,7 +167,7 @@ Uri UriAnalyzer::take_uri() const
     ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;
-    ret.path = _remove_dot_segments();
+    ret.path = _path;
     ret.query = _query;
     ret.fragment = _fragment;
     return (ret);
@@ -149,13 +176,9 @@ Uri UriAnalyzer::take_uri() const
 void UriAnalyzer::parse_uri(std::string& uri)
 {
     //received path_empty. This is not a bad request but can't be processed.
-    //TODO: if i throw not found here, i need to analyze everything else before
-    //as bad_request should take precedence.
     if (uri.empty())
         throw utils::HttpException(webshell::NOT_FOUND,
                 NOT_FOUND_MSG);
-    // std::string::const_iterator iter = uri.begin();
-    //Need to kill this iterator because erase() inside of the nest would ivalidate
     _uri = uri;
     while (_idx < _uri.size())
     {
@@ -165,14 +188,18 @@ void UriAnalyzer::parse_uri(std::string& uri)
     if (_state < URI_REL_START) //TODO: is it host? or which state? always consider abempty
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: end too early");
+    _percent_decode_all();
+    //TODO: talk about this with team!! Technically i should switch these two lines.
+    //But that means they can try to trick us and get out of root.
+    _path = _remove_dot_segments();
     _state = END_URI_PARSER;
 }
 
 void UriAnalyzer::_feed(unsigned char c)
 {
     //TODO: this is not good!!! I interpret metachars!! Gotta place it back into functions!!!
-    if (c == '%')
-        c = _decode_percent();
+    // if (c == '%')
+    //     c = _decode_percent();
     //BUT i still need to parse it after decoding...
     //fuckk this loll
     switch (_state)
@@ -214,7 +241,6 @@ void UriAnalyzer::_feed(unsigned char c)
         {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");
-            
         }
             
     }
@@ -405,20 +431,19 @@ void UriAnalyzer::_uri_fragment(unsigned char c)
             "URIAnalyzer failed at uri fragment");
 }
 
-unsigned char UriAnalyzer::_decode_percent()
+unsigned char UriAnalyzer::_decode_percent(std::string& str)
 {
-    if (_idx > _uri.size() - 3)
+    if (_idx > str.size() - 3)
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: percent code cut short");
 
-    unsigned char first = _uri[_idx + 1];
-    unsigned char second = _uri[_idx + 2];
+    unsigned char first = str[_idx + 1];
+    unsigned char second = str[_idx + 2];
     if (!_valid_hexdigit(first) || !_valid_hexdigit(second))
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: not a valid hexdigit at encoding");
 
     _idx += 3;
-    //TODO: is %FF a problem? would turn to 256
     return (_hexval(first) * 16 + _hexval(second));
 }
 

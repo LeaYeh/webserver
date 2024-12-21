@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/12 17:20:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/21 15:32:24 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestAnalyzer.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
 
 namespace webshell
@@ -126,9 +127,11 @@ Request& RequestAnalyzer::request(void)
 
 void RequestAnalyzer::_assemble_request()
 {
-    std::cerr << "Assembling request struct. Method: " << _method
+    std::stringstream hehe;
+    hehe << "Assembling request struct. Method: " << _method
               << " Target: " << _uri.raw << " Version: " << _version
               << std::endl;
+    weblog::Logger::log(weblog::DEBUG, hehe.str()); 
     _req.setMethod(_method);
     _req.setUri(_uri);
     _req.setVersion(_version);

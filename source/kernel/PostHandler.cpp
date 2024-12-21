@@ -117,16 +117,25 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
             new UploadRecord(_generate_safe_file_path(request), content_length);
     }
     std::vector<char> content;
+    static size_t chunk_cnt = 0;
+    static size_t total_size = 0;
     bool is_eof = request.read_chunked_body(content);
 
+    total_size += content.size();
+    if (content.size())
+        chunk_cnt++;
+    weblog::Logger::log(weblog::CRITICAL, "BOOL value: " + utils::toString(is_eof) + " ");
+    weblog::Logger::log(weblog::CRITICAL, "content size: " + utils::toString(content.size()) + ", cnt: " + utils::toString(chunk_cnt) + " header value: " + request.get_header("x-chunk-count") + ", total_size: " + utils::toString(total_size) + " header value: " + request.get_header("x-file-size") + "\n");
     _write_chunked_file(fd, content);
     _upload_record_pool[fd]->update(is_eof);
     state = static_cast<EventProcessingState>(state | HANDLE_CHUNKED);
     if (is_eof && _upload_record_pool[fd]->success())
     {
+        weblog::Logger::log(weblog::CRITICAL, "UPLOAD COMPELETED");
         state = COMPELETED;
         return (_upload_record_pool[fd]->serialize());
     }
+    weblog::Logger::log(weblog::CRITICAL, "UPLOAD ONGOING");
     return ("");
 }
 

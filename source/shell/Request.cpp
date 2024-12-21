@@ -3,6 +3,7 @@
 #include "ConfigHttpBlock.hpp"
 #include "ConfigLocationBlock.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
@@ -214,12 +215,12 @@ bool Request::_proceed_content_len(std::vector<char>& chunked_body)
 
 bool Request::_proceed_chunked(std::vector<char>& chunked_body)
 {
-    static size_t max_payload = _config.client_max_body_size;
+    static size_t max_payload = 5368709120;//_config.client_max_body_size;
 
     chunked_body.clear();
     if (_processed > max_payload)
         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-            "Payload exceeding client max body size");
+            "Payload exceeding client max body size: " + utils::toString(max_payload));
     for (size_t idx = 0; idx < _read_buffer->size(); idx++)
     {
         unsigned char c = (*_read_buffer)[idx];
@@ -239,9 +240,12 @@ bool Request::_proceed_chunked(std::vector<char>& chunked_body)
                 _check_body_crlf(c);
                 chunked_body = _chunkbuf;
                 (*_read_buffer) = _read_buffer->substr(idx + 1);
-                _chunksize.clear();
                 if (_chunkbuf.empty())
+                {
+                    weblog::Logger::log(weblog::CRITICAL, "chunksize: " + _chunksize);
                     return (true);
+                }
+                _chunksize.clear();
                 _processed += _chunkbuf.size();
                 _chunkbuf.clear();
                 return (false);
@@ -350,7 +354,7 @@ void Request::_check_body(unsigned char c)
         _state = BODY_CRLF;
     else
     {
-        std::cout << "SIZE: " << _size_num << " CHAR: |" << c << "|" << std::endl;
+        // std::cout << "SIZE: " << _size_num << " CHAR: |" << c << "|" << std::endl;
         throw utils::HttpException(webshell::BAD_REQUEST,
             "Malformed chunk size: not matching chunk length",
                                    webshell::TEXT_PLAIN);

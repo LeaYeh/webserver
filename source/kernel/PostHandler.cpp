@@ -116,7 +116,7 @@ std::string PostHandler::_process(int fd, EventProcessingState& state,
         _upload_record_pool[fd] =
             new UploadRecord(_generate_safe_file_path(request), content_length);
     }
-    std::string content;
+    std::vector<char> content;
     bool is_eof = request.read_chunked_body(content);
 
     _write_chunked_file(fd, content);
@@ -220,7 +220,7 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
     return (safe_file_path);
 }
 
-void PostHandler::_write_chunked_file(int fd, const std::string& content)
+void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
 {
     if (_upload_record_pool.find(fd) == _upload_record_pool.end())
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -236,7 +236,7 @@ void PostHandler::_write_chunked_file(int fd, const std::string& content)
     {
         size_t write_size =
             std::min(remaining, (size_t)webkernel::CHUNKED_SIZE);
-        file_stream->write(content.c_str() + offset, write_size);
+        file_stream->write(content.data() + offset, write_size);
         offset += write_size;
         remaining -= write_size;
     }

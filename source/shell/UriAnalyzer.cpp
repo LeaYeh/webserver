@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   UriAnalyzer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/04 22:26:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/22 17:24:28 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
+#include <cstddef>
 
 namespace webshell
 {
@@ -132,6 +133,32 @@ std::string UriAnalyzer::_remove_dot_segments() const
     return (output_buffer);
 }
 
+void UriAnalyzer::_decode(std::string& str)
+{
+    std::string buf;
+    _idx = 0;
+    while (_idx < str.size())
+    {
+        if (str[_idx] == '%')
+            buf.push_back(_decode_percent(str));
+        else
+        {
+            buf.push_back(str[_idx]);
+            _idx++;
+        }
+    }
+    str = buf;
+}
+
+void UriAnalyzer::_percent_decode_all()
+{
+    _decode(_uri);
+    _decode(_host);
+    _decode(_port);
+    _decode(_path);
+    _decode(_query);
+}
+
 Uri UriAnalyzer::take_uri() const
 {
     Uri ret;
@@ -140,7 +167,7 @@ Uri UriAnalyzer::take_uri() const
     ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;
-    ret.path = _remove_dot_segments();
+    ret.path = _path;
     ret.query = _query;
     ret.fragment = _fragment;
     return (ret);
@@ -149,13 +176,9 @@ Uri UriAnalyzer::take_uri() const
 void UriAnalyzer::parse_uri(std::string& uri)
 {
     //received path_empty. This is not a bad request but can't be processed.
-    //TODO: if i throw not found here, i need to analyze everything else before
-    //as bad_request should take precedence.
     if (uri.empty())
         throw utils::HttpException(webshell::NOT_FOUND,
                 NOT_FOUND_MSG);
-    // std::string::const_iterator iter = uri.begin();
-    //Need to kill this iterator because erase() inside of the nest would ivalidate
     _uri = uri;
     while (_idx < _uri.size())
     {
@@ -165,16 +188,17 @@ void UriAnalyzer::parse_uri(std::string& uri)
     if (_state < URI_REL_START) //TODO: is it host? or which state? always consider abempty
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: end too early");
+    _percent_decode_all();
+    //TODO: talk about this with team!! Technically i should switch these two lines.
+    //But that means they can try to trick us and get out of root.
+    _path = _remove_dot_segments();
     _state = END_URI_PARSER;
 }
 
 void UriAnalyzer::_feed(unsigned char c)
 {
-    //TODO: this is not good!!! I interpret metachars!! Gotta place it back into functions!!!
     if (c == '%')
-        c = _decode_percent();
-    //BUT i still need to parse it after decoding...
-    //fuckk this loll
+        c = _decode_num_and_alpha();
     switch (_state)
     {
         case URI_START:
@@ -214,7 +238,6 @@ void UriAnalyzer::_feed(unsigned char c)
         {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");
-            
         }
             
     }
@@ -229,7 +252,7 @@ void UriAnalyzer::_uri_start(unsigned char c)
         _path.push_back(c);
         _state = URI_REL_START;
     }
-    else if (_is_pchar(c))
+    else if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -246,7 +269,7 @@ void UriAnalyzer::_uri_rel_start(unsigned char c)
         _path.erase(_path.size() - 1);
         _state = URI_HOST_TRIAL;
     }
-    else if (_is_pchar(c))
+    else if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -282,7 +305,7 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
     _host.push_back(c);
     if (isdigit(c))
         _state = URI_HOST_IPV4;
-    else if (_is_unreserved(c) || _is_sub_delim(c))
+    else if (_is_unreserved(c) || _is_sub_delim(c) || c == '%')
         _state = URI_HOST_REGNAME;
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -327,7 +350,7 @@ void UriAnalyzer::_uri_host_ipv4(unsigned char c)
 
 void UriAnalyzer::_uri_host_regname(unsigned char c)
 {
-    if (_is_unreserved(c) || _is_sub_delim(c))
+    if (_is_unreserved(c) || _is_sub_delim(c) || c == '%')
         _host.push_back(c);
     else if (c == '/')
     {
@@ -336,8 +359,6 @@ void UriAnalyzer::_uri_host_regname(unsigned char c)
     }
     else if (c == ':')
         _state = URI_PORT;
-    // else if (c == '%')
-    //     _path.push_back(_decode_percent()); //TODO: need to parse!!
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed at regname host");
@@ -359,7 +380,7 @@ void UriAnalyzer::_uri_port(unsigned char c)
 
 void UriAnalyzer::_uri_path_trial(unsigned char c)
 {
-    if (_is_pchar(c))
+    if (_is_pchar(c) || c == '%')
     {
         _path.push_back(c);
         _state = URI_PATH;
@@ -374,7 +395,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
     //segment is 0 or more pchar, so we could in theory keep receiving just slashes,
     //except for the beginning which is reserved to signal authority start, but i cover
     //that at URI_REL_START
-    if (c == '/' || _is_pchar(c))
+    if (c == '/' || _is_pchar(c) || c == '%')
         _path.push_back(c);
     else if (c == '?')
         _state = URI_QUERY;
@@ -387,7 +408,7 @@ void UriAnalyzer::_uri_path(unsigned char c)
 
 void UriAnalyzer::_uri_query(unsigned char c)
 {
-    if (_is_query_or_fragment_part(c))
+    if (_is_query_or_fragment_part(c) || c == '%')
         _query.push_back(c);
     else if (c == '#')
         _state = URI_FRAGMENT;
@@ -398,14 +419,26 @@ void UriAnalyzer::_uri_query(unsigned char c)
 
 void UriAnalyzer::_uri_fragment(unsigned char c)
 {
-    if (_is_query_or_fragment_part(c))
+    if (_is_query_or_fragment_part(c) || c == '%')
         _fragment.push_back(c);
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed at uri fragment");
 }
 
-unsigned char UriAnalyzer::_decode_percent()
+unsigned char UriAnalyzer::_decode_percent(std::string& str)
+{
+    if (_idx > str.size() - 3)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "URIAnalyzer failed: percent code cut short");
+
+    unsigned char first = str[_idx + 1];
+    unsigned char second = str[_idx + 2];
+    _idx += 3;
+    return (_hexval(first) * 16 + _hexval(second));
+}
+
+unsigned char UriAnalyzer::_decode_num_and_alpha()
 {
     if (_idx > _uri.size() - 3)
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -417,9 +450,13 @@ unsigned char UriAnalyzer::_decode_percent()
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: not a valid hexdigit at encoding");
 
-    _idx += 3;
-    //TODO: is %FF a problem? would turn to 256
-    return (_hexval(first) * 16 + _hexval(second));
+    unsigned char value = _hexval(first) * 16 + _hexval(second);
+    if (_is_unreserved(value))
+    {
+        _idx += 2;
+        return (value);
+    }
+    return ('%');
 }
 
 bool UriAnalyzer::_valid_hexdigit(unsigned char c)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   UriAnalyzer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/20 21:37:40 by mhuszar          ###   ########.fr       */
+/*   Updated: 2024/12/22 17:24:28 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -453,7 +453,7 @@ unsigned char UriAnalyzer::_decode_num_and_alpha()
     unsigned char value = _hexval(first) * 16 + _hexval(second);
     if (_is_unreserved(value))
     {
-        _idx += 3;
+        _idx += 2;
         return (value);
     }
     return ('%');

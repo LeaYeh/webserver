@@ -3,9 +3,9 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <algorithm>
 #include <cstdio>
 #include <iostream>
+#include <unistd.h>
 // #include <unistd.h>
 
 namespace webkernel
@@ -17,7 +17,8 @@ UploadRecord::UploadRecord() :
     _start_time(time(NULL)),
     _target_filename(""),
     _temp_filename(""),
-    _state(UPLOAD_INIT)
+    _state(UPLOAD_INIT),
+    _already_exist(false)
 {
     weblog::Logger::log(weblog::WARNING,
                         "UploadRecord: constructor address: "
@@ -31,8 +32,12 @@ UploadRecord::UploadRecord(const std::string& target_filename,
     _start_time(time(NULL)),
     _target_filename(target_filename),
     _temp_filename(""),
-    _state(UPLOAD_INIT)
+    _state(UPLOAD_INIT),
+    _already_exist(false)
 {
+    if (access(target_filename.c_str(), F_OK) == 0) {
+        _already_exist = true;
+    }
     _temp_filename =
         _generate_temp_file_path(utils::basefolder(target_filename));
     _open_file_stream(_temp_filename);
@@ -58,10 +63,7 @@ void UploadRecord::update(bool is_last_chunk)
     }
     if (is_last_chunk) {
         _state = UPLOAD_COMPLETE;
-        if (std::remove(_target_filename.c_str()) == -1) {
-            throw std::runtime_error("UploadRecord: failed to remove file "
-                                     + _target_filename);
-        }
+        std::remove(_target_filename.c_str());
         if (std::rename(_temp_filename.c_str(), _target_filename.c_str())
             == -1) {
             throw std::runtime_error(
@@ -126,6 +128,11 @@ std::string UploadRecord::target_filename() const
     return (_target_filename);
 }
 
+bool UploadRecord::already_exist() const
+{
+    return (_already_exist);
+}
+
 std::string UploadRecord::serialize() const
 {
     std::string serialized;
@@ -163,7 +170,8 @@ std::string UploadRecord::_generate_temp_file_path(std::string folder)
 
 void UploadRecord::_open_file_stream(const std::string& file_path)
 {
-    file_stream.open(file_path.c_str(), std::ios::out | std::ios::binary);
+    file_stream.open(file_path.c_str(),
+                     std::ios::out | std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open()) {
         throw std::runtime_error("UploadRecord: failed to open file stream");
     }

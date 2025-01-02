@@ -26,6 +26,7 @@ public:
     time_t upload_time() const;
     time_t start_time() const;
     std::string target_filename() const;
+    bool already_exist() const;
 
     void update(bool is_last_chunk = false);
     bool success() const;
@@ -43,6 +44,7 @@ private:
     std::string _target_filename;
     std::string _temp_filename;
     UploadRecordState _state;
+    bool _already_exist;
 
 private:
     std::string _generate_temp_file_path(std::string folder);

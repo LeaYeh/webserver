@@ -39,8 +39,8 @@ webshell::Response PostHandler::handle(int fd,
     try {
         if (state == INITIAL) {
             _preProcess(request);
-            _update_status(state, PROCESSING);
         }
+        _update_status(state, PROCESSING);
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {
@@ -62,8 +62,11 @@ PostHandler::_handle_completed(int fd, const webshell::Request& request)
     _postProcess(request,
                  _upload_record_pool[fd]->target_filename(),
                  _upload_record_pool[fd]->serialize());
+    webshell::StatusCode status_code = _upload_record_pool[fd]->already_exist()
+                                           ? webshell::OK
+                                           : webshell::CREATED;
     webshell::Response response =
-        webshell::ResponseBuilder::ok(webshell::OK,
+        webshell::ResponseBuilder::ok(status_code,
                                       _response_headers,
                                       _upload_record_pool[fd]->serialize(),
                                       false);
@@ -217,16 +220,6 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Not found folder: " + safe_file_path,
                                    webshell::TEXT_PLAIN);
-    }
-    if (access(safe_file_path.c_str(), F_OK) == -1) {
-        std::ofstream file(safe_file_path.c_str(),
-                           std::ios::out | std::ios::trunc);
-        if (!file.is_open()) {
-            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "Open file failed: " + safe_file_path,
-                                       webshell::TEXT_PLAIN);
-        }
-        file.close();
     }
     return (safe_file_path);
 }

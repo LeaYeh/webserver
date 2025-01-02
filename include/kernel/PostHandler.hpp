@@ -1,6 +1,5 @@
 #pragma once
 #include "ARequestHandler.hpp"
-#include "RequestConfig.hpp"
 #include "UploadRecord.hpp"
 #include "defines.hpp"
 #include <map>
@@ -11,22 +10,21 @@ namespace webkernel
 
 class PostHandler : public ARequestHandler
 {
+public:
+    webshell::Response
+    handle(int fd, EventProcessingState& state, webshell::Request& request);
 
-  public:
+public:
     PostHandler();
     ~PostHandler();
 
-  public:
-    webshell::Response handle(int fd, EventProcessingState& state,
-                              webshell::Request& request);
-
-  private:
+private:
     std::map<int /* fd */, UploadRecord*> _upload_record_pool;
 
-  private:
+private:
     void _preProcess(const webshell::Request& request);
-    std::string _process(int fd, EventProcessingState& state,
-                         webshell::Request& request);
+    std::string
+    _process(int fd, EventProcessingState& state, webshell::Request& request);
     void _postProcess(const webshell::Request& request,
                       const std::string& target_path,
                       const std::string& content);
@@ -35,9 +33,22 @@ class PostHandler : public ARequestHandler
     std::string _determine_content_type(const webshell::Request& request);
     std::string _generate_safe_file_path(const webshell::Request& request);
 
+    webshell::Response
+    _handle_resource_created(const webshell::Request& request);
+    webshell::Response _handle_completed(int fd,
+                                         const webshell::Request& request);
     void _write_chunked_file(int fd, const std::vector<char>& content);
+    void _update_status(EventProcessingState& state,
+                        EventProcessingState flags,
+                        bool overwrite = false);
+    void _check_upload_permission(const webshell::Request& request);
+    void _check_path_permission(const std::string& path);
+    void _init_upload_record(int fd, const webshell::Request& request);
+    void _handle_exception(
+        const std::exception& e,
+        webshell::StatusCode code = webshell::INTERNAL_SERVER_ERROR);
 
-  private:
+private:
     PostHandler(const PostHandler& other);
     PostHandler& operator=(const PostHandler& other);
 };

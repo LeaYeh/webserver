@@ -44,7 +44,7 @@ webshell::Response PostHandler::handle(int fd,
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {
-        _handle_exception(e, e.statusCode());
+        _handle_exception(e, e.statusCode(), webshell::TEXT_PLAIN);
     }
     catch (std::exception& e) {
         _handle_exception(e);
@@ -106,8 +106,7 @@ std::string PostHandler::_process(int fd,
     if (!_check_path_permission(_target_path, W_OK)) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "No write permission on file: "
-                                       + _target_path,
-                                   webshell::TEXT_PLAIN);
+                                       + _target_path);
     }
     _init_upload_record(fd, request);
 
@@ -196,9 +195,8 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
 
     if (utils::isDirectory(safe_file_path)) {
         if (access(safe_file_path.c_str(), F_OK) == -1) {
-            throw utils::HttpException(webshell::NOT_FOUND,
-                                       "Directory not found: " + safe_file_path,
-                                       webshell::TEXT_PLAIN);
+            throw utils::HttpException(
+                webshell::NOT_FOUND, "Directory not found: " + safe_file_path);
         }
         if (safe_file_path[safe_file_path.size() - 1] != '/') {
             safe_file_path += "/";
@@ -207,15 +205,13 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
         if (file_name.empty()) {
             throw utils::HttpException(
                 webshell::NOT_FOUND,
-                "Can not determine upload file name from request",
-                webshell::TEXT_PLAIN);
+                "Can not determine upload file name from request");
         }
         safe_file_path += file_name;
     }
     if (access(utils::basefolder(safe_file_path).c_str(), W_OK) == -1) {
         throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Not found folder: " + safe_file_path,
-                                   webshell::TEXT_PLAIN);
+                                   "Not found folder: " + safe_file_path);
     }
     return (safe_file_path);
 }
@@ -224,8 +220,7 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
 {
     if (_upload_record_pool.find(fd) == _upload_record_pool.end()) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream not found",
-                                   webshell::TEXT_PLAIN);
+                                   "File stream not found");
     }
     std::ofstream& file_stream = _upload_record_pool[fd]->file_stream;
     size_t remaining = content.size();
@@ -233,8 +228,7 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
 
     if (!file_stream.is_open()) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream is not open",
-                                   webshell::TEXT_PLAIN);
+                                   "File stream is not open");
     }
     while (remaining > 0) {
         size_t write_size =
@@ -243,8 +237,7 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
         if (!file_stream.good()) {
             throw utils::HttpException(
                 webshell::INTERNAL_SERVER_ERROR,
-                "Write file failed: " + utils::toString(std::strerror(errno)),
-                webshell::TEXT_PLAIN);
+                "Write file failed: " + utils::toString(std::strerror(errno)));
         }
         offset += write_size;
         remaining -= write_size;
@@ -256,7 +249,7 @@ void PostHandler::_check_upload_permission(const webshell::Request& request)
 {
     if (!request.config().enable_upload) {
         throw utils::HttpException(
-            webshell::FORBIDDEN, "Upload is not allowed", webshell::TEXT_PLAIN);
+            webshell::FORBIDDEN, "Upload is not allowed");
     }
 }
 

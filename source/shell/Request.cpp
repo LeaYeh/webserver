@@ -285,7 +285,7 @@ bool Request::setupRequestConfig(int server_id)
 
     _config.client_max_body_size = http_config.clientMaxBodySize();
     _config.default_type = http_config.defaultType();
-    _config.error_pages = http_config.errorPages();
+    _config.error_page = http_config.errorPage();
     _config.autoindex_page = http_config.autoindexPage();
     _config.error_log = server_config.errorLog();
     _config.keep_alive_timeout = server_config.keepAliveTimeout();

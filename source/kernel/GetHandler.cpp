@@ -187,7 +187,6 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     DIR* dir;
     struct dirent* ent;
     std::string list_items;
-    std::string target_path = _get_resource_path(config, request_path);
 
     LOG(weblog::DEBUG, "Handle autoindex: " + request_path);
 

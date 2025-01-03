@@ -26,10 +26,10 @@ class RequestLineAnalyzer
 
   private:
 
-    bool _validate_start(unsigned char c);
-    bool _analyze_method(unsigned char c);
-    bool _analyze_uri(unsigned char c);
-    bool _check_lf(unsigned char c);
+    void _validate_start(unsigned char c);
+    void _check_lf(unsigned char c);
+    void _analyze_method(unsigned char c);
+    bool _collect_uri(unsigned char c);
     bool _analyze_version(unsigned char c);
 
     RequestLineState _state;

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/03 17:23:21 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/03 17:30:43 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,6 @@
 
 namespace webshell
 {
-
-// static void generic_transition_function(void)
-// {
-//     if (MACHINE_DEBUG)
-//         std::cerr << "moving states" << std::endl;
-// }
 
 bool RequestLineAnalyzer::_validate_start(unsigned char c)
 {
@@ -96,45 +90,14 @@ bool RequestLineAnalyzer::_analyze_version(unsigned char c)
 
 RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR)
 {
-    // _machine.addState(PRE_CR);
-    // _machine.addState(PRE_LF);
-    // // _machine.addState(RQLINE_START);
-    // _machine.addState(METHOD);
-    // _machine.addState(URI);
-    // _machine.addState(VERSION);
-    // _machine.addState(END_RQLINE);
-
-    // _machine.setFinalState(END_RQLINE);
-
-    // // _machine.addTransition(RQLINE_START, METHOD,
-    // //             generic_transition_function);
-    // _machine.addTransition(PRE_CR, METHOD,
-    //             generic_transition_function);
-    // _machine.addTransition(PRE_CR, PRE_LF,
-    //             generic_transition_function);
-    // _machine.addTransition(PRE_LF, PRE_CR,
-    //             generic_transition_function);
-    // _machine.addTransition(METHOD, URI,
-    //             generic_transition_function);
-    // _machine.addTransition(URI, VERSION,
-    //             generic_transition_function);
-    // _machine.addTransition(VERSION, END_RQLINE,
-    //             generic_transition_function);
-
-    // _machine.addAction(PRE_CR, validate_start);
-    // _machine.addAction(PRE_LF, check_lf);
-    // _machine.addAction(METHOD, analyze_method);
-    // _machine.addAction(URI, analyze_uri);
-    // _machine.addAction(VERSION, analyze_version);
 }
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
-    : /*_machine(other._machine),*/_state(other._state), _uri_analyzer(other._uri_analyzer),
+    : _state(other._state), _uri_analyzer(other._uri_analyzer),
       _method(other._method), _uri(other._uri), _version(other._version)
 {
 }
 
-//TODO: make machine also copyable
 RequestLineAnalyzer&
 RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
 {
@@ -145,7 +108,6 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
-        // _machine = other._machine;
     }
     return (*this);
 }
@@ -172,7 +134,6 @@ RequestMethod RequestLineAnalyzer::method() const
     {
         return (UNKNOWN);
     }
-    //TODO: handle HEAD and PUT here??
 }
 
 float RequestLineAnalyzer::version() const
@@ -189,24 +150,18 @@ Uri RequestLineAnalyzer::uri() const
 }
 
 void RequestLineAnalyzer::feed(unsigned char ch)
-{
-    // _machine.addAction(PRE_CR, validate_start);
-    // _machine.addAction(PRE_LF, check_lf);
-    // _machine.addAction(METHOD, analyze_method);
-    // _machine.addAction(URI, analyze_uri);
-    // _machine.addAction(VERSION, analyze_version);
-    
+{   
     switch (_state)
     {
         case PRE_CR:
         {
             if (ch == '\r')
-                _state = PRE_LF;// _machine.transitionTo(PRE_LF);
+                _state = PRE_LF;
             else
             {
                 _validate_start(ch);
                 _method.push_back(ch);
-                _state = METHOD;// _machine.transitionTo(METHOD);
+                _state = METHOD;
             }
             break;
         }
@@ -215,9 +170,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             _check_lf(ch);
             _state = PRE_CR;
             break;
-            // _machine.feed(ch);
-            // _machine.transitionTo(PRE_CR);
-            // break;
         }
         case METHOD:
         {
@@ -226,11 +178,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             else
                 _method.push_back(ch);
             break ;
-            // if (_machine.feed(ch))
-            //     _machine.transitionTo(URI);
-            // else
-            //     _method.push_back(ch);
-            // break;
         }
         case URI:
         {
@@ -242,14 +189,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             else
                 _uri.push_back(ch);
             break ;
-            // if (_machine.feed(ch))
-            // {
-            //     _uri_analyzer.parse_uri(_uri);
-            //     _machine.transitionTo(VERSION);
-            // }
-            // else
-            //     _uri.push_back(ch);
-            // break;
         }
         case VERSION:
         {
@@ -258,11 +197,6 @@ void RequestLineAnalyzer::feed(unsigned char ch)
             else if (ch != '\r')
                 _version.push_back(ch);
             break;
-            // if (_machine.feed(ch))
-            //     _machine.transitionTo(END_RQLINE);
-            // else if (ch != '\r')
-            //     _version.push_back(ch);
-            // break;
         }
         default:
             throw std::runtime_error("Request Line parse error");
@@ -272,12 +206,10 @@ void RequestLineAnalyzer::feed(unsigned char ch)
 bool RequestLineAnalyzer::done(void) const
 {
     return (_state == END_RQLINE);
-    // return (_machine.getCurrentState() == END_RQLINE);
 }
 
 void RequestLineAnalyzer::reset(void)
 {
-    // _machine.setCurrentState(PRE_CR);
     _state = PRE_CR;
     _uri_analyzer.reset();
     _method = "";

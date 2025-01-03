@@ -5,6 +5,7 @@
 #include "shellUtils.hpp"
 #include "utils.hpp"
 #include <cstddef>
+#include <string>
 
 namespace webconfig
 {

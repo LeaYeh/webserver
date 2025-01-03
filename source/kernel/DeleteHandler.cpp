@@ -37,9 +37,6 @@ webshell::Response DeleteHandler::handle(int fd,
 void DeleteHandler::_preProcess(const webshell::Request& request)
 {
     ARequestHandler::_preProcess(request);
-    const webconfig::RequestConfig& config = request.config();
-
-    _target_path = config.root + request.uri().path;
 }
 
 std::string DeleteHandler::_process(int fd,

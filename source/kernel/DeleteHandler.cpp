@@ -4,7 +4,10 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
+#include "defines.hpp"
+#include "utils.hpp"
 #include <cstdio>
+#include <unistd.h>
 
 namespace webkernel
 {
@@ -46,7 +49,11 @@ std::string DeleteHandler::_process(int fd,
     (void)fd;
     (void)request;
 
-    if (!utils::isFile(_target_path)) {
+    if (utils::isDirectory(_target_path)) {
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Cannot delete directory: " + _target_path);
+    }
+    if (!ARequestHandler::_check_path_permission(_target_path, F_OK)) {
         throw utils::HttpException(webshell::NOT_FOUND,
                                    "File not found: " + _target_path);
     }
@@ -70,6 +77,7 @@ void DeleteHandler::_postProcess(const webshell::Request& request,
     (void)request;
     (void)target_path;
     (void)content;
+    _response_headers.clear();
 }
 
 } // namespace webkernel

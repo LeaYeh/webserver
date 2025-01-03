@@ -11,7 +11,7 @@ namespace webconfig
 
 class ConfigHttpBlock : public AConfigParser
 {
-  public:
+public:
     ConfigHttpBlock();
     ConfigHttpBlock(const ConfigHttpBlock& other);
     ConfigHttpBlock& operator=(const ConfigHttpBlock& other);
@@ -21,19 +21,19 @@ class ConfigHttpBlock : public AConfigParser
     void printConfig(void) const;
     size_t clientMaxBodySize(void) const;
     webshell::ContentType defaultType(void) const;
-    std::vector<ErrorPage> errorPages(void) const;
+    std::string errorPage(void) const;
     std::string autoindexPage(void) const;
 
   private:
     size_t _client_max_body_size;
     webshell::ContentType _default_type;
-    std::vector<ErrorPage> _error_page_list;
+    std::string _error_page;
     std::string _autoindex_page;
 
     void _parseConfigDirective(const std::string& line);
     size_t _parseClientMaxBodySize(const std::string& line);
     webshell::ContentType _parseDefaultType(const std::string& line);
-    ErrorPage _parseErrorPage(const std::string& line);
+    std::string _parseErrorPage(const std::string& line);
     std::string _parseAutoindexPage(const std::string& line);
 };
 

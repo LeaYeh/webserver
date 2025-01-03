@@ -232,6 +232,16 @@ void ARequestHandler::_preProcess(const webshell::Request& request)
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
     }
+    const webconfig::RequestConfig& config = request.config();
+    std::string uri_path = request.uri().path;
+
+    if (!config.alias.empty() && uri_path.find(config.route) == 0) {
+        uri_path.replace(0, config.route.length(), config.alias);
+        _target_path = uri_path;
+    }
+    else {
+        _target_path = _get_resource_path(config, uri_path);
+    }
 }
 
 } // namespace webkernel

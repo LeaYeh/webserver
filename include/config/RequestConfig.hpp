@@ -13,7 +13,7 @@ struct RequestConfig
     // Http level configuration
     size_t client_max_body_size;
     std::string default_type;
-    std::vector<ErrorPage> error_pages;
+    std::string error_page;
     std::string autoindex_page;
 
     // Server level configuration
@@ -25,6 +25,7 @@ struct RequestConfig
     std::string route;
     std::vector<webshell::RequestMethod> limit_except;
     std::string root;
+    std::string alias;
     std::string index;
     std::string redirect;
     bool autoindex;

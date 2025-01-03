@@ -1,4 +1,5 @@
 #include "PostHandler.hpp"
+#include "ARequestHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "RequestConfig.hpp"
@@ -10,7 +11,6 @@
 #include "shellUtils.hpp"
 #include "utils.hpp"
 #include <cstddef>
-#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -74,15 +74,6 @@ PostHandler::_handle_completed(int fd, const webshell::Request& request)
     return (response);
 }
 
-webshell::Response
-PostHandler::_handle_resource_created(const webshell::Request& request)
-{
-    _check_path_permission(_target_path);
-    _postProcess(request, _target_path, "");
-    return webshell::ResponseBuilder::ok(
-        webshell::CREATED, _response_headers, "", false);
-}
-
 void PostHandler::_preProcess(const webshell::Request& request)
 {
     ARequestHandler::_preProcess(request);
@@ -112,7 +103,12 @@ std::string PostHandler::_process(int fd,
                         "PostHandler: handle the request with target path: "
                             + _target_path);
     _check_upload_permission(request);
-    _check_path_permission(_target_path);
+    if (!_check_path_permission(_target_path, W_OK)) {
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "No write permission on file: "
+                                       + _target_path,
+                                   webshell::TEXT_PLAIN);
+    }
     _init_upload_record(fd, request);
 
     std::vector<char> content;
@@ -256,40 +252,11 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
     file_stream.flush();
 }
 
-void PostHandler::_update_status(EventProcessingState& state,
-                                 EventProcessingState flags,
-                                 bool overwrite)
-{
-    if (overwrite) {
-        state = flags;
-    }
-    else {
-        state = static_cast<EventProcessingState>(state | flags);
-    }
-    weblog::Logger::log(weblog::WARNING,
-                        "PostHandler: update status to "
-                            + explainEventProcessingState(state));
-}
-
 void PostHandler::_check_upload_permission(const webshell::Request& request)
 {
     if (!request.config().enable_upload) {
         throw utils::HttpException(
             webshell::FORBIDDEN, "Upload is not allowed", webshell::TEXT_PLAIN);
-    }
-}
-
-void PostHandler::_check_path_permission(const std::string& path)
-{
-    if (access(path.c_str(), F_OK) == -1) {
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Upload path is not allowed",
-                                   webshell::TEXT_PLAIN);
-    }
-    if (access(path.c_str(), W_OK) == -1) {
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Upload path is not writable",
-                                   webshell::TEXT_PLAIN);
     }
 }
 
@@ -301,13 +268,6 @@ void PostHandler::_init_upload_record(int fd, const webshell::Request& request)
         _upload_record_pool[fd] =
             new UploadRecord(_generate_safe_file_path(request), content_length);
     }
-}
-
-void PostHandler::_handle_exception(const std::exception& e,
-                                    webshell::StatusCode code)
-{
-    weblog::Logger::log(weblog::ERROR, e.what());
-    throw utils::HttpException(code, e.what(), webshell::TEXT_PLAIN);
 }
 
 } // namespace webkernel

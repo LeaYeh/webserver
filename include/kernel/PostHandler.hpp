@@ -33,20 +33,11 @@ private:
     std::string _determine_content_type(const webshell::Request& request);
     std::string _generate_safe_file_path(const webshell::Request& request);
 
-    webshell::Response
-    _handle_resource_created(const webshell::Request& request);
     webshell::Response _handle_completed(int fd,
                                          const webshell::Request& request);
     void _write_chunked_file(int fd, const std::vector<char>& content);
-    void _update_status(EventProcessingState& state,
-                        EventProcessingState flags,
-                        bool overwrite = false);
     void _check_upload_permission(const webshell::Request& request);
-    void _check_path_permission(const std::string& path);
     void _init_upload_record(int fd, const webshell::Request& request);
-    void _handle_exception(
-        const std::exception& e,
-        webshell::StatusCode code = webshell::INTERNAL_SERVER_ERROR);
 
 private:
     PostHandler(const PostHandler& other);

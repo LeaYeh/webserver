@@ -30,7 +30,14 @@ class RequestLineAnalyzer
 
   private:
 
-    StateMachine<RequestLineState> _machine;
+    bool _validate_start(unsigned char c);
+    bool _analyze_method(unsigned char c);
+    bool _analyze_uri(unsigned char c);
+    bool _check_lf(unsigned char c);
+    bool _analyze_version(unsigned char c);
+
+    // StateMachine<RequestLineState> _machine;
+    RequestLineState _state;
     UriAnalyzer _uri_analyzer;
 
     // RequestMethod _request_method;

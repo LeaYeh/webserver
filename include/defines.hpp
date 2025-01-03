@@ -102,7 +102,6 @@ enum URIState
     URI_ERROR = -1,
     URI_START = 0,
     URI_SCHEME,
-    URI_REL_START,
     URI_HOST_TRIAL,
     URI_HOST_IPV4,
     URI_HOST_REGNAME,

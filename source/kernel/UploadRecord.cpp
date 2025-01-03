@@ -6,64 +6,79 @@
 #include <cstdio>
 #include <iostream>
 #include <unistd.h>
+// #include <unistd.h>
 
 namespace webkernel
 {
 
-UploadRecord::UploadRecord()
-    : _total_size(0), _uploaded_size(0), _start_time(time(NULL)),
-      _target_filename(""), _temp_filename(""), _state(UPLOAD_INIT),
-      _file_stream(NULL)
+UploadRecord::UploadRecord() :
+    _total_size(0),
+    _uploaded_size(0),
+    _start_time(time(NULL)),
+    _target_filename(""),
+    _temp_filename(""),
+    _state(UPLOAD_INIT),
+    _already_exist(false)
 {
-    weblog::Logger::log(weblog::WARNING, "UploadRecord: constructor address: " +
-                                             utils::toString((size_t)this));
+    weblog::Logger::log(weblog::WARNING,
+                        "UploadRecord: constructor address: "
+                            + utils::toString((size_t)this));
 }
 
 UploadRecord::UploadRecord(const std::string& target_filename,
-                           size_t total_size)
-    : _total_size(total_size), _uploaded_size(0), _start_time(time(NULL)),
-      _target_filename(target_filename), _temp_filename(""),
-      _state(UPLOAD_INIT), _file_stream(NULL)
+                           size_t total_size) :
+    _total_size(total_size),
+    _uploaded_size(0),
+    _start_time(time(NULL)),
+    _target_filename(target_filename),
+    _temp_filename(""),
+    _state(UPLOAD_INIT),
+    _already_exist(false)
 {
+    if (access(target_filename.c_str(), F_OK) == 0) {
+        _already_exist = true;
+    }
     _temp_filename =
         _generate_temp_file_path(utils::basefolder(target_filename));
-    _file_stream = new std::ofstream();
-    _file_stream->open(_temp_filename.c_str(),
-                       std::ios::out | std::ios::binary);
-    if (!_file_stream->is_open() || !_file_stream->good())
-        throw std::runtime_error("UploadRecord: failed to open file stream");
+    _open_file_stream(_temp_filename);
 }
 
 UploadRecord::~UploadRecord()
 {
     weblog::Logger::log(weblog::WARNING,
-                        "UploadRecord: destructor: " + _temp_filename + ", " +
-                            _target_filename +
-                            " address: " + utils::toString((size_t)this));
-    _close_file_stream();
-    if (access(_temp_filename.c_str(), F_OK) == 0)
-        unlink(_temp_filename.c_str());
+                        "UploadRecord: destructor: " + _temp_filename + ", "
+                            + _target_filename
+                            + " address: " + utils::toString((size_t)this));
+    if (access(_temp_filename.c_str(), F_OK) == 0
+        && std::remove(_temp_filename.c_str()) == -1) {
+        throw std::runtime_error("UploadRecord: failed to remove temp file "
+                                 + _temp_filename);
+    }
 }
 
 void UploadRecord::update(bool is_last_chunk)
 {
-    if (_target_filename.empty())
+    if (_target_filename.empty()) {
         throw std::runtime_error("UploadRecord: target filename is empty");
-    if (is_last_chunk)
-    {
+    }
+    if (is_last_chunk) {
         _state = UPLOAD_COMPLETE;
-        unlink(_target_filename.c_str());
-        if (rename(_temp_filename.c_str(), _target_filename.c_str()) == -1)
+        std::remove(_target_filename.c_str());
+        if (std::rename(_temp_filename.c_str(), _target_filename.c_str())
+            == -1) {
             throw std::runtime_error(
-                "UploadRecord: failed to rename file from " + _temp_filename +
-                " to " + _target_filename + " " + strerror(errno));
+                "UploadRecord: failed to rename file from " + _temp_filename
+                + " to " + _target_filename + " " + strerror(errno));
+        }
     }
     static struct stat file_stat;
 
-    if (stat(_temp_filename.c_str(), &file_stat) == -1)
+    if (stat(_temp_filename.c_str(), &file_stat) == -1) {
         _uploaded_size = 0;
-    else
+    }
+    else {
         _uploaded_size = file_stat.st_size;
+    }
 }
 
 bool UploadRecord::success() const
@@ -86,8 +101,9 @@ time_t UploadRecord::upload_time() const
 
 float UploadRecord::upload_progress() const
 {
-    if (_total_size == 0)
+    if (_total_size == 0) {
         return (1.0);
+    }
     float progress_percent = (_uploaded_size * 1.0) / _total_size;
     return (progress_percent);
 }
@@ -112,9 +128,9 @@ std::string UploadRecord::target_filename() const
     return (_target_filename);
 }
 
-std::ofstream* UploadRecord::file_stream()
+bool UploadRecord::already_exist() const
 {
-    return (_file_stream);
+    return (_already_exist);
 }
 
 std::string UploadRecord::serialize() const
@@ -141,10 +157,12 @@ std::string UploadRecord::serialize() const
 
 std::string UploadRecord::_generate_temp_file_path(std::string folder)
 {
-    if (folder.empty())
+    if (folder.empty()) {
         folder = "/tmp";
-    if (folder[folder.size() - 1] != '/')
+    }
+    if (folder[folder.size() - 1] != '/') {
         folder += "/";
+    }
     std::string temp_file_path = folder + uuid();
 
     return (temp_file_path);
@@ -152,19 +170,10 @@ std::string UploadRecord::_generate_temp_file_path(std::string folder)
 
 void UploadRecord::_open_file_stream(const std::string& file_path)
 {
-    _file_stream->open(file_path.c_str(), std::ios::out | std::ios::binary);
-    if (!_file_stream->is_open())
+    file_stream.open(file_path.c_str(),
+                     std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!file_stream.is_open()) {
         throw std::runtime_error("UploadRecord: failed to open file stream");
-}
-
-void UploadRecord::_close_file_stream()
-{
-    if (_file_stream)
-    {
-        if (_file_stream->is_open())
-            _file_stream->close();
-        delete _file_stream;
-        _file_stream = NULL;
     }
 }
 

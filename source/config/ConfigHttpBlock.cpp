@@ -84,7 +84,7 @@ void ConfigHttpBlock::printConfig(void) const
     weblog::Logger::log(weblog::DEBUG, "\tautoindex_page: " + _autoindex_page);
 }
 
-unsigned int ConfigHttpBlock::clientMaxBodySize(void) const
+size_t ConfigHttpBlock::clientMaxBodySize(void) const
 {
     return (_client_max_body_size);
 }
@@ -121,7 +121,7 @@ void ConfigHttpBlock::_parseConfigDirective(const std::string& line)
                                     directive);
 }
 
-unsigned int ConfigHttpBlock::_parseClientMaxBodySize(const std::string& line)
+size_t ConfigHttpBlock::_parseClientMaxBodySize(const std::string& line)
 {
     std::string directive = _getDirectiveName(line);
     std::string value = extract_directive_value(line, directive);

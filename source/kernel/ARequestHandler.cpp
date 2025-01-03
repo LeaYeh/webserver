@@ -1,43 +1,40 @@
 #include "ARequestHandler.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "RequestConfig.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <string>
 
 namespace webkernel
 {
 
-ARequestHandler::ARequestHandler()
-{
-}
+ARequestHandler::ARequestHandler() {}
 
-ARequestHandler::ARequestHandler(const ARequestHandler& other)
-    : _response_headers(other._response_headers)
+ARequestHandler::ARequestHandler(const ARequestHandler& other) :
+    _response_headers(other._response_headers)
 {
 }
 
 ARequestHandler& ARequestHandler::operator=(const ARequestHandler& other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         _response_headers = other._response_headers;
     }
     return (*this);
 }
 
-ARequestHandler::~ARequestHandler()
-{
-}
+ARequestHandler::~ARequestHandler() {}
 
 bool ARequestHandler::_checkMethodLimit(
     webshell::RequestMethod method,
     const std::vector<webshell::RequestMethod>& limit) const
 {
-    for (std::size_t i = 0; i < limit.size(); ++i)
-    {
-        if (method == limit[i])
+    for (std::size_t i = 0; i < limit.size(); ++i) {
+        if (method == limit[i]) {
             return (true);
+        }
     }
     return (false);
 }
@@ -51,21 +48,36 @@ bool ARequestHandler::_checkPathFormat(const std::string& path) const
     //     return (false);
     // if (path.find("//") != std::string::npos)
     //     return (false);
-    if (path.size() > MAX_PATH_LENGTH)
+    if (path.size() > MAX_PATH_LENGTH) {
         return (false);
-    if (path.find("~") != std::string::npos)
+    }
+    if (path.find("~") != std::string::npos) {
         return (false);
+    }
+    return (true);
+}
+
+bool ARequestHandler::_check_path_permission(const std::string& path,
+                                             const int type) const
+{
+    if (access(path.c_str(), type) == -1) {
+        return (false);
+    }
     return (true);
 }
 
 bool ARequestHandler::_is_out_of_max_file_size(
-    const webconfig::RequestConfig& config, const std::string file_path) const
+    const webconfig::RequestConfig& config,
+    const std::string file_path) const
 {
     struct stat file_stat;
-    if (stat(file_path.c_str(), &file_stat) == -1)
+
+    if (stat(file_path.c_str(), &file_stat) == -1 || file_stat.st_size < 0) {
+        throw std::runtime_error("ARequestHandler: failed to get file stat");
+    }
+    if ((size_t)file_stat.st_size > config.client_max_body_size) {
         return (true);
-    if (file_stat.st_size > config.client_max_body_size)
-        return (true);
+    }
     return (false);
 }
 
@@ -74,42 +86,60 @@ ARequestHandler::_getMimeType(const std::string& file_path) const
 {
     std::string extension = file_path.substr(file_path.find_last_of(".") + 1);
 
-    if (extension == "html" || extension == "htm")
+    if (extension == "html" || extension == "htm") {
         return ("text/html");
-    if (extension == "css")
+    }
+    if (extension == "css") {
         return ("text/css");
-    if (extension == "js")
+    }
+    if (extension == "js") {
         return ("text/javascript");
-    if (extension == "jpeg" || extension == "jpg")
+    }
+    if (extension == "jpeg" || extension == "jpg") {
         return ("image/jpeg");
-    if (extension == "png")
+    }
+    if (extension == "png") {
         return ("image/png");
-    if (extension == "gif")
+    }
+    if (extension == "gif") {
         return ("image/gif");
-    if (extension == "svg")
+    }
+    if (extension == "svg") {
         return ("image/svg+xml");
-    if (extension == "ico")
+    }
+    if (extension == "ico") {
         return ("image/x-icon");
-    if (extension == "json")
+    }
+    if (extension == "json") {
         return ("application/json");
-    if (extension == "pdf")
+    }
+    if (extension == "pdf") {
         return ("application/pdf");
-    if (extension == "zip")
+    }
+    if (extension == "zip") {
         return ("application/zip");
-    if (extension == "tar")
+    }
+    if (extension == "tar") {
         return ("application/x-tar");
-    if (extension == "gz")
+    }
+    if (extension == "gz") {
         return ("application/gzip");
-    if (extension == "mp3")
+    }
+    if (extension == "mp3") {
         return ("audio/mpeg");
-    if (extension == "wav")
+    }
+    if (extension == "wav") {
         return ("audio/wav");
-    if (extension == "mp4")
+    }
+    if (extension == "mp4") {
         return ("video/mp4");
-    if (extension == "webm")
+    }
+    if (extension == "webm") {
         return ("video/webm");
-    if (extension == "ogg")
+    }
+    if (extension == "ogg") {
         return ("video/ogg");
+    }
     return ("application/octet-stream");
 }
 
@@ -117,10 +147,12 @@ std::string ARequestHandler::_get_encoding_string(int encoding) const
 {
     std::string encoding_string = "identity";
 
-    if (encoding & webkernel::GZIP)
+    if (encoding & webkernel::GZIP) {
         encoding_string = "gzip";
-    if (encoding & webkernel::CHUNKED)
+    }
+    if (encoding & webkernel::CHUNKED) {
         encoding_string += ",chunked";
+    }
     return (encoding_string);
 }
 
@@ -130,16 +162,18 @@ int ARequestHandler::_get_respones_encoding(
     int encoding = webkernel::IDENTITY;
     const webconfig::RequestConfig& config = request.config();
 
-    if (request.method() == webshell::GET &&
-        _is_out_of_max_file_size(config, config.root + request.uri().path))
+    if (request.method() == webshell::GET
+        && _is_out_of_max_file_size(config, config.root + request.uri().path)) {
         encoding |= webkernel::CHUNKED;
-    if (request.has_header("transfer-encoding"))
-    {
+    }
+    if (request.has_header("transfer-encoding")) {
         std::string transfer_encoding = request.get_header("transfer-encoding");
-        if (transfer_encoding.find("chunked") != std::string::npos)
+        if (transfer_encoding.find("chunked") != std::string::npos) {
             encoding |= webkernel::CHUNKED;
-        if (transfer_encoding.find("gzip") != std::string::npos)
+        }
+        if (transfer_encoding.find("gzip") != std::string::npos) {
             encoding |= webkernel::GZIP;
+        }
     }
     return (encoding);
 }
@@ -152,26 +186,52 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
 
     // the root might be includeed in the path
     full_path = request_path;
-    if (!utils::start_with(request_path, config.root))
+    if (!utils::start_with(request_path, config.root)) {
         full_path = config.root + request_path;
+    }
     // Check if the path is a directory or a file
-    if (utils::isDirectory(full_path))
-    {
-        if (full_path[full_path.size() - 1] != '/')
+    if (utils::isDirectory(full_path)) {
+        if (full_path[full_path.size() - 1] != '/') {
             full_path += "/";
+        }
         full_path += config.index;
     }
     return (full_path);
 }
 
+void ARequestHandler::_handle_exception(
+    const std::exception& e,
+    const webshell::StatusCode code,
+    const webshell::ContentType content_type)
+{
+    weblog::Logger::log(weblog::ERROR, e.what());
+    throw utils::HttpException(code, e.what(), content_type);
+}
+
+void ARequestHandler::_update_status(EventProcessingState& state,
+                                     EventProcessingState flags,
+                                     bool overwrite)
+{
+    if (overwrite) {
+        state = flags;
+    }
+    else {
+        state = static_cast<EventProcessingState>(state | flags);
+    }
+    weblog::Logger::log(weblog::DEBUG,
+                        "ARequestHandler: update status to "
+                            + explainEventProcessingState(state));
+}
+
 void ARequestHandler::_preProcess(const webshell::Request& request)
 {
-
-    if (!_checkPathFormat(request.uri().path))
+    if (!_checkPathFormat(request.uri().path)) {
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
-    if (!_checkMethodLimit(request.method(), request.config().limit_except))
+    }
+    if (!_checkMethodLimit(request.method(), request.config().limit_except)) {
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
+    }
 }
 
 } // namespace webkernel

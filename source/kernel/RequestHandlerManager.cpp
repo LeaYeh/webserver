@@ -1,4 +1,5 @@
 #include "RequestHandlerManager.hpp"
+#include "DeleteHandler.hpp"
 #include "GetHandler.hpp"
 #include "HttpException.hpp"
 #include "PostHandler.hpp"
@@ -11,14 +12,15 @@ RequestHandlerManager::RequestHandlerManager()
 {
     _handlers[webshell::GET] = new GetHandler();
     _handlers[webshell::POST] = new PostHandler();
+    _handlers[webshell::DELETE] = new DeleteHandler();
 }
 
 RequestHandlerManager::~RequestHandlerManager()
 {
     for (std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
              _handlers.begin();
-         it != _handlers.end(); ++it)
-    {
+         it != _handlers.end();
+         ++it) {
         delete it->second;
     }
 }
@@ -30,13 +32,13 @@ RequestHandlerManager& RequestHandlerManager::getInstance()
 }
 
 webshell::Response
-RequestHandlerManager::handleRequest(int fd, EventProcessingState& state,
+RequestHandlerManager::handleRequest(int fd,
+                                     EventProcessingState& state,
                                      webshell::Request& request)
 {
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
         _handlers.find(request.method());
-    if (it != _handlers.end())
-    {
+    if (it != _handlers.end()) {
         return it->second->handle(fd, state, request);
     }
     throw utils::HttpException(webshell::NOT_IMPLEMENTED,

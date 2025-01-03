@@ -71,10 +71,11 @@ bool ARequestHandler::_is_out_of_max_file_size(
     const std::string file_path) const
 {
     struct stat file_stat;
-    if (stat(file_path.c_str(), &file_stat) == -1) {
-        return (true);
+
+    if (stat(file_path.c_str(), &file_stat) == -1 || file_stat.st_size < 0) {
+        throw std::runtime_error("ARequestHandler: failed to get file stat");
     }
-    if (file_stat.st_size > config.client_max_body_size) {
+    if ((size_t)file_stat.st_size > config.client_max_body_size) {
         return (true);
     }
     return (false);

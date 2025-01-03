@@ -1,6 +1,7 @@
 #pragma once
 #include "ErrorPage.hpp"
 #include "defines.hpp"
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -10,7 +11,7 @@ namespace webconfig
 struct RequestConfig
 {
     // Http level configuration
-    unsigned int client_max_body_size;
+    size_t client_max_body_size;
     std::string default_type;
     std::vector<ErrorPage> error_pages;
     std::string autoindex_page;

@@ -122,11 +122,11 @@ int stoi(const std::string& str)
     return (result);
 }
 
-unsigned int convertToSize(const std::string& str)
+size_t convertToSize(const std::string& str)
 {
     std::string::size_type pos = str.find_last_not_of("0123456789");
     std::string size_str = str.substr(0, pos + 1);
-    unsigned int size = stoi(size_str);
+    size_t size = stoi(size_str);
 
     if (str[pos] == 'k' || str[pos] == 'K')
         size *= 1024;

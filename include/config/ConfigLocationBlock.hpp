@@ -38,6 +38,7 @@ private:
     std::string _route;
     std::vector<webshell::RequestMethod> _limit_except;
     std::string _root;
+    std::string _alias;
     std::string _index;
     std::string _redirect;
     bool _autoindex;

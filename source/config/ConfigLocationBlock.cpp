@@ -24,6 +24,7 @@ ConfigLocationBlock::ConfigLocationBlock() :
     _valid_directives.insert("route");
     _valid_directives.insert("limit_except");
     _valid_directives.insert("root");
+    _valid_directives.insert("alias");
     _valid_directives.insert("index");
     _valid_directives.insert("redirect");
     _valid_directives.insert("autoindex");
@@ -57,6 +58,7 @@ ConfigLocationBlock::operator=(const ConfigLocationBlock& other)
         _route = other._route;
         _limit_except = other._limit_except;
         _root = other._root;
+        _alias = other._alias;
         _index = other._index;
         _redirect = other._redirect;
         _autoindex = other._autoindex;
@@ -92,6 +94,11 @@ ConfigLocationBlock::limit_except(void) const
 std::string ConfigLocationBlock::root(void) const
 {
     return (_root);
+}
+
+std::string ConfigLocationBlock::alias(void) const
+{
+    return (_alias);
 }
 
 std::string ConfigLocationBlock::index(void) const

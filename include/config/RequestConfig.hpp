@@ -23,6 +23,7 @@ struct RequestConfig
     std::string route;
     std::vector<webshell::RequestMethod> limit_except;
     std::string root;
+    std::string alias;
     std::string index;
     std::string redirect;
     bool autoindex;

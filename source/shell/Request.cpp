@@ -403,6 +403,7 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
     _config.route = location_config->route();
     _config.limit_except = location_config->limit_except();
     _config.root = location_config->root();
+    _config.alias = location_config->alias();
     _config.index = location_config->index();
     _config.redirect = location_config->redirect();
     _config.autoindex = location_config->autoindex();

@@ -294,6 +294,7 @@ bool Request::setupRequestConfig(int server_id)
     _config.route = location_config->route();
     _config.limit_except = location_config->limitExcept();
     _config.root = location_config->root();
+    _config.alias = location_config->alias();
     _config.index = location_config->index();
     _config.redirect = location_config->redirect();
     _config.autoindex = location_config->autoindex();

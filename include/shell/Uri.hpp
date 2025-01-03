@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Uri.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:18:11 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 18:20:03 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/03 20:12:48 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ struct Uri
     std::string path;
     std::string query;
     std::string fragment;
+    bool _origin_form;
     // std::string userinfo; //TODO: put test case
 };
 

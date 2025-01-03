@@ -66,5 +66,7 @@ class UriAnalyzer
 
     bool _ipv_digit;
     int _ipv_dot;
+
+    bool _origin_form;
 };
 } // namespace webshell

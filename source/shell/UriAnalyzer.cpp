@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/22 17:24:28 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/03 20:11:12 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
+#include "defines.hpp"
 #include <cstddef>
 
 namespace webshell
@@ -19,23 +20,24 @@ namespace webshell
 
 UriAnalyzer::UriAnalyzer()
 {
-    _idx = 0;
-    _sidx = 0;
-    _ipv_digit = false;
-    _ipv_dot = 0;
-    _state = URI_START;
     _uri = "";
     _path = "";
     _host = "";
     _port = "";
     _query = "";
     _fragment = "";
+    _state = URI_START;
+    _idx = 0;
+    _sidx = 0;
+    _ipv_digit = false;
+    _ipv_dot = 0;
+    _origin_form = false;
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
     : _uri(other._uri), _host(other._host), _port(other._port), _path(other._path),
         _query(other._query), _fragment(other._fragment), _state(other._state), _idx(other._idx),
-            _sidx(other._sidx), _ipv_digit(other._ipv_digit), _ipv_dot(other._ipv_dot)
+            _sidx(other._sidx), _ipv_digit(other._ipv_digit), _ipv_dot(other._ipv_dot), _origin_form(other._origin_form)
 {
 }
 
@@ -54,6 +56,7 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
         _sidx = other._sidx;
         _ipv_digit = other._ipv_digit;
         _ipv_dot = other._ipv_dot;
+        _origin_form = other._origin_form;
     }
     return (*this);
 }
@@ -64,17 +67,17 @@ UriAnalyzer::~UriAnalyzer()
 
 void UriAnalyzer::reset()
 {
-    _idx = 0;
-    _sidx = 0;
-    _ipv_digit = false;
-    _ipv_dot = 0;
-    _state = URI_START;
     _uri = "";
     _path = "";
     _host = "";
     _port = "";
     _query = "";
     _fragment = "";
+    _state = URI_START;
+    _idx = 0;
+    _sidx = 0;
+    _ipv_digit = false;
+    _ipv_dot = 0;
 }
 
 void UriAnalyzer::_remove_last_segment(std::string& str) const
@@ -170,27 +173,25 @@ Uri UriAnalyzer::take_uri() const
     ret.path = _path;
     ret.query = _query;
     ret.fragment = _fragment;
+    ret._origin_form = _origin_form;
     return (ret);
 }
 
 void UriAnalyzer::parse_uri(std::string& uri)
 {
-    //received path_empty. This is not a bad request but can't be processed.
     if (uri.empty())
-        throw utils::HttpException(webshell::NOT_FOUND,
-                NOT_FOUND_MSG);
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                "empty path segment should contain at least /");
     _uri = uri;
     while (_idx < _uri.size())
     {
         _feed(_uri[_idx]);
         _idx++;
     }
-    if (_state < URI_REL_START) //TODO: is it host? or which state? always consider abempty
+    if (_state < URI_HOST_IPV4)
         throw utils::HttpException(webshell::BAD_REQUEST,
             "URIAnalyzer failed: end too early");
     _percent_decode_all();
-    //TODO: talk about this with team!! Technically i should switch these two lines.
-    //But that means they can try to trick us and get out of root.
     _path = _remove_dot_segments();
     _state = END_URI_PARSER;
 }
@@ -203,9 +204,6 @@ void UriAnalyzer::_feed(unsigned char c)
     {
         case URI_START:
             _uri_start(c);
-            break;
-        case URI_REL_START:
-            _uri_rel_start(c);
             break;
         case URI_SCHEME:
             _uri_scheme(c);
@@ -239,7 +237,6 @@ void UriAnalyzer::_feed(unsigned char c)
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                 "Feed at URIAnalyzer failed");
         }
-            
     }
 }
 
@@ -247,36 +244,15 @@ void UriAnalyzer::_uri_start(unsigned char c)
 {
     if (c == 'h' || c == 'H')
         _state = URI_SCHEME;
-    else if (c == '/') //path-empty already covered
+    else if (c == '/')
     {
+        _origin_form = true;
         _path.push_back(c);
-        _state = URI_REL_START;
-    }
-    else if (_is_pchar(c) || c == '%')
-    {
-        _path.push_back(c);
-        _state = URI_PATH;
+        _state = URI_PATH_TRIAL;
     }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-        "URIAnalyzer failed at uri start");
-}
-
-void UriAnalyzer::_uri_rel_start(unsigned char c)
-{
-    if (c == '/')
-    {
-        _path.erase(_path.size() - 1);
-        _state = URI_HOST_TRIAL;
-    }
-    else if (_is_pchar(c) || c == '%')
-    {
-        _path.push_back(c);
-        _state = URI_PATH;
-    }
-    else
-        throw utils::HttpException(webshell::BAD_REQUEST,
-        "URIAnalyzer failed at uri rel start");
+        "only origin-form and absolute-form URI is allowed");
 }
 
 void UriAnalyzer::_uri_scheme(unsigned char c)

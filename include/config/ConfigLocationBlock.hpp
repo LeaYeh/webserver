@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-
 // TODO: Need to support alias but not just root
 // TODO: Consider to change the format to be more like nginx?
 namespace webconfig
@@ -13,7 +12,7 @@ namespace webconfig
 
 class ConfigLocationBlock : public AConfigParser
 {
-  public:
+public:
     ConfigLocationBlock();
     ConfigLocationBlock(const ConfigLocationBlock& other);
     ConfigLocationBlock& operator=(const ConfigLocationBlock& other);
@@ -23,6 +22,7 @@ class ConfigLocationBlock : public AConfigParser
     std::string route(void) const;
     std::vector<webshell::RequestMethod> limitExcept(void) const;
     std::string root(void) const;
+    std::string alias(void) const;
     std::string index(void) const;
     std::string redirect(void) const;
     bool autoindex(void) const;
@@ -34,10 +34,11 @@ class ConfigLocationBlock : public AConfigParser
     std::string parse(std::ifstream& file_stream);
     void printConfig(void) const;
 
-  private:
+private:
     std::string _route;
     std::vector<webshell::RequestMethod> _limit_except;
     std::string _root;
+    std::string _alias;
     std::string _index;
     std::string _redirect;
     bool _autoindex;

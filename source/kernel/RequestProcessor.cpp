@@ -41,24 +41,19 @@ RequestProcessor::~RequestProcessor() {}
 
 // Analyze the buffer and feed to the request analyzer char by char to avoid
 // lossing data which belongs to the next request
-// TODO: How to test this function?
-// TODO: If there are multiple requests in the buffer, we need to handle
-// them????? HOW?
 bool RequestProcessor::analyze(int fd, std::string& buffer)
 {
     size_t i = 0;
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end()) {
-        _analyzer_pool[fd] = webshell::RequestAnalyzer(
-            _reactor->lookupServerId(fd),
-            &buffer); // TODO: import read buffer and CONST request config ref
-                      // body limit
+        _analyzer_pool[fd] =
+            webshell::RequestAnalyzer(_reactor->lookupServerId(fd), &buffer);
         resetState(fd);
     }
 
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
-        if (_analyzer_pool[fd].isComplete() /* && (i < buffer.size() - 1)*/) {
+        if (_analyzer_pool[fd].isComplete()) {
             weblog::Logger::log(weblog::WARNING,
                                 "Request is complete: \n"
                                     + _analyzer_pool[fd].request().serialize());
@@ -87,7 +82,8 @@ void RequestProcessor::process(int fd)
         if (state & HANDLE_CHUNKED) {
             _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
         }
-        // if the read buffer is empty but the server still uploading data, we need to wait for more data
+        // if the read buffer is empty but the server still uploading data, we
+        // need to wait for more data
         if (request.empty_buffer()) {
             _reactor->modifyHandler(fd, EPOLLIN, 0);
         }

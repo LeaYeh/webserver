@@ -48,7 +48,7 @@ protected:
         const webshell::ContentType content_type = webshell::TEXT_HTML);
     void _update_status(EventProcessingState& state,
                         EventProcessingState flags,
-                        bool overwrite = false);
+                        bool overwrite = false) const;
 
     virtual std::string _process(int fd,
                                  EventProcessingState& state,

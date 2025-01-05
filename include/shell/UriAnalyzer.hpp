@@ -59,8 +59,10 @@ class UriAnalyzer
     std::string _path;
     std::string _query;
     std::string _fragment;
+    std::string _temp_buf;
 
     URIState _state;
+    URIType _type;
     unsigned int _idx;
     int _sidx;
 

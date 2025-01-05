@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/03 20:11:12 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/05 17:43:08 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,9 @@ UriAnalyzer::UriAnalyzer()
     _port = "";
     _query = "";
     _fragment = "";
+    _temp_buf = "";
     _state = URI_START;
+    _type = UNKNOWN_TYPE;
     _idx = 0;
     _sidx = 0;
     _ipv_digit = false;
@@ -36,8 +38,9 @@ UriAnalyzer::UriAnalyzer()
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
     : _uri(other._uri), _host(other._host), _port(other._port), _path(other._path),
-        _query(other._query), _fragment(other._fragment), _state(other._state), _idx(other._idx),
-            _sidx(other._sidx), _ipv_digit(other._ipv_digit), _ipv_dot(other._ipv_dot), _origin_form(other._origin_form)
+        _query(other._query), _fragment(other._fragment), _temp_buf(other._temp_buf),
+        _state(other._state), _type(other._type), _idx(other._idx), _sidx(other._sidx), _ipv_digit(other._ipv_digit),
+        _ipv_dot(other._ipv_dot), _origin_form(other._origin_form)
 {
 }
 
@@ -51,7 +54,9 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
         _path = other._path;
         _query = other._query;
         _fragment = other._fragment;
+        _temp_buf = other._temp_buf;
         _state = other._state;
+        _type = other._type;
         _idx = other._idx;
         _sidx = other._sidx;
         _ipv_digit = other._ipv_digit;
@@ -73,7 +78,9 @@ void UriAnalyzer::reset()
     _port = "";
     _query = "";
     _fragment = "";
+    _temp_buf = "";
     _state = URI_START;
+    _type = UNKNOWN_TYPE;
     _idx = 0;
     _sidx = 0;
     _ipv_digit = false;

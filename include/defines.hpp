@@ -113,6 +113,15 @@ enum URIState
     END_URI_PARSER
 };
 
+enum URIType
+{
+    UNKNOWN_TYPE = -1,
+    ORIGIN = 0,
+    ABSOLUTE,
+    AUTHORITY,
+    ASTERISK
+};
+
 enum ChunkState
 {
     CHUNKSIZE = 0,

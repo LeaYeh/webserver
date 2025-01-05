@@ -12,8 +12,8 @@
 namespace webkernel
 {
 
-ConnectionHandler::ConnectionHandler(Reactor* reactor)
-    : _reactor(reactor), _processor(this)
+ConnectionHandler::ConnectionHandler(Reactor* reactor) :
+    _reactor(reactor), _processor(this)
 {
 }
 
@@ -31,30 +31,33 @@ Reactor* ConnectionHandler::reactor(void) const
 
 void ConnectionHandler::handleEvent(int fd, uint32_t events)
 {
-    weblog::Logger::log(
-        weblog::DEBUG,
-        "ConnectionHandler::handleEvent() on fd: " + utils::toString(fd) +
-            " with events: " + explainEpollEvent(events));
     weblog::Logger::log(weblog::DEBUG,
-                        "Received events: " + explainEpollEvent(events) +
-                            " on fd: " + utils::toString(fd));
-    if (events & EPOLLIN)
+                        "ConnectionHandler::handleEvent() on fd: "
+                            + utils::toString(fd)
+                            + " with events: " + explainEpollEvent(events));
+    if (events & EPOLLIN) {
         _handleRead(fd);
-    else if (events & EPOLLHUP)
+    }
+    else if (events & EPOLLHUP) {
         closeConnection(fd, weblog::INFO, "Connection closed by client");
-    else if (events & EPOLLERR)
+    }
+    else if (events & EPOLLERR) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "EPOLLERR event on fd: " +
-                                       utils::toString(fd));
-    else if (events & EPOLLOUT)
+                                   "EPOLLERR event on fd: "
+                                       + utils::toString(fd));
+    }
+    else if (events & EPOLLOUT) {
         _handleWrite(fd);
-    else
+    }
+    else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "Unknown event on fd: " +
-                                       utils::toString(fd));
+                                   "Unknown event on fd: "
+                                       + utils::toString(fd));
+    }
 }
 
-void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
+void ConnectionHandler::closeConnection(int fd,
+                                        weblog::LogLevel level,
                                         std::string message)
 {
     weblog::Logger::log(level, message + " on conn_fd: " + utils::toString(fd));
@@ -67,33 +70,33 @@ void ConnectionHandler::closeConnection(int fd, weblog::LogLevel level,
 void ConnectionHandler::prepareWrite(int fd, const std::string& buffer)
 {
     weblog::Logger::log(weblog::DEBUG,
-                        "Prepare to write " + utils::toString(buffer.size()) +
-                            " bytes to fd: " + utils::toString(fd));
-    if (_write_buffer.find(fd) == _write_buffer.end())
-        _write_buffer[fd].reserve(BUFFER_SIZE);
+                        "Prepare to write " + utils::toString(buffer.size())
+                            + " bytes to fd: " + utils::toString(fd));
+    if (_write_buffer.find(fd) == _write_buffer.end()
+        && !_init_buffer(_write_buffer[fd])) {
+        closeConnection(fd, weblog::ERROR, "Write buffer allocation failed");
+    }
 
     _write_buffer[fd].append(buffer);
     _reactor->modifyHandler(fd, EPOLLOUT, 0);
 }
 
-// TODO: Consider to use the same buffer for error and normal response
 void ConnectionHandler::prepareError(int fd, const utils::HttpException& e)
 {
     weblog::Logger::log(weblog::DEBUG,
-                        "Prepare to write error response to fd: " +
-                            utils::toString(fd));
-    if (_error_buffer.find(fd) == _error_buffer.end())
-        _error_buffer[fd].reserve(BUFFER_SIZE);
-    // TODO: Here might occour OOM, need to consider closing the connection
-    // directly. ref: PR#65
-    webshell::Response err_response =
-        webshell::ResponseBuilder::error(
-            e.statusCode(), e.reasonDetail(), e.contentType());
+                        "Prepare to write error response to fd: "
+                            + utils::toString(fd));
+    if (_error_buffer.find(fd) == _error_buffer.end()
+        && !_init_buffer(_error_buffer[fd])) {
+        closeConnection(fd, weblog::ERROR, "Error buffer allocation failed");
+    }
+    webshell::Response err_response = webshell::ResponseBuilder::error(
+        e.statusCode(), e.reasonDetail(), e.contentType());
 
     weblog::Logger::log(weblog::WARNING,
                         "Error response: \n" + err_response.serialize());
-    _error_buffer[fd].append(err_response.serialize());
 
+    _error_buffer[fd].append(err_response.serialize());
     _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
     _processor.setState(fd, ERROR);
 }
@@ -107,10 +110,12 @@ state
 */
 void ConnectionHandler::_handleRead(int fd)
 {
-    if (_read_buffer.find(fd) == _read_buffer.end())
-        _read_buffer[fd].reserve(BUFFER_SIZE);
-    if (_is_buffer_full(_read_buffer[fd]))
-    {
+    if (_read_buffer.find(fd) == _read_buffer.end()
+        && !_init_buffer(_read_buffer[fd])) {
+        closeConnection(fd, weblog::ERROR, "Read buffer allocation failed");
+        return;
+    }
+    if (_is_buffer_full(_read_buffer[fd])) {
         weblog::Logger::log(
             weblog::DEBUG,
             "Read buffer is full, need to consume the buffer first.");
@@ -120,128 +125,143 @@ void ConnectionHandler::_handleRead(int fd)
     char buffer[CHUNKED_SIZE];
     ssize_t bytes_read = recv(fd, buffer, CHUNKED_SIZE, 0);
 
-    if (bytes_read < 0)
+    if (bytes_read < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "recv() failed: " +
-                                       std::string(strerror(errno)));
-    else if (bytes_read == 0)
-    {
-        if (_write_buffer.find(fd) == _write_buffer.end() ||
-            _write_buffer[fd].empty())
-            closeConnection(fd, weblog::INFO,
-                            "Read 0 bytes, client closing connection");
-        else
-            closeConnection(fd, weblog::WARNING,
-                            "Read 0 bytes, client closing connection, but "
-                            "there is data to write");
+                                   "recv() failed: "
+                                       + std::string(strerror(errno)));
     }
-    else
-    {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Read content: \n" + utils::replaceCRLF(std::string(
-                                                     buffer, bytes_read)));
-        EventProcessingState process_state = _processor.state(fd);
-        _read_buffer[fd].append(std::string(buffer, bytes_read));
-        if (!(process_state & PROCESSING))
-            _processor.analyze(fd, _read_buffer[fd]);
-        else
-            _processor.process(fd);
+    else if (bytes_read == 0) {
+        _handle_read_eof(fd);
+    }
+    else {
+        _process_read_data(fd, buffer, bytes_read);
+    }
+}
+
+void ConnectionHandler::_handle_read_eof(int fd)
+{
+    if (_write_buffer.find(fd) == _write_buffer.end()
+        || _write_buffer[fd].empty()) {
+        closeConnection(
+            fd, weblog::INFO, "Read 0 bytes, client closing connection");
+    }
+    else {
+        closeConnection(fd,
+                        weblog::WARNING,
+                        "Read 0 bytes, client closing connection, "
+                        "but there is data to write");
+    }
+}
+
+void ConnectionHandler::_process_read_data(int fd,
+                                           const char buffer[],
+                                           ssize_t bytes_read)
+{
+    weblog::Logger::log(weblog::DEBUG,
+                        "Read " + utils::toString(bytes_read)
+                            + " bytes from fd: " + utils::toString(fd));
+    weblog::Logger::log(
+        weblog::DEBUG,
+        "Read content: \n"
+            + utils::replaceCRLF(std::string(buffer, bytes_read)));
+    _read_buffer[fd].append(buffer, bytes_read);
+    EventProcessingState process_state = _processor.state(fd);
+    if (!(process_state & PROCESSING)) {
+        _processor.analyze(fd, _read_buffer[fd]);
+    }
+    else {
+        _processor.process(fd);
     }
 }
 
 void ConnectionHandler::_handleWrite(int fd)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Write event on fd: " + utils::toString(fd) +
-                            " with state: " +
-                            explainEventProcessingState(_processor.state(fd)));
+    weblog::Logger::log(
+        weblog::DEBUG,
+        "Write event on fd: " + utils::toString(fd) + " with state: "
+            + explainEventProcessingState(_processor.state(fd)));
 
-    EventProcessingState process_state = _processor.state(fd);
-    if (process_state & ERROR)
+    const EventProcessingState& process_state = _processor.state(fd);
+
+    if (process_state & ERROR) {
         _sendError(fd);
-    else if (process_state & COMPELETED)
-    {
+    }
+    else if (process_state & COMPELETED) {
         _sendNormal(fd);
         _reactor->modifyHandler(fd, EPOLLIN, EPOLLOUT);
     }
-    else if (process_state & HANDLE_CHUNKED)
-    {
+    else if (process_state & HANDLE_CHUNKED) {
         _sendNormal(fd);
         _processor.process(fd);
     }
-    else
-    {
+    else {
         weblog::Logger::log(weblog::ERROR,
-                            "Unknown state " + utils::toString(process_state) +
-                                " on fd: " + utils::toString(fd));
+                            "Unknown state " + utils::toString(process_state)
+                                + " on fd: " + utils::toString(fd));
     }
 }
 
 void ConnectionHandler::_sendNormal(int fd)
 {
-    std::map<int, std::string>::iterator it = _write_buffer.find(fd);
-
-    if (it == _write_buffer.end())
-    {
-        weblog::Logger::log(weblog::WARNING, "No write buffer found for fd: " +
-                                                 utils::toString(fd) +
-                                                 ", do nothing");
+    if (_write_buffer.find(fd) == _write_buffer.end()) {
+        weblog::Logger::log(weblog::DEBUG,
+                            "No write buffer found for fd: "
+                                + utils::toString(fd) + ", do nothing");
         return;
     }
 
     weblog::Logger::log(weblog::DEBUG,
-                        "Write content: \n" + utils::replaceCRLF(it->second));
-    int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
+                        "Write content: \n"
+                            + utils::replaceCRLF(_write_buffer[fd]));
+    int bytes_sent =
+        send(fd, _write_buffer[fd].c_str(), _write_buffer[fd].size(), 0);
 
-    if (bytes_sent < 0)
+    if (bytes_sent < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "send() failed: " +
-                                       std::string(strerror(errno)));
-    else if (bytes_sent == 0)
-    {
+                                   "send() failed: "
+                                       + std::string(strerror(errno)));
+    }
+    else if (bytes_sent == 0) {
         weblog::Logger::log(weblog::INFO,
                             "Write 0 bytes, client closing connection");
         // TODO: keep-alive?
-        closeConnection(fd, weblog::INFO,
-                        "Write 0 bytes, client closing connection");
+        closeConnection(
+            fd, weblog::INFO, "Write 0 bytes, client closing connection");
     }
-    else
-    {
+    else {
         weblog::Logger::log(weblog::DEBUG,
-                            "Sent " + utils::toString(bytes_sent) +
-                                " bytes to fd: " + utils::toString(fd));
+                            "Sent " + utils::toString(bytes_sent)
+                                + " bytes to fd: " + utils::toString(fd));
     }
-    _write_buffer.erase(it);
+    _write_buffer.erase(fd);
 }
 
 void ConnectionHandler::_sendError(int fd)
 {
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
-    if (it == _error_buffer.end())
-    {
-        weblog::Logger::log(weblog::WARNING, "No error buffer found for fd: " +
-                                                 utils::toString(fd) +
-                                                 ", do nothing");
+    if (it == _error_buffer.end()) {
+        weblog::Logger::log(weblog::WARNING,
+                            "No error buffer found for fd: "
+                                + utils::toString(fd) + ", do nothing");
         return;
     }
-    else
-    {
-        weblog::Logger::log(weblog::DEBUG, "Error buffer found for fd: " +
-                                               utils::toString(fd));
+    else {
+        weblog::Logger::log(
+            weblog::DEBUG, "Error buffer found for fd: " + utils::toString(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
         _error_buffer.erase(it);
-        if (bytes_sent < 0)
-        {
-            closeConnection(fd, weblog::ERROR,
+        if (bytes_sent < 0) {
+            closeConnection(fd,
+                            weblog::ERROR,
                             "send() failed: " + std::string(strerror(errno)));
         }
-        else
-        {
-            closeConnection(fd, weblog::WARNING,
-                            "Close the connection after handled error on fd: " +
-                                utils::toString(fd));
+        else {
+            closeConnection(fd,
+                            weblog::WARNING,
+                            "Close the connection after handled error on fd: "
+                                + utils::toString(fd));
         }
     }
 }
@@ -249,6 +269,21 @@ void ConnectionHandler::_sendError(int fd)
 bool ConnectionHandler::_is_buffer_full(const std::string& buffer) const
 {
     return (buffer.size() + CHUNKED_SIZE > BUFFER_SIZE);
+}
+
+bool ConnectionHandler::_init_buffer(std::string& buffer)
+{
+    buffer.clear();
+    try {
+        buffer.reserve(BUFFER_SIZE);
+    }
+    catch (const std::bad_alloc& e) {
+        return (false);
+    }
+    if (buffer.capacity() < BUFFER_SIZE) {
+        return (false);
+    }
+    return (true);
 }
 
 // TODO: Consider implementing the keep-alive timeout in the processor,

@@ -76,6 +76,9 @@ void RequestProcessor::process(int fd)
     webshell::Request& request = _analyzer_pool[fd].request();
     webshell::Response response = manager->handleRequest(fd, state, request);
 
+    weblog::Logger::log(weblog::DEBUG,
+                        "state: " + explainEventProcessingState(state));
+
     if (request.method() == webshell::POST) {
         // if the server still processing the upload data, we need to consume
         // the read buffer first and stop reading new requests
@@ -87,16 +90,18 @@ void RequestProcessor::process(int fd)
         if (request.empty_buffer()) {
             _reactor->modifyHandler(fd, EPOLLIN, 0);
         }
+        if (state & COMPELETED) {
+            _handler->prepareWrite(fd, response.serialize());
+            _analyzer_pool[fd].reset();
+        }
     }
-    // After processing the request, we need to reset the analyzer
-    // TODO: it is times out we need to remove it
-    if (state & COMPELETED) {
+    // for GET and DELETE requests, we can send the response directly
+    else {
         _handler->prepareWrite(fd, response.serialize());
-        _analyzer_pool[fd].reset();
+        if (state & COMPELETED) {
+            _analyzer_pool[fd].reset();
+        }
     }
-
-    weblog::Logger::log(weblog::DEBUG,
-                        "state: " + explainEventProcessingState(state));
 }
 
 void RequestProcessor::removeAnalyzer(int fd)

@@ -12,9 +12,15 @@ bool IPAddress::is_ipv4(const std::string& ip)
     std::string::size_type pos = 0;
     int count = 0;
     int num = 0;
+    bool segment_start = true;
 
     while (pos < ip.size()) {
         if (std::isdigit(ip[pos])) {
+            if (segment_start && ip[pos] == '0' && pos + 1 < ip.size()
+                && std::isdigit(ip[pos + 1])) {
+                return (false);
+            }
+            segment_start = false;
             num = num * 10 + (ip[pos] - '0');
         }
         else if (ip[pos] == '.') {
@@ -23,6 +29,7 @@ bool IPAddress::is_ipv4(const std::string& ip)
             }
             num = 0;
             count++;
+            segment_start = true;
         }
         else {
             return (false);
@@ -37,52 +44,84 @@ bool IPAddress::is_ipv4(const std::string& ip)
 
 bool IPAddress::is_ipv6(const std::string& ip)
 {
-    if (ip.empty()) {
-        return (false);
-    }
-    if (ip.length() < 2 || ip.length() > 39) {
+    if (ip.empty() || ip.length() < 2 || ip.length() > 39) {
         return (false);
     }
     std::string segment;
     int segment_count = 0;
-    int double_colon_count = 0;
     bool has_double_colon = false;
+    int segments_before_dc = 0;
+    int segments_after_dc = 0;
 
-    for (size_t i = 0; i < ip.length(); i++) {
-        char c = ip[i];
-        if (c == ':') {
-            if (segment.empty()) {
-                if (i == 0 || i == ip.length() - 1 || ip[i + 1] == ':') {
-                    return (false);
-                }
-                if (has_double_colon) {
-                    double_colon_count++;
-                    if (double_colon_count > 1) {
-                        return (false);
-                    }
-                }
-                has_double_colon = true;
-            }
-            else {
-                if (segment_count > 7) {
-                    return (false);
-                }
-                segment.clear();
-                segment_count++;
-            }
-        }
-        else if (std::isxdigit(c)) {
-            segment.push_back(c);
-            if (segment.length() > 4) {
-                return (false);
-            }
-        }
-        else {
+    for (size_t i = 0; i < ip.length() - 2; i++) {
+        if (ip[i] == ':' && ip[i + 1] == ':' && ip[i + 2] == ':') {
             return (false);
         }
     }
-    int total_segments = segment_count + 1;
-    return (total_segments >= 3 && total_segments <= 8);
+
+    for (size_t i = 0; i < ip.length(); i++) {
+        char c = ip[i];
+
+        if (c == ':') {
+            if (i + 1 < ip.length() && ip[i + 1] == ':') {
+                if (has_double_colon) {
+                    return (false); // Only one :: allowed
+                }
+                has_double_colon = true;
+                i++; // Skip next colon
+                if (!segment.empty()) {
+                    segments_before_dc = segment_count + 1;
+                }
+                else {
+                    segments_before_dc = segment_count;
+                }
+                segment.clear();
+                continue;
+            }
+
+            if (!segment.empty() || (!has_double_colon && i > 0)) {
+                segment_count++;
+            }
+            segment.clear();
+            continue;
+        }
+
+        if (!std::isxdigit(c)) {
+            return (false);
+        }
+
+        segment += c;
+        if (segment.length() > 4) {
+            return (false);
+        }
+    }
+
+    // Count the last segment if exists
+    if (!segment.empty()) {
+        segment_count++;
+    }
+
+    // If we had a ::, calculate segments after it
+    if (has_double_colon) {
+        segments_after_dc = segment_count - segments_before_dc;
+        int compressed_segments = 8 - segments_before_dc - segments_after_dc;
+        if (compressed_segments < 1) {
+            return (false);
+        }
+    }
+    else {
+        // Without ::, we need exactly 8 segments
+        if (segment_count != 8) {
+            return (false);
+        }
+    }
+
+    // Check for invalid cases like "2001:db8:::1"
+    if (has_double_colon && (segments_before_dc + segments_after_dc) >= 8) {
+        return (false);
+    }
+
+    return (true);
 }
 
 bool IPAddress::is_valid_ip(const std::string& ip)
@@ -110,12 +149,15 @@ std::string IPAddress::to_ipv6(const std::string& ip)
 {
     unsigned int octets[4];
 
+    if (!is_valid_ip(ip)) {
+        throw std::invalid_argument("Invalid IP address: " + ip);
+    }
     if (is_ipv6(ip)) {
         return (ip);
     }
     else {
-        if (!parse_ipv4(ip, octets)) {
-            throw std::invalid_argument("Invalid IPv4 address");
+        if (!is_ipv4(ip) || !parse_ipv4(ip, octets)) {
+            throw std::invalid_argument("Invalid IPv4 address: " + ip);
         }
         std::ostringstream oss;
         oss << "::ffff:";
@@ -131,13 +173,13 @@ std::string IPAddress::to_ipv4(const std::string& ip)
 {
     unsigned int octets[4];
 
+    if (!is_valid_ip(ip)) {
+        throw std::invalid_argument("Invalid IP address: " + ip);
+    }
     if (is_ipv4(ip)) {
         return (ip);
     }
     else {
-        if (!is_ipv6(ip)) {
-            throw std::invalid_argument("Invalid IPv6 address");
-        }
         std::string::size_type pos = ip.find("::ffff:");
         if (pos == std::string::npos) {
             throw std::invalid_argument("Invalid IPv6 address");
@@ -191,9 +233,15 @@ void IPAddress::demo(void)
     };
 
     for (int i = 0; i < 8; ++i) {
-        std::string ipv6 = IPAddress::to_ipv6(addresses[i]);
-        std::cout << "Original: " << addresses[i] << " -> IPv6: " << ipv6
-                  << std::endl;
+        try {
+            std::string ipv6 = IPAddress::to_ipv6(addresses[i]);
+            std::cout << "Original: " << addresses[i] << " -> IPv6: " << ipv6
+                      << std::endl;
+        }
+        catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            continue;
+        }
     }
 }
 

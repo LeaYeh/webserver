@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   UriAnalyzer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/05 17:43:08 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:16:12 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
+#include <cctype>
 #include <cstddef>
 
 namespace webshell
@@ -33,14 +34,13 @@ UriAnalyzer::UriAnalyzer()
     _sidx = 0;
     _ipv_digit = false;
     _ipv_dot = 0;
-    _origin_form = false;
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other)
     : _uri(other._uri), _host(other._host), _port(other._port), _path(other._path),
         _query(other._query), _fragment(other._fragment), _temp_buf(other._temp_buf),
         _state(other._state), _type(other._type), _idx(other._idx), _sidx(other._sidx), _ipv_digit(other._ipv_digit),
-        _ipv_dot(other._ipv_dot), _origin_form(other._origin_form)
+        _ipv_dot(other._ipv_dot)
 {
 }
 
@@ -61,7 +61,6 @@ UriAnalyzer& UriAnalyzer::operator=(const UriAnalyzer& other)
         _sidx = other._sidx;
         _ipv_digit = other._ipv_digit;
         _ipv_dot = other._ipv_dot;
-        _origin_form = other._origin_form;
     }
     return (*this);
 }
@@ -180,7 +179,7 @@ Uri UriAnalyzer::take_uri() const
     ret.path = _path;
     ret.query = _query;
     ret.fragment = _fragment;
-    ret._origin_form = _origin_form;
+    ret.type = _type;
     return (ret);
 }
 
@@ -249,34 +248,66 @@ void UriAnalyzer::_feed(unsigned char c)
 
 void UriAnalyzer::_uri_start(unsigned char c)
 {
-    if (c == 'h' || c == 'H')
-        _state = URI_SCHEME;
-    else if (c == '/')
+    if (c == '/')
     {
-        _origin_form = true;
+        _type = ORIGIN;
         _path.push_back(c);
         _state = URI_PATH_TRIAL;
     }
+    else if (c == '*')
+    {
+        _type = ASTERISK;
+        _state = END_URI_PARSER;
+    }
+    else if (std::isdigit(c))
+    {
+        _type = AUTHORITY;
+        _state = URI_HOST_IPV4;
+        _host.push_back(c);
+    }
+    else if ((_is_pchar(c) || c == '%') && c != ':')
+    {
+        _temp_buf.push_back(_lowcase(c));
+        _state = URI_LIMBO;
+    }
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
-        "only origin-form and absolute-form URI is allowed");
+        "error at uri start");
+}
+
+void UriAnalyzer::_uri_limbo(unsigned char c)
+{
+    if (_is_pchar(c) || c == '%')
+    {
+        if (c == ':')
+        {
+            if (_temp_buf == "http")
+                _state = URI_SCHEME;
+            else
+            {
+                _type = AUTHORITY;
+                _host = _temp_buf;
+                _state = URI_PORT;
+            }
+        }
+        else
+            _temp_buf.push_back(_lowcase(c));
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+        "absolute or authority form mismatch");
 }
 
 void UriAnalyzer::_uri_scheme(unsigned char c)
 {
     _sidx++;
-    if ((_sidx == 1 || _sidx == 2) && (c == 't' || c == 'T')) 
+    if (_sidx == 1 && c == '/') 
         return ;
-    if (_sidx == 3 && (c == 'p' || c == 'P')) 
-        return ;
-    if (_sidx == 4 && c == ':') 
-        return ;
-    if (_sidx == 5 && c == '/') 
-        return ;
-    if (_sidx == 6 && c == '/') 
+    if (_sidx == 2 && c == '/') 
     {
         _sidx = 0;
         _state = URI_HOST_TRIAL;
+        _type = ABSOLUTE;
         return;
     }
     throw utils::HttpException(webshell::BAD_REQUEST,
@@ -453,6 +484,13 @@ bool UriAnalyzer::_valid_hexdigit(unsigned char c)
     return (false);
 }
 
+unsigned char UriAnalyzer::_lowcase(unsigned char c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return (c += 32);
+    return (c);
+}
+
 unsigned char UriAnalyzer::_hexval(unsigned char c)
 {
     if (isdigit(c))
@@ -498,7 +536,6 @@ bool UriAnalyzer::_is_pchar(unsigned char c)
 {
     if (_is_unreserved(c))
         return (true);
-    //how to check for percent-encoded?? Need a state for that?
     if (_is_sub_delim(c))
         return (true);
     if (c == ':')

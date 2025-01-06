@@ -80,10 +80,10 @@ enum RequestMethod
 {
     UNKNOWN = -1,
     GET = 0,
-    HEAD,
     POST,
-    PUT,
-    DELETE
+    DELETE,
+    CONNECT,
+    OPTIONS
 };
 
 enum RequestLineState

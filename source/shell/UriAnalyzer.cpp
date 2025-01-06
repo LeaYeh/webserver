@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/06 01:16:12 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:32:34 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,9 @@ void UriAnalyzer::_feed(unsigned char c)
         case URI_START:
             _uri_start(c);
             break;
+        case URI_LIMBO:
+            _uri_limbo(c);
+            break;
         case URI_SCHEME:
             _uri_scheme(c);
             break;
@@ -238,6 +241,11 @@ void UriAnalyzer::_feed(unsigned char c)
         case URI_FRAGMENT: //str does not contain #
             _uri_fragment(c);
             break;
+        case END_URI_PARSER:
+        {
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Asterisk form should only contain *");
+        }
         default:
         {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

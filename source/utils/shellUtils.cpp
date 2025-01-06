@@ -1,4 +1,5 @@
 #include "shellUtils.hpp"
+#include "defines.hpp"
 
 namespace webshell
 {
@@ -58,14 +59,14 @@ std::string requestMethodToString(webshell::RequestMethod method)
     {
     case webshell::GET:
         return ("GET");
-    case webshell::HEAD:
-        return ("HEAD");
     case webshell::POST:
         return ("POST");
-    case webshell::PUT:
-        return ("PUT");
     case webshell::DELETE:
         return ("DELETE");
+    case webshell::CONNECT:
+        return ("CONNECT");
+    case webshell::OPTIONS:
+        return ("OPTIONS");
     default:
         return ("UNKNOWN");
     }

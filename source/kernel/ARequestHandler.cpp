@@ -210,7 +210,7 @@ void ARequestHandler::_handle_exception(
 
 void ARequestHandler::_update_status(EventProcessingState& state,
                                      EventProcessingState flags,
-                                     bool overwrite)
+                                     bool overwrite) const
 {
     if (overwrite) {
         state = flags;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestLineAnalyzer.cpp                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhuszar <mhuszar@student.42.fr>            +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/03 18:02:04 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:22:54 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,14 @@ RequestMethod RequestLineAnalyzer::method() const
     {
         return (DELETE);
     }
+    else if (_method == "CONNECT")
+    {
+        return (CONNECT);
+    }
+    else if (_method == "OPTIONS")
+    {
+        return (OPTIONS);
+    }
     else
     {
         return (UNKNOWN);
@@ -95,7 +103,7 @@ void RequestLineAnalyzer::feed(unsigned char ch)
         case URI:
         {
             if (_collect_uri(ch))
-                 _uri_analyzer.parse_uri(_uri);
+                _uri_analyzer.parse_uri(_uri);
             break;
         }
         case VERSION:

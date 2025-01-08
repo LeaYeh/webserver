@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/12 17:21:07 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:20:58 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class RequestAnalyzer
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;
     void _assemble_request(void);
+    void _validate_method_and_uri();
 
     // webconfig::RequestConfig* _config;
     int _server_id;

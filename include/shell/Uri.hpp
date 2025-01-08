@@ -6,11 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:18:11 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/09 18:20:03 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:15:37 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+#include "defines.hpp"
 #include <string>
 
 namespace webshell
@@ -26,6 +27,7 @@ struct Uri
     std::string path;
     std::string query;
     std::string fragment;
+    URIType type;
     // std::string userinfo; //TODO: put test case
 };
 

@@ -80,10 +80,10 @@ enum RequestMethod
 {
     UNKNOWN = -1,
     GET = 0,
-    HEAD,
     POST,
-    PUT,
-    DELETE
+    DELETE,
+    CONNECT,
+    OPTIONS
 };
 
 enum RequestLineState
@@ -101,8 +101,8 @@ enum URIState
 {
     URI_ERROR = -1,
     URI_START = 0,
+    URI_LIMBO,
     URI_SCHEME,
-    URI_REL_START,
     URI_HOST_TRIAL,
     URI_HOST_IPV4,
     URI_HOST_REGNAME,
@@ -112,6 +112,15 @@ enum URIState
     URI_QUERY,
     URI_FRAGMENT,
     END_URI_PARSER
+};
+
+enum URIType
+{
+    UNKNOWN_TYPE = -1,
+    ORIGIN = 0,
+    ABSOLUTE,
+    AUTHORITY,
+    ASTERISK
 };
 
 enum ChunkState

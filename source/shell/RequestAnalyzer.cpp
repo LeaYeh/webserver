@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/12/12 17:20:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/06 01:26:02 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ void RequestAnalyzer::feed(const char ch)
             _method = _rl_analyzer.method();
             _header_analyzer.set_method(_method);
             _uri = _rl_analyzer.uri();
+            _validate_method_and_uri();
             _version = _rl_analyzer.version();
         }
         break;
@@ -89,6 +90,18 @@ void RequestAnalyzer::feed(const char ch)
         throw std::runtime_error("Request parse error");
     }
     }
+}
+
+void RequestAnalyzer::_validate_method_and_uri()
+{
+    if ((_method == CONNECT && _uri.type == AUTHORITY)
+        || (_method == OPTIONS && _uri.type == ASTERISK)
+        || _method == UNKNOWN)
+        throw utils::HttpException(webshell::NOT_IMPLEMENTED,
+                "Only GET, POST and DELETE method supported");
+    else if (_uri.type == AUTHORITY || _uri.type == ASTERISK)
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                "Please use origin or absolute form");
 }
 
 bool RequestAnalyzer::isComplete(void) const

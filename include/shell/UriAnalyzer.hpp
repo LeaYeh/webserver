@@ -24,6 +24,7 @@ class UriAnalyzer
     void _feed(unsigned char c);
 
     void _uri_start(unsigned char c);
+    void _uri_limbo(unsigned char c);
     void _uri_rel_start(unsigned char c);
     void _uri_scheme(unsigned char c);
     void _uri_host_trial(unsigned char c);
@@ -47,6 +48,7 @@ class UriAnalyzer
     void _percent_decode_all();
     unsigned char _hexval(unsigned char c);
     bool _valid_hexdigit(unsigned char c);
+    unsigned char _lowcase(unsigned char c);
 
     std::string _remove_dot_segments() const;
     void _remove_last_segment(std::string& str) const;
@@ -59,12 +61,15 @@ class UriAnalyzer
     std::string _path;
     std::string _query;
     std::string _fragment;
+    std::string _temp_buf;
 
     URIState _state;
+    URIType _type;
     unsigned int _idx;
     int _sidx;
 
     bool _ipv_digit;
     int _ipv_dot;
+
 };
 } // namespace webshell

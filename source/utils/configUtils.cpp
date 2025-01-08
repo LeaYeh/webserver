@@ -100,9 +100,7 @@ webshell::RequestMethod string_to_request_method(const std::string& value)
     if (request_method_map.empty())
     {
         request_method_map["GET"] = webshell::GET;
-        request_method_map["HEAD"] = webshell::HEAD;
         request_method_map["POST"] = webshell::POST;
-        request_method_map["PUT"] = webshell::PUT;
         request_method_map["DELETE"] = webshell::DELETE;
     }
 

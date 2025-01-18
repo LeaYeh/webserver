@@ -14,12 +14,7 @@ class ConnectionHandler;
 
 class RequestProcessor
 {
-  public:
-    RequestProcessor(ConnectionHandler* handler);
-    RequestProcessor(const RequestProcessor& other);
-    RequestProcessor& operator=(const RequestProcessor& other);
-    ~RequestProcessor();
-
+public:
     bool analyze(int fd, std::string& buffer);
     void process(int fd);
     void removeAnalyzer(int fd);
@@ -28,14 +23,22 @@ class RequestProcessor
     void setState(int fd, EventProcessingState state);
     void resetState(int fd);
 
-  private:
-    RequestProcessor();
+public:
+    RequestProcessor(ConnectionHandler* handler);
+    RequestProcessor(const RequestProcessor& other);
+    RequestProcessor& operator=(const RequestProcessor& other);
+    ~RequestProcessor();
 
+private:
     ConnectionHandler* _handler;
     Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     std::map<int /* fd */, EventProcessingState> _state;
-    // std::map<int /* fd */, webshell::Request> _request_records;
-    // std::map<int /* fd */, webconfig::RequestConfig> _request_config_pool;
+
+private:
+    void _handle_virtual_host(int fd);
+
+private:
+    RequestProcessor();
 };
 } // namespace webkernel

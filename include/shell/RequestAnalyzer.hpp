@@ -23,9 +23,9 @@ namespace webshell
 
 class RequestAnalyzer
 {
-  public:
+public:
     RequestAnalyzer();
-    RequestAnalyzer(int server_id, std::string* read_buffer);
+    RequestAnalyzer(std::string* read_buffer);
     ~RequestAnalyzer();
     RequestAnalyzer(const RequestAnalyzer& other);
     RequestAnalyzer& operator=(const RequestAnalyzer& other);
@@ -36,15 +36,13 @@ class RequestAnalyzer
     RequestAnalyzerState state(void) const;
     Request& request(void);
 
-  private:
+private:
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;
     void _assemble_request(void);
     void _validate_method_and_uri();
 
-    // webconfig::RequestConfig* _config;
-    int _server_id;
     std::string* _read_buffer;
 
     RequestMethod _method;

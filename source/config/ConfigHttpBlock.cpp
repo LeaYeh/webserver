@@ -104,10 +104,10 @@ void ConfigHttpBlock::_parse_config_directive(const std::string& line)
         _default_type = _parse_default_type(line);
     }
     else if (directive == "autoindex_page") {
-        _autoindex_page = _parse_autoindex_page(line);
+        _autoindex_page = extract_directive_value(line, directive);
     }
     else if (directive == "error_page") {
-        _error_page = _parse_error_page(line);
+        _error_page = extract_directive_value(line, directive);
     }
     else {
         throw std::invalid_argument("Invalid directive in HTTP block: "
@@ -130,22 +130,6 @@ ConfigHttpBlock::_parse_default_type(const std::string& line)
     std::string value = extract_directive_value(line, directive);
 
     return (string_to_content_type(value));
-}
-
-std::string ConfigHttpBlock::_parse_autoindex_page(const std::string& line)
-{
-    std::string directive = _get_directive_name(line);
-    std::string value = extract_directive_value(line, directive);
-
-    return (value);
-}
-
-std::string ConfigHttpBlock::_parse_error_page(const std::string& line)
-{
-    std::string directive = _get_directive_name(line);
-    std::string value = extract_directive_value(line, directive);
-
-    return (value);
 }
 
 } // namespace webconfig

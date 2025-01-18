@@ -11,7 +11,6 @@ namespace webconfig
 
 Config::~Config()
 {
-    _file_stream.close();
 }
 
 Config* Config::create_instance()
@@ -56,7 +55,6 @@ std::vector<ConfigServerBlock>& Config::server_block_list(void)
     return (_server_block_list);
 }
 
-// const 版本
 const std::vector<ConfigServerBlock>& Config::server_block_list(void) const
 {
     return (_server_block_list);

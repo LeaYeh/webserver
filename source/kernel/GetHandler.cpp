@@ -22,17 +22,15 @@ webshell::Response GetHandler::handle(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
-    if (state == INITIAL) {
-        _pre_process(request);
-        _update_status(state, PROCESSING, true);
-    }
-    if (!request.config().redirect.empty()) {
-        return (webshell::ResponseBuilder::redirect(webshell::MOVED_PERMANENTLY,
-                                                    request.config().redirect));
-    }
-
     std::string content;
     try {
+        if (state == INITIAL) {
+            _pre_process(request);
+            _update_status(state, PROCESSING, true);
+        }
+        if (!request.config().redirect.empty()) {
+            return (_handle_redirect(request.config().redirect));
+        }
         content = _process(fd, state, request);
         _post_process(request, _target_path, content);
     }
@@ -42,8 +40,6 @@ webshell::Response GetHandler::handle(int fd,
     catch (std::exception& e) {
         _handle_exception(e);
     }
-    // prepare headers in post process and encode the content if needed e.g.
-    // gzip
     return (webshell::ResponseBuilder::ok(webshell::OK,
                                           _response_headers,
                                           content,
@@ -74,16 +70,11 @@ std::string GetHandler::_process(int fd,
                                    "Forbidden no read permission on file: "
                                        + _target_path);
     }
-    // if (!config.redirect.empty())
-    //     throw utils::HttpException(webshell::MOVED_PERMANENTLY,
-    //                                "Redirect to: " + config.redirect);
     if (utils::is_directory(_target_path)) {
         if (!config.autoindex) {
             throw utils::HttpException(webshell::FORBIDDEN,
                                        "Forbidden autoindex is disabled");
         }
-        // for autoindex the content is small so we can read it all at once, it
-        // doesn't make sense to chunk it
         _handle_autoindex(state, request.uri().path, config, content);
     }
     else {
@@ -111,8 +102,7 @@ void GetHandler::_post_process(const webshell::Request& request,
     if (!utils::is_directory(target_path)
         && (_get_respones_encoding(request) & webkernel::CHUNKED)) {
         int encoding = _get_respones_encoding(request);
-        std::string tmp = _get_encoding_string(encoding);
-        _response_headers["transfer-encoding"] = tmp;
+        _response_headers["transfer-encoding"] = _get_encoding_string(encoding);
     }
     else {
         _response_headers["content-length"] = utils::to_string(content.size());
@@ -164,7 +154,7 @@ void GetHandler::_handle_chunked(int fd,
     content = _chunked_codec.encode(content);
     if (file.eof()) {
         _chunked_file_records.erase(fd);
-        content += "0\r\n\r\n";
+        content += CHUNKED_END_MARKER;
         _update_status(state, COMPELETED, true);
     }
     else if (file.tellg() == -1) {
@@ -223,6 +213,12 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Template engine failed");
     }
+}
+
+webshell::Response GetHandler::_handle_redirect(const std::string& path) const
+{
+    return (
+        webshell::ResponseBuilder::redirect(webshell::MOVED_PERMANENTLY, path));
 }
 
 } // namespace webkernel

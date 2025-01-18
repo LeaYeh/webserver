@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #pragma once
-
 #include "HeaderAnalyzer.hpp"
 #include "Request.hpp"
 #include "RequestLineAnalyzer.hpp"
@@ -23,36 +22,35 @@ namespace webshell
 
 class RequestAnalyzer
 {
-  public:
-    RequestAnalyzer();
-    RequestAnalyzer(int server_id, std::string* read_buffer);
-    ~RequestAnalyzer();
-    RequestAnalyzer(const RequestAnalyzer& other);
-    RequestAnalyzer& operator=(const RequestAnalyzer& other);
-
+public:
     void feed(const char ch);
-    bool isComplete(void) const;
+    bool is_complete(void) const;
     void reset(void);
     RequestAnalyzerState state(void) const;
     Request& request(void);
 
-  private:
+public:
+    RequestAnalyzer();
+    RequestAnalyzer(std::string* read_buffer);
+    ~RequestAnalyzer();
+    RequestAnalyzer(const RequestAnalyzer& other);
+    RequestAnalyzer& operator=(const RequestAnalyzer& other);
+
+private:
     RequestAnalyzerState _state;
     RequestLineAnalyzer _rl_analyzer;
     HeaderAnalyzer _header_analyzer;
-    void _assemble_request(void);
-    void _validate_method_and_uri();
-
-    // webconfig::RequestConfig* _config;
-    int _server_id;
     std::string* _read_buffer;
-
     RequestMethod _method;
     Uri _uri;
     float _version;
     std::map<std::string, std::string> _headers;
     std::string _body;
     Request _req;
+
+private:
+    void _assemble_request(void);
+    void _validate_method_and_uri();
 };
 
 } // namespace webshell
@@ -78,7 +76,7 @@ std::string(strerror(errno)));
     else
     {
         request_parser.read(buf, bytes_read);
-        if (request_parser.isComplete())
+        if (request_parser.is_complete())
         {
             request_parser.partial_body();
             break;
@@ -86,7 +84,7 @@ std::string(strerror(errno)));
     }
 }
 
-if (request_parser.isComplete())
+if (request_parser.is_complete())
 {
     // Process the request
 }

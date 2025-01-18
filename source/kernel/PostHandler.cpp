@@ -38,13 +38,13 @@ webshell::Response PostHandler::handle(int fd,
 {
     try {
         if (state == INITIAL) {
-            _preProcess(request);
+            _pre_process(request);
         }
         _update_status(state, PROCESSING);
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {
-        _handle_exception(e, e.statusCode(), webshell::TEXT_PLAIN);
+        _handle_exception(e, e.status_code(), webshell::TEXT_PLAIN);
     }
     catch (std::exception& e) {
         _handle_exception(e);
@@ -59,9 +59,9 @@ webshell::Response PostHandler::handle(int fd,
 webshell::Response
 PostHandler::_handle_completed(int fd, const webshell::Request& request)
 {
-    _postProcess(request,
-                 _upload_record_pool[fd]->target_filename(),
-                 _upload_record_pool[fd]->serialize());
+    _post_process(request,
+                  _upload_record_pool[fd]->target_filename(),
+                  _upload_record_pool[fd]->serialize());
     webshell::StatusCode status_code = _upload_record_pool[fd]->already_exist()
                                            ? webshell::OK
                                            : webshell::CREATED;
@@ -74,9 +74,9 @@ PostHandler::_handle_completed(int fd, const webshell::Request& request)
     return (response);
 }
 
-void PostHandler::_preProcess(const webshell::Request& request)
+void PostHandler::_pre_process(const webshell::Request& request)
 {
-    ARequestHandler::_preProcess(request);
+    ARequestHandler::_pre_process(request);
     const webconfig::RequestConfig& config = request.config();
 
     _target_path = config.root + config.upload_path;
@@ -123,17 +123,17 @@ std::string PostHandler::_process(int fd,
     return ("");
 }
 
-void PostHandler::_postProcess(const webshell::Request& request,
-                               const std::string& target_path,
-                               const std::string& content)
+void PostHandler::_post_process(const webshell::Request& request,
+                                const std::string& target_path,
+                                const std::string& content)
 {
     // TODO: Add upload redirect
     (void)request;
 
     _response_headers.clear();
     _response_headers["Content-Type"] =
-        webshell::contentTypeToString(webshell::APPLICATION_JSON);
-    _response_headers["Content-Length"] = utils::toString(content.size());
+        webshell::content_type_to_string(webshell::APPLICATION_JSON);
+    _response_headers["Content-Length"] = utils::to_string(content.size());
     _response_headers["Location"] = target_path;
 }
 
@@ -185,7 +185,7 @@ PostHandler::_determine_content_type(const webshell::Request& request)
             content_type = webshell::APPLICATION_JSON;
         }
     }
-    return (webshell::contentTypeToString(content_type));
+    return (webshell::content_type_to_string(content_type));
 }
 
 std::string
@@ -193,7 +193,7 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
 {
     std::string safe_file_path = _target_path;
 
-    if (utils::isDirectory(safe_file_path)) {
+    if (utils::is_directory(safe_file_path)) {
         if (access(safe_file_path.c_str(), F_OK) == -1) {
             throw utils::HttpException(
                 webshell::NOT_FOUND, "Directory not found: " + safe_file_path);
@@ -237,7 +237,7 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
         if (!file_stream.good()) {
             throw utils::HttpException(
                 webshell::INTERNAL_SERVER_ERROR,
-                "Write file failed: " + utils::toString(std::strerror(errno)));
+                "Write file failed: " + utils::to_string(std::strerror(errno)));
         }
         offset += write_size;
         remaining -= write_size;
@@ -248,8 +248,8 @@ void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
 void PostHandler::_check_upload_permission(const webshell::Request& request)
 {
     if (!request.config().enable_upload) {
-        throw utils::HttpException(
-            webshell::FORBIDDEN, "Upload is not allowed");
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Upload is not allowed");
     }
 }
 

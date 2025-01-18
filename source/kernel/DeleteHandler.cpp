@@ -17,15 +17,15 @@ webshell::Response DeleteHandler::handle(int fd,
                                          webshell::Request& request)
 {
     if (state == INITIAL) {
-        _preProcess(request);
+        _pre_process(request);
         _update_status(state, PROCESSING, true);
     }
     try {
         _process(fd, state, request);
-        _postProcess(request, _target_path, "");
+        _post_process(request, _target_path, "");
     }
     catch (utils::HttpException& e) {
-        _handle_exception(e, e.statusCode());
+        _handle_exception(e, e.status_code());
     }
     catch (std::exception& e) {
         _handle_exception(e);
@@ -34,9 +34,9 @@ webshell::Response DeleteHandler::handle(int fd,
         webshell::NO_CONTENT, _response_headers, "", false);
 }
 
-void DeleteHandler::_preProcess(const webshell::Request& request)
+void DeleteHandler::_pre_process(const webshell::Request& request)
 {
-    ARequestHandler::_preProcess(request);
+    ARequestHandler::_pre_process(request);
     const webconfig::RequestConfig& config = request.config();
 
     _target_path = config.root + request.uri().path;
@@ -49,7 +49,7 @@ std::string DeleteHandler::_process(int fd,
     (void)fd;
     (void)request;
 
-    if (utils::isDirectory(_target_path)) {
+    if (utils::is_directory(_target_path)) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Cannot delete directory: " + _target_path);
     }
@@ -70,9 +70,9 @@ std::string DeleteHandler::_process(int fd,
     return "";
 }
 
-void DeleteHandler::_postProcess(const webshell::Request& request,
-                                 const std::string& target_path,
-                                 const std::string& content)
+void DeleteHandler::_post_process(const webshell::Request& request,
+                                  const std::string& target_path,
+                                  const std::string& content)
 {
     (void)request;
     (void)target_path;

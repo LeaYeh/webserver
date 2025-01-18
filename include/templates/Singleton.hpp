@@ -4,43 +4,47 @@
 namespace templates
 {
 
-template <typename TType, typename TParam>
-class Singleton
+template <typename TType, typename TParam> class Singleton
 {
-  public:
-    static TType* instance() {
+public:
+    static TType* instance()
+    {
         if (!_instance) {
-            throw std::runtime_error("Instance not yet created. Call instantiate() first.");
+            throw std::runtime_error(
+                "Instance not yet created. Call instantiate() first.");
         }
         return _instance;
     }
 
-    static void instantiate() {
+    static void instantiate()
+    {
         if (!_instance) {
-            _instance = TType::createInstance();
+            _instance = TType::create_instance();
         }
     }
 
-    static void instantiate(const TParam& param) {
+    static void instantiate(const TParam& param)
+    {
         if (!_instance) {
-            _instance = TType::createInstance(param);
+            _instance = TType::create_instance(param);
         }
     }
 
-    static void destroy() {
+    static void destroy()
+    {
         if (_instance) {
             delete _instance;
             _instance = NULL;
         }
     }
 
-  protected:
-    Singleton() {};
-    ~Singleton() {};
+protected:
+    Singleton(){};
+    ~Singleton(){};
     Singleton(const Singleton&);
     Singleton& operator=(const Singleton&);
 
-  private:
+private:
     static TType* _instance;
 };
 

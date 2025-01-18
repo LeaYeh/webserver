@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-
 // TODO: Need to support alias but not just root
 // TODO: Consider to change the format to be more like nginx?
 namespace webconfig
@@ -13,28 +12,29 @@ namespace webconfig
 
 class ConfigLocationBlock : public AConfigParser
 {
-  public:
+public:
+    std::string route(void) const;
+    std::vector<webshell::RequestMethod> limit_except(void) const;
+    std::string root(void) const;
+    std::string index(void) const;
+    std::string redirect(void) const;
+    bool autoindex(void) const;
+    std::string cgi_extension(void) const;
+    std::string cgi_path(void) const;
+    bool enable_upload(void) const;
+    std::string upload_path(void) const;
+
+    std::string parse(std::ifstream& file_stream);
+    void print_config(void) const;
+
+public:
     ConfigLocationBlock();
     ConfigLocationBlock(const ConfigLocationBlock& other);
     ConfigLocationBlock& operator=(const ConfigLocationBlock& other);
     ~ConfigLocationBlock();
     bool operator<(const ConfigLocationBlock& other) const;
 
-    std::string route(void) const;
-    std::vector<webshell::RequestMethod> limitExcept(void) const;
-    std::string root(void) const;
-    std::string index(void) const;
-    std::string redirect(void) const;
-    bool autoindex(void) const;
-    std::string cgiExtension(void) const;
-    std::string cgiPath(void) const;
-    bool enableUpload(void) const;
-    std::string uploadPath(void) const;
-
-    std::string parse(std::ifstream& file_stream);
-    void printConfig(void) const;
-
-  private:
+private:
     std::string _route;
     std::vector<webshell::RequestMethod> _limit_except;
     std::string _root;
@@ -46,12 +46,14 @@ class ConfigLocationBlock : public AConfigParser
     bool _enable_upload;
     std::string _upload_path;
 
-    void _parseConfigDirective(const std::string& line);
+private:
+    void _parse_config_directive(const std::string& line);
     std::vector<webshell::RequestMethod>
-    _parseLimitExcept(const std::string& line, const std::string& directive);
-    bool _parseAutoindex(const std::string& line, const std::string& directive);
-    bool _parseEnableUpload(const std::string& line,
-                            const std::string& directive);
+    _parse_limit_except(const std::string& line, const std::string& directive);
+    bool _parse_autoindex(const std::string& line,
+                          const std::string& directive);
+    bool _parse_enable_upload(const std::string& line,
+                              const std::string& directive);
 };
 
 } // namespace webconfig

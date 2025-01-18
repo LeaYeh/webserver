@@ -22,9 +22,7 @@ OperationInterrupt::OperationInterrupt(bool primer)
     primed = primer;
 }
 
-OperationInterrupt::~OperationInterrupt() throw()
-{
-}
+OperationInterrupt::~OperationInterrupt() throw() {}
 
 OperationInterrupt::OperationInterrupt(const OperationInterrupt& other)
 {

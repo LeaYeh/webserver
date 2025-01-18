@@ -25,10 +25,10 @@ private:
 private:
     std::string
     _process(int fd, EventProcessingState& state, webshell::Request& request);
-    void _preProcess(const webshell::Request& request);
-    void _postProcess(const webshell::Request& request,
-                      const std::string& target_path,
-                      const std::string& content);
+    void _pre_process(const webshell::Request& request);
+    void _post_process(const webshell::Request& request,
+                       const std::string& target_path,
+                       const std::string& content);
 
     void _handle_standard(EventProcessingState& state,
                           const std::string& target_path,
@@ -41,6 +41,7 @@ private:
                            const std::string& request_path,
                            const webconfig::RequestConfig& config,
                            std::string& content);
+    webshell::Response _handle_redirect(const std::string& path) const;
 
 private:
     GetHandler(const GetHandler& other);

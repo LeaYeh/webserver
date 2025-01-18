@@ -15,5 +15,8 @@ std::string format_time(time_t time);
 std::string get_object_type(const std::string& path);
 std::string explainEventProcessingState(EventProcessingState state);
 std::string uuid();
+std::string get_socket_address(int fd);
+std::string get_socket_address(const struct sockaddr_storage& addr);
+std::string format_address(const struct sockaddr_storage& addr);
 
 } // namespace webkernel

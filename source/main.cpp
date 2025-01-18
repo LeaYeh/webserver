@@ -34,15 +34,16 @@ void uncatchable_exception_handler(void)
 
 int main(int argc, char** argv)
 {
-    // std::set_terminate(uncatchable_exception_handler);
+    std::set_terminate(uncatchable_exception_handler);
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return (FAILURE);
     }
     weblog::Logger::instantiate();
-    webconfig::Config::instantiate(argv[1]);
-    webconfig::Config* config = webconfig::Config::instance();
+    webconfig::Config* config = NULL;
     try {
+        webconfig::Config::instantiate(argv[1]);
+        config = webconfig::Config::instance();
         signal(SIGINT, handle_terminate_signal);
         weblog::Logger* logger = weblog::Logger::instance();
         logger->set_level(weblog::DEBUG);

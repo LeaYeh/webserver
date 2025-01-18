@@ -15,7 +15,7 @@ public:
     std::pair<std::string, std::string> listen(void) const;
     std::vector<std::pair<std::string, weblog::LogLevel> >
     error_log(void) const;
-    unsigned int keep_alive_timeout(void) const;
+    size_t keep_alive_timeout(void) const;
     std::vector<ConfigLocationBlock>& location_block_list(void);
 
     std::string parse(std::ifstream& file_stream);
@@ -31,7 +31,7 @@ private:
     std::string _server_name;
     std::pair<std::string, std::string> _listen;
     std::vector<std::pair<std::string, weblog::LogLevel> > _error_log;
-    unsigned int _keep_alive_timeout;
+    size_t _keep_alive_timeout;
     bool _is_location_block_sorted;
     std::vector<ConfigLocationBlock> _location_block_list;
 
@@ -41,8 +41,8 @@ private:
     _parse_listen(const std::string& line, const std::string& directive);
     std::pair<std::string, weblog::LogLevel>
     _parse_error_log(const std::string& line, const std::string& directive);
-    unsigned int _parse_keep_alive_timeout(const std::string& line,
-                                           const std::string& directive);
+    size_t _parse_keep_alive_timeout(const std::string& line,
+                                     const std::string& directive);
 };
 
 } // namespace webconfig

@@ -193,9 +193,7 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     if ((dir = opendir(target_path.c_str())) != NULL) {
         std::string object_path;
         while ((ent = readdir(dir)) != NULL) {
-            // object_path = request_path + std::string(ent->d_name);
-            // if (utils::is_file(target_path + std::string(ent->d_name)))
-            object_path = request_path + "/" + std::string(ent->d_name);
+            object_path = utils::join(request_path, std::string(ent->d_name));
             list_items +=
                 "<tr><td><a href=\"" + object_path + "\">"
                 + std::string(ent->d_name) + "</a></td><td>"

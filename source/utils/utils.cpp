@@ -89,6 +89,23 @@ std::string file_extension(const std::string& path)
     return (path.substr(pos + 1));
 }
 
+std::string join(const std::string& path1, const std::string& path2)
+{
+    if (path1.empty()) {
+        return (path2);
+    }
+    if (path2.empty()) {
+        return (path1);
+    }
+    if (path1[path1.size() - 1] == '/' && path2[0] == '/') {
+        return (path1 + path2.substr(1));
+    }
+    if (path1[path1.size() - 1] != '/' && path2[0] != '/') {
+        return (path1 + "/" + path2);
+    }
+    return (path1 + path2);
+}
+
 // bool setup_nonblocking(int fd)
 // {
 //     int flags = fcntl(fd, F_GETFL, 0);

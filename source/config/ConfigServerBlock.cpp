@@ -66,7 +66,7 @@ ConfigServerBlock::error_log(void) const
     return (_error_log);
 }
 
-unsigned int ConfigServerBlock::keep_alive_timeout(void) const
+size_t ConfigServerBlock::keep_alive_timeout(void) const
 {
     return (_keep_alive_timeout);
 }
@@ -86,7 +86,6 @@ std::string ConfigServerBlock::parse(std::ifstream& file_stream)
     std::string line;
 
     while (std::getline(file_stream, line)) {
-        // std::cout << "SERVER line: " << line << std::endl;
         if (_need_to_skip(line)) {
             continue;
         }
@@ -174,7 +173,7 @@ ConfigServerBlock::_parse_error_log(const std::string& line,
                            string_to_level(value.substr(pos + 1))));
 }
 
-unsigned int
+size_t
 ConfigServerBlock::_parse_keep_alive_timeout(const std::string& line,
                                              const std::string& directive)
 {

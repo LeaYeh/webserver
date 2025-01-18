@@ -16,7 +16,7 @@ struct RequestConfig
 
     // Server level configuration
     std::vector<std::pair<std::string, weblog::LogLevel> > error_log;
-    unsigned int keep_alive_timeout;
+    size_t keep_alive_timeout;
     std::string server_name;
 
     // Location level configuration

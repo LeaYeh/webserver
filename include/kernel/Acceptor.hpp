@@ -15,17 +15,20 @@ namespace webkernel
 
 class Acceptor : public IHandler
 {
-  public:
+public:
+    void handleEvent(int fd, uint32_t events);
+
+public:
     Acceptor(Reactor* reactor);
     Acceptor(const Acceptor& other);
     Acceptor& operator=(const Acceptor& other);
     ~Acceptor();
 
-    void handleEvent(int fd, uint32_t events);
-
-  private:
-    Acceptor();
+private:
     Reactor* _reactor;
+
+private:
+    Acceptor();
 };
 
 } // namespace webkernel

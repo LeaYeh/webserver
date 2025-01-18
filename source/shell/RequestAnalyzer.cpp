@@ -17,37 +17,41 @@
 namespace webshell
 {
 
-RequestAnalyzer::RequestAnalyzer()
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer()
+RequestAnalyzer::RequestAnalyzer() :
+    _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer()
 {
 }
 
-RequestAnalyzer::RequestAnalyzer(int server_id, std::string* read_buffer)
-    : _state(PARSING_REQUEST_LINE), _rl_analyzer(), _header_analyzer(),
-      _server_id(server_id), _read_buffer(read_buffer)
+RequestAnalyzer::RequestAnalyzer(std::string* read_buffer) :
+    _state(PARSING_REQUEST_LINE),
+    _rl_analyzer(),
+    _header_analyzer(),
+    _read_buffer(read_buffer)
 {
 }
 
-RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other)
-    : _state(other._state), _rl_analyzer(other._rl_analyzer),
-      _header_analyzer(other._header_analyzer), _server_id(other._server_id),
-      _read_buffer(other._read_buffer), _method(other._method), _uri(other._uri),
-      _version(other._version), _headers(other._headers), _body(other._body), _req(other._req)
+RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other) :
+    _state(other._state),
+    _rl_analyzer(other._rl_analyzer),
+    _header_analyzer(other._header_analyzer),
+    _read_buffer(other._read_buffer),
+    _method(other._method),
+    _uri(other._uri),
+    _version(other._version),
+    _headers(other._headers),
+    _body(other._body),
+    _req(other._req)
 {
 }
 
-RequestAnalyzer::~RequestAnalyzer()
-{
-}
+RequestAnalyzer::~RequestAnalyzer() {}
 
 RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         _state = other._state;
         _rl_analyzer = other._rl_analyzer;
         _header_analyzer = other._header_analyzer;
-        _server_id = other._server_id;
         _read_buffer = other._read_buffer;
         _method = other._method;
         _uri = other._uri;
@@ -61,12 +65,10 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
 
 void RequestAnalyzer::feed(const char ch)
 {
-    switch (_state)
-    {
+    switch (_state) {
     case PARSING_REQUEST_LINE:
         _rl_analyzer.feed(ch);
-        if (_rl_analyzer.done())
-        {
+        if (_rl_analyzer.done()) {
             _state = PARSING_REQUEST_HEADERS;
             _method = _rl_analyzer.method();
             _header_analyzer.set_method(_method);
@@ -77,15 +79,13 @@ void RequestAnalyzer::feed(const char ch)
         break;
     case PARSING_REQUEST_HEADERS:
         _header_analyzer.feed(ch);
-        if (_header_analyzer.done())
-        {
+        if (_header_analyzer.done()) {
             _headers = _header_analyzer.headers();
             _assemble_request();
             _state = COMPLETE;
         }
         break;
-    default:
-    {
+    default: {
         std::cerr << "State received: " << _state << std::endl;
         throw std::runtime_error("Request parse error");
     }
@@ -147,10 +147,11 @@ void RequestAnalyzer::_assemble_request()
     _req.setVersion(_version);
     _req.setHeaders(_headers);
     _req.setReference(_read_buffer);
-    if (!_req.setupRequestConfig(_server_id))
-        throw utils::HttpException(webshell::NOT_FOUND,
-                                   "No matching location block found: " +
-                                       _uri.path);
+    // if (!_req.setupRequestConfig()) {
+    //     throw utils::HttpException(webshell::NOT_FOUND,
+    //                                "No matching location block found: "
+    //                                    + _uri.path);
+    // }
 }
 
 } // namespace webshell

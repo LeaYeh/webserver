@@ -1,6 +1,7 @@
 #pragma once
 #include "ChunkedCodec.hpp"
 #include "RequestConfig.hpp"
+#include "ConfigServerBlock.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include <cstddef>
@@ -40,7 +41,7 @@ class Request
     // void setBody(std::string& body);
     void addHeader(std::string& name, std::string& value);
     void setReference(std::string* read_buffer);
-    bool setupRequestConfig(int server_id);
+    void setup_config(webconfig::ConfigServerBlock* server_config);
 
   private:
     bool _proceed_content_len(std::vector<char>& chunked_body);

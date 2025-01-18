@@ -4,6 +4,7 @@
 #include "IHandler.hpp"
 #include "Reactor.hpp"
 #include "RequestProcessor.hpp"
+#include "VirtualHostManager.hpp"
 #include "defines.hpp"
 #include <ctime>
 #include <map>
@@ -17,6 +18,9 @@ namespace webkernel
 static const size_t BUFFER_SIZE = 4096;
 class ConnectionHandler : public IHandler
 {
+public:
+    VirtualHostManager vhost_manager;
+
 public:
     Reactor* reactor(void) const;
 

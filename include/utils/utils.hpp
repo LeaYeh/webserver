@@ -27,6 +27,7 @@ bool start_with(const std::string& str, const std::string& prefix);
 std::string basefolder(const std::string& path);
 std::string basename(const std::string& path);
 std::string file_extension(const std::string& path);
+std::string join(const std::string& path1, const std::string& path2);
 
 template <typename T> std::string to_string(const T& value)
 {

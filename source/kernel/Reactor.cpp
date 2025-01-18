@@ -17,7 +17,7 @@ namespace webkernel
 Reactor::Reactor(ReactorType type) : conn_handler(NULL), _type(type)
 {
     weblog::Logger::log(weblog::DEBUG,
-                        "Reactor::Reactor(" + utils::toString(type) + ")");
+                        "Reactor::Reactor(" + utils::to_string(type) + ")");
     if (_type == REACTOR) {
         _epoll_fd = epoll_create1(0);
         conn_handler = new ConnectionHandler(this);
@@ -36,7 +36,7 @@ Reactor::Reactor(ReactorType type) : conn_handler(NULL), _type(type)
         throw std::runtime_error("epoll_create1 failed");
     }
     weblog::Logger::log(weblog::DEBUG,
-                        "Created epoll fd: " + utils::toString(_epoll_fd));
+                        "Created epoll fd: " + utils::to_string(_epoll_fd));
 }
 
 Reactor::Reactor(const Reactor& other) :
@@ -65,7 +65,7 @@ Reactor& Reactor::operator=(const Reactor& other)
 Reactor::~Reactor()
 {
     weblog::Logger::log(weblog::DEBUG, "Reactor::~Reactor()");
-    utils::safeClose(_epoll_fd);
+    utils::safe_close(_epoll_fd);
     for (std::map<int, IHandler*>::iterator it = _handlers.begin();
          it != _handlers.end();
          it++) {
@@ -89,23 +89,23 @@ void Reactor::run(void)
 }
 
 // Add the handler to the map and register the fd with epoll
-void Reactor::registerHandler(int fd, IHandler* handler, uint32_t events)
+void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
 {
     struct epoll_event ev = {.events = 0, .data = {0}};
     ev.events = events;
     ev.data.fd = fd;
 
     weblog::Logger::log(weblog::DEBUG,
-                        "Registering handler with fd: " + utils::toString(fd));
+                        "Registering handler with fd: " + utils::to_string(fd));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
         throw std::runtime_error("epoll_ctl failed");
     }
     _handlers[fd] = handler;
 }
 
-void Reactor::modifyHandler(int fd,
-                            uint32_t events_to_add,
-                            uint32_t events_to_remove)
+void Reactor::modify_handler(int fd,
+                             uint32_t events_to_add,
+                             uint32_t events_to_remove)
 {
     struct epoll_event ev = {.events = 0, .data = {0}};
 
@@ -120,7 +120,7 @@ void Reactor::modifyHandler(int fd,
     ev.events &= ~events_to_remove;
     ev.data.fd = fd;
     weblog::Logger::log(weblog::DEBUG,
-                        "Modifying handler with fd: " + utils::toString(fd)
+                        "Modifying handler with fd: " + utils::to_string(fd)
                             + ", new events: " + explainEpollEvent(ev.events));
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
@@ -128,25 +128,20 @@ void Reactor::modifyHandler(int fd,
     }
 }
 
-void Reactor::removeHandler(int fd)
+void Reactor::remove_handler(int fd)
 {
     std::map<int, IHandler*>::iterator it = _handlers.find(fd);
     if (it != _handlers.end()) {
         weblog::Logger::log(weblog::DEBUG,
-                            "Removed handler with fd: " + utils::toString(fd));
+                            "Removed handler with fd: " + utils::to_string(fd));
         if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1) {
             throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on "
-                                     + utils::toString(fd) + ": "
+                                     + utils::to_string(fd) + ": "
                                      + std::string(strerror(errno)));
         }
         close(it->first);
         _handlers.erase(it);
     }
-}
-
-int Reactor::epollFd(void) const
-{
-    return (_epoll_fd);
 }
 
 void Reactor::_check_interrupt(void) const
@@ -170,8 +165,9 @@ void Reactor::_wait_for_events(struct epoll_event* events)
                                 + std::string(strerror(errno)));
         throw std::runtime_error("epoll_wait failed");
     }
-    weblog::Logger::log(
-        weblog::DEBUG, "Reactor received " + utils::toString(nfds) + " events");
+    weblog::Logger::log(weblog::DEBUG,
+                        "Reactor received " + utils::to_string(nfds)
+                            + " events");
     _handle_events(events, nfds);
 }
 
@@ -182,14 +178,14 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
 
         if (_handlers.find(fd) == _handlers.end()) {
             throw std::runtime_error("Handler not found for fd: "
-                                     + utils::toString(fd));
+                                     + utils::to_string(fd));
         }
         try {
-            _handlers[fd]->handleEvent(fd, events[i].events);
+            _handlers[fd]->handle_event(fd, events[i].events);
         }
         catch (utils::HttpException& e) {
             weblog::Logger::log(weblog::ERROR, e.what());
-            conn_handler->prepareError(fd, e);
+            conn_handler->prepare_error(fd, e);
         }
     }
 }

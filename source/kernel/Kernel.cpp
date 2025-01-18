@@ -1,9 +1,12 @@
 #include "Kernel.hpp"
+#include "Config.hpp"
 #include "ConfigServerBlock.hpp"
+#include "ConnectionHandler.hpp"
+#include "Logger.hpp"
 #include "Reactor.hpp"
 #include "VirtualHostManager.hpp"
 #include "defines.hpp"
-#include "utils/Logger.hpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -17,7 +20,7 @@ namespace webkernel
 Kernel::Kernel()
 {
     webconfig::Config* config = webconfig::Config::instance();
-    if (config->globalBlock().workerProcesses() == 1) {
+    if (config->global_block().worker_processes() == 1) {
         weblog::Logger::log(
             weblog::INFO, "Create single reactor and single worker structure");
         _reactor = new Reactor(REACTOR);
@@ -30,7 +33,7 @@ Kernel::Kernel()
         _reactor = new Reactor(DISPATCHER);
         _acceptor = new Acceptor(_reactor);
         _registerListener();
-        for (unsigned int i = 1; i < config->globalBlock().workerProcesses();
+        for (unsigned int i = 1; i < config->global_block().worker_processes();
              i++) {
             pid_t pid = fork();
 
@@ -84,8 +87,9 @@ void Kernel::_registerListener(void)
 {
     webconfig::Config* config = webconfig::Config::instance();
 
-    for (size_t i = 0; i < config->serverBlockList().size(); i++) {
-        webconfig::ConfigServerBlock& servConfig = config->serverBlockList()[i];
+    for (size_t i = 0; i < config->server_block_list().size(); i++) {
+        webconfig::ConfigServerBlock& servConfig =
+            config->server_block_list()[i];
         const std::string ipaddr =
             servConfig.listen().first + ":" + servConfig.listen().second;
         VirtualHostManager& vhost_manager =
@@ -102,7 +106,7 @@ void Kernel::_registerListener(void)
                                      + std::string(strerror(errno)));
         }
         weblog::Logger::log(weblog::INFO, "Listening on " + ipaddr);
-        _reactor->registerHandler(fd, _acceptor, EPOLLIN);
+        _reactor->register_handler(fd, _acceptor, EPOLLIN);
     }
 }
 
@@ -143,7 +147,7 @@ int Kernel::_createListenSocket(const char* ip, const char* port)
     catch (const std::exception& e) {
         freeaddrinfo(res);
         if (fd >= 0) {
-            utils::safeClose(fd);
+            utils::safe_close(fd);
         }
         std::cerr << e.what() << std::endl;
         throw e;

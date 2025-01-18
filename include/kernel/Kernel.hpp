@@ -1,12 +1,7 @@
 #pragma once
-
 #include "Acceptor.hpp"
-#include "Config.hpp"
 #include "Reactor.hpp"
-#include "defines.hpp"
-#include <iostream>
 #include <netdb.h>
-#include <stdexcept>
 #include <sys/socket.h>
 
 namespace webkernel
@@ -14,7 +9,7 @@ namespace webkernel
 
 class Kernel
 {
-  public:
+public:
     Kernel();
     Kernel(const Kernel& other);
     Kernel& operator=(const Kernel& other);
@@ -22,7 +17,7 @@ class Kernel
 
     void run(void);
 
-  private:
+private:
     Reactor* _reactor;
     Acceptor* _acceptor;
 

@@ -1,25 +1,26 @@
 #pragma once
 #include "ARequestHandler.hpp"
-#include "RequestConfig.hpp"
 #include "defines.hpp"
 
 namespace webkernel
 {
 class RequestHandlerManager
 {
-  public:
-    static RequestHandlerManager& getInstance();
+public:
+    static RequestHandlerManager& get_instance();
 
-    webshell::Response handleRequest(int fd, EventProcessingState& state,
-                                     webshell::Request& request);
+    webshell::Response handle_request(int fd,
+                                      EventProcessingState& state,
+                                      webshell::Request& request);
 
-  private:
+private:
+    std::map<webshell::RequestMethod, ARequestHandler*> _handlers;
+
+private:
     ~RequestHandlerManager();
     RequestHandlerManager();
     RequestHandlerManager(const RequestHandlerManager&);
     RequestHandlerManager& operator=(const RequestHandlerManager&);
-
-    std::map<webshell::RequestMethod, ARequestHandler*> _handlers;
 };
 
 } // namespace webkernel

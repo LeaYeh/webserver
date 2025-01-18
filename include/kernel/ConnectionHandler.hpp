@@ -24,10 +24,10 @@ public:
 public:
     Reactor* reactor(void) const;
 
-    void handleEvent(int fd, uint32_t events);
-    void closeConnection(int fd, weblog::LogLevel level, std::string message);
-    void prepareWrite(int fd, const std::string& buffer);
-    void prepareError(int fd, const utils::HttpException& e);
+    void handle_event(int fd, uint32_t events);
+    void close_connection(int fd, weblog::LogLevel level, std::string message);
+    void prepare_write(int fd, const std::string& buffer);
+    void prepare_error(int fd, const utils::HttpException& e);
 
 public:
     ConnectionHandler(Reactor* reactor);
@@ -43,20 +43,20 @@ private:
     std::map<int /*fd*/, std::string> _error_buffer;
 
 private:
-    void _handleRead(int fd);
+    void _handle_read(int fd);
     void _handle_read_eof(int fd);
     void _process_read_data(int fd, const char buffer[], ssize_t bytes_read);
-    void _handleWrite(int fd);
-    void _sendNormal(int fd);
-    void _sendError(int fd);
+    void _handle_write(int fd);
+    void _send_normal(int fd);
+    void _send_error(int fd);
     bool _is_buffer_full(const std::string& buffer) const;
     bool _init_buffer(std::string& buffer);
+    // bool _keepAlive(void);
 
 private:
     ConnectionHandler();
     ConnectionHandler(const ConnectionHandler& other);
     ConnectionHandler& operator=(const ConnectionHandler& other);
-    // bool _keepAlive(void);
 };
 
 } // namespace webkernel

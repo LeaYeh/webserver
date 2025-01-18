@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #pragma once
-
 #include "defines.hpp"
 #include <map>
 #include <string>
@@ -21,18 +20,22 @@ namespace webshell
 
 class HeaderFieldValidator
 {
-  public:
+public:
+    void set_method(RequestMethod method);
+    void validate(std::map<std::string, std::string>& map);
 
+public:
     HeaderFieldValidator();
     ~HeaderFieldValidator();
     HeaderFieldValidator(const HeaderFieldValidator& other);
     HeaderFieldValidator& operator=(const HeaderFieldValidator& other);
 
-    void set_method(RequestMethod method);
-    void validate(std::map<std::string, std::string>& map);
+private:
+    URIState _host_state;
+    CacheState _cache_state;
+    RequestMethod _method;
 
 private:
-
     void _validate_host(std::string& val);
     void _feed_hostname(unsigned char c);
     void _uri_host_regname(unsigned char c);
@@ -46,11 +49,6 @@ private:
     void _c_directive(unsigned char c);
     void _c_argument_start(unsigned char c);
     void _c_argument(unsigned char c);
-    
-    URIState _host_state;
-    CacheState _cache_state;
-
-    RequestMethod _method;
 };
 
-} //namespace webshell
+} // namespace webshell

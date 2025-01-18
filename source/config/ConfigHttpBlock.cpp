@@ -1,5 +1,6 @@
 #include "ConfigHttpBlock.hpp"
 #include "Logger.hpp"
+#include "configUtils.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
@@ -8,10 +9,11 @@
 namespace webconfig
 {
 
-ConfigHttpBlock::ConfigHttpBlock()
-    : AConfigParser(HTTP), _client_max_body_size(0),
-      _default_type(webshell::TEXT_PLAIN), _error_page_list(),
-      _autoindex_page("./www/html/autoindex.html")
+ConfigHttpBlock::ConfigHttpBlock() :
+    AConfigParser(HTTP),
+    _client_max_body_size(0),
+    _default_type(webshell::TEXT_PLAIN),
+    _autoindex_page("./www/html/autoindex.html")
 {
     _valid_directives.insert("client_max_body_size");
     _valid_directives.insert("default_type");
@@ -19,142 +21,128 @@ ConfigHttpBlock::ConfigHttpBlock()
     _valid_directives.insert("autoindex_page");
 }
 
-ConfigHttpBlock::ConfigHttpBlock(const ConfigHttpBlock& other)
-    : AConfigParser(other), _client_max_body_size(other._client_max_body_size),
-      _default_type(other._default_type),
-      _error_page_list(other._error_page_list), _autoindex_page(other._autoindex_page)
+ConfigHttpBlock::ConfigHttpBlock(const ConfigHttpBlock& other) :
+    AConfigParser(other),
+    _client_max_body_size(other._client_max_body_size),
+    _default_type(other._default_type),
+    _autoindex_page(other._autoindex_page)
 {
 }
 
 ConfigHttpBlock& ConfigHttpBlock::operator=(const ConfigHttpBlock& other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         AConfigParser::operator=(other);
         _client_max_body_size = other._client_max_body_size;
         _default_type = other._default_type;
-        _error_page_list = other._error_page_list;
         _autoindex_page = other._autoindex_page;
     }
     return (*this);
 }
 
-ConfigHttpBlock::~ConfigHttpBlock()
-{
-}
+ConfigHttpBlock::~ConfigHttpBlock() {}
 
 std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
 {
     std::string line;
 
-    while (std::getline(file_stream, line))
-    {
-        if (!_isValidSentence(line))
+    while (std::getline(file_stream, line)) {
+        if (!_is_valid_sentence(line)) {
             throw std::invalid_argument("HTTP scope has invalid line: " + line);
-        if (_needToSkip(line))
+        }
+        if (_need_to_skip(line)) {
             continue;
-        if (_isScopeSymbol(line))
+        }
+        if (_is_scope_symbol(line)) {
             return (line);
-        std::string directive = _getDirectiveName(line);
-        if (!_isValidDirective(directive))
-            throw std::invalid_argument("HTTP scope has invalid directive: " +
-                                        directive);
-        _parseConfigDirective(line);
+        }
+        std::string directive = _get_directive_name(line);
+        if (!_is_valid_directive(directive)) {
+            throw std::invalid_argument("HTTP scope has invalid directive: "
+                                        + directive);
+        }
+        _parse_config_directive(line);
     }
     return "";
 }
 
-void ConfigHttpBlock::printConfig(void) const
+void ConfigHttpBlock::print_config(void) const
 {
     weblog::Logger::log(weblog::DEBUG, "HTTP scope:");
     weblog::Logger::log(weblog::DEBUG,
-                        "\tclient_max_body_size: " +
-                            utils::toString(_client_max_body_size));
+                        "\tclient_max_body_size: "
+                            + utils::to_string(_client_max_body_size));
     weblog::Logger::log(weblog::DEBUG,
-                        "\tdefault_type: " +
-                            webshell::contentTypeToString(_default_type));
-    weblog::Logger::log(weblog::DEBUG, "\terror_page:");
-    for (size_t i = 0; i < _error_page_list.size(); ++i)
-    {
-        weblog::Logger::log(
-            weblog::DEBUG,
-            "\t\t" + utils::toString(_error_page_list[i].status_code) + " " +
-                _error_page_list[i].path);
-    }
+                        "\tdefault_type: "
+                            + webshell::content_type_to_string(_default_type));
     weblog::Logger::log(weblog::DEBUG, "\tautoindex_page: " + _autoindex_page);
 }
 
-size_t ConfigHttpBlock::clientMaxBodySize(void) const
+size_t ConfigHttpBlock::client_max_body_size(void) const
 {
     return (_client_max_body_size);
 }
 
-webshell::ContentType ConfigHttpBlock::defaultType(void) const
+webshell::ContentType ConfigHttpBlock::default_type(void) const
 {
     return (_default_type);
 }
 
-std::vector<ErrorPage> ConfigHttpBlock::errorPages(void) const
-{
-    return (_error_page_list);
-}
-
-std::string ConfigHttpBlock::autoindexPage(void) const
+std::string ConfigHttpBlock::autoindex_page(void) const
 {
     return (_autoindex_page);
 }
 
-void ConfigHttpBlock::_parseConfigDirective(const std::string& line)
+void ConfigHttpBlock::_parse_config_directive(const std::string& line)
 {
-    std::string directive = _getDirectiveName(line);
+    std::string directive = _get_directive_name(line);
 
-    if (directive == "client_max_body_size")
-        _client_max_body_size = _parseClientMaxBodySize(line);
-    else if (directive == "default_type")
-        _default_type = _parseDefaultType(line);
-    else if (directive == "error_page")
-        _error_page_list.push_back(_parseErrorPage(line));
-    else if (directive == "autoindex_page")
-        _autoindex_page = _parseAutoindexPage(line);
-    else
-        throw std::invalid_argument("Invalid directive in HTTP block: " +
-                                    directive);
+    if (directive == "client_max_body_size") {
+        _client_max_body_size = _parse_client_max_body_size(line);
+    }
+    else if (directive == "default_type") {
+        _default_type = _parse_default_type(line);
+    }
+    else if (directive == "autoindex_page") {
+        _autoindex_page = _parse_autoindex_page(line);
+    }
+    else if (directive == "error_page") {
+        _error_page = _parse_error_page(line);
+    }
+    else {
+        throw std::invalid_argument("Invalid directive in HTTP block: "
+                                    + directive);
+    }
 }
 
-size_t ConfigHttpBlock::_parseClientMaxBodySize(const std::string& line)
+size_t ConfigHttpBlock::_parse_client_max_body_size(const std::string& line)
 {
-    std::string directive = _getDirectiveName(line);
+    std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
 
-    return (utils::convertToSize(value));
+    return (utils::convert_to_size(value));
 }
 
 webshell::ContentType
-ConfigHttpBlock::_parseDefaultType(const std::string& line)
+ConfigHttpBlock::_parse_default_type(const std::string& line)
 {
-    std::string directive = _getDirectiveName(line);
+    std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
 
     return (string_to_content_type(value));
 }
 
-ErrorPage ConfigHttpBlock::_parseErrorPage(const std::string& line)
+std::string ConfigHttpBlock::_parse_autoindex_page(const std::string& line)
 {
-    std::string directive = _getDirectiveName(line);
+    std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
-    std::vector<std::string> args = utils::split(value, ' ');
 
-    if (args.size() != 2)
-        throw std::invalid_argument("error_page directive has invalid value: " +
-                                    value);
-    webshell::StatusCode status_code = string_to_status_code(args[0]);
-
-    return (ErrorPage(status_code, args[1]));
+    return (value);
 }
 
-std::string ConfigHttpBlock::_parseAutoindexPage(const std::string& line)
+std::string ConfigHttpBlock::_parse_error_page(const std::string& line)
 {
-    std::string directive = _getDirectiveName(line);
+    std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
 
     return (value);

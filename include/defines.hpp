@@ -1,54 +1,54 @@
 #pragma once
 
 #define PROGRAM_NAME "webserv"
-#define SUCCESS 0
-#define FAILURE 1
+#define SUCCESS      0
+#define FAILURE      1
 
-#define STY_RES "\e[0m"
-#define STY_BOL "\e[1m"
-#define STY_ITA "\e[3m"
-#define STY_UND "\e[4m"
-#define STY_RED "\e[31m"
-#define STY_GRE "\e[32m"
-#define STY_YEL "\e[33m"
-#define STY_BLU "\e[34m"
-#define STY_MAG "\e[35m"
-#define STY_CYA "\e[36m"
-#define STY_WHI "\e[37m"
-#define STY_GRA "\e[90m"
-#define STY_WHI_BRI "\e[97m"
-#define STY_BLA_BG "\e[41m"
-#define STY_RED_BG "\e[41m"
-#define STY_GRE_BG "\e[42m"
-#define STY_YEL_BG "\e[43m"
-#define STY_BLU_BG "\e[44m"
-#define STY_MAG_BG "\e[45m"
-#define STY_CYA_BG "\e[46m"
-#define STY_WHI_BG "\e[47m"
-#define STY_GRA_BG "\e[100m"
+#define STY_RES        "\e[0m"
+#define STY_BOL        "\e[1m"
+#define STY_ITA        "\e[3m"
+#define STY_UND        "\e[4m"
+#define STY_RED        "\e[31m"
+#define STY_GRE        "\e[32m"
+#define STY_YEL        "\e[33m"
+#define STY_BLU        "\e[34m"
+#define STY_MAG        "\e[35m"
+#define STY_CYA        "\e[36m"
+#define STY_WHI        "\e[37m"
+#define STY_GRA        "\e[90m"
+#define STY_WHI_BRI    "\e[97m"
+#define STY_BLA_BG     "\e[41m"
+#define STY_RED_BG     "\e[41m"
+#define STY_GRE_BG     "\e[42m"
+#define STY_YEL_BG     "\e[43m"
+#define STY_BLU_BG     "\e[44m"
+#define STY_MAG_BG     "\e[45m"
+#define STY_CYA_BG     "\e[46m"
+#define STY_WHI_BG     "\e[47m"
+#define STY_GRA_BG     "\e[100m"
 #define STY_WHI_BRI_BG "\e[107m"
 
 #define MAX_PATH_LENGTH 128
 
-#define OK_MSG "OK"
-#define CREATED_MSG "Created"
-#define ACCEPTED_MSG "Accepted"
-#define NO_CONTENT_MSG "No Content"
-#define MOVED_PERMANENTLY_MSG "Moved Permanently"
-#define FOUND_MSG "Found"
-#define SEE_OTHER_MSG "See Other"
-#define NOT_MODIFIED_MSG "Not Modified"
-#define BAD_REQUEST_MSG "Bad Request"
-#define UNAUTHORIZED_MSG "Unauthorized"
-#define FORBIDDEN_MSG "Forbidden"
-#define NOT_FOUND_MSG "Not Found"
-#define METHOD_NOT_ALLOWED_MSG "Method Not Allowed"
-#define REQUEST_TIMEOUT_MSG "Request Timeout"
-#define NO_CONTENT_LENGTH_MSG "No Content Length"
+#define OK_MSG                    "OK"
+#define CREATED_MSG               "Created"
+#define ACCEPTED_MSG              "Accepted"
+#define NO_CONTENT_MSG            "No Content"
+#define MOVED_PERMANENTLY_MSG     "Moved Permanently"
+#define FOUND_MSG                 "Found"
+#define SEE_OTHER_MSG             "See Other"
+#define NOT_MODIFIED_MSG          "Not Modified"
+#define BAD_REQUEST_MSG           "Bad Request"
+#define UNAUTHORIZED_MSG          "Unauthorized"
+#define FORBIDDEN_MSG             "Forbidden"
+#define NOT_FOUND_MSG             "Not Found"
+#define METHOD_NOT_ALLOWED_MSG    "Method Not Allowed"
+#define REQUEST_TIMEOUT_MSG       "Request Timeout"
+#define NO_CONTENT_LENGTH_MSG     "No Content Length"
 #define INTERNAL_SERVER_ERROR_MSG "Internal Server Errror"
-#define NOT_IMPLEMENTED_MSG "Not Implemented"
-#define BAD_GATEWAY_MSG "Bad Gateway"
-#define SERVICE_UNAVAILABLE_MSG "Service Unavaliable"
+#define NOT_IMPLEMENTED_MSG       "Not Implemented"
+#define BAD_GATEWAY_MSG           "Bad Gateway"
+#define SERVICE_UNAVAILABLE_MSG   "Service Unavaliable"
 
 namespace weblog
 {
@@ -62,7 +62,7 @@ enum LogLevel
     CRITICAL
 };
 
-}
+} // namespace weblog
 
 namespace webshell
 {

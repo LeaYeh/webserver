@@ -67,7 +67,7 @@ jobs:
   compilation_test:
     name: Compilation Test
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "defines.hpp"
 #include "Uri.hpp"
+#include "defines.hpp"
 #include <string>
 
 namespace webshell
@@ -9,18 +9,33 @@ namespace webshell
 
 class UriAnalyzer
 {
-  public:
+public:
+    void parse_uri(std::string& uri);
+    Uri take_uri() const;
+    void reset();
+
+public:
     UriAnalyzer();
     UriAnalyzer(const UriAnalyzer& other);
     UriAnalyzer& operator=(const UriAnalyzer& other);
     ~UriAnalyzer();
 
-    void parse_uri(std::string& uri);
-    Uri take_uri() const;
-    void reset();
+private:
+    std::string _uri;
+    std::string _host;
+    std::string _port;
+    std::string _path;
+    std::string _query;
+    std::string _fragment;
+    std::string _temp_buf;
+    URIState _state;
+    URIType _type;
+    unsigned int _idx;
+    int _sidx;
+    bool _ipv_digit;
+    int _ipv_dot;
 
-  private:
-
+private:
     void _feed(unsigned char c);
 
     void _uri_start(unsigned char c);
@@ -35,7 +50,7 @@ class UriAnalyzer
     void _uri_path(unsigned char c);
     void _uri_query(unsigned char c);
     void _uri_fragment(unsigned char c);
-    
+
     bool _is_gen_delim(unsigned char c);
     bool _is_sub_delim(unsigned char c);
     bool _is_unreserved(unsigned char c);
@@ -53,23 +68,5 @@ class UriAnalyzer
     std::string _remove_dot_segments() const;
     void _remove_last_segment(std::string& str) const;
     void _move_first_segment(std::string& from, std::string& to) const;
-
-    // std::string _scheme; //we dont really need this for anything
-    std::string _uri;
-    std::string _host;
-    std::string _port;
-    std::string _path;
-    std::string _query;
-    std::string _fragment;
-    std::string _temp_buf;
-
-    URIState _state;
-    URIType _type;
-    unsigned int _idx;
-    int _sidx;
-
-    bool _ipv_digit;
-    int _ipv_dot;
-
 };
 } // namespace webshell

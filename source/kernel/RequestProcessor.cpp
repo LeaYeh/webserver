@@ -47,12 +47,12 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
 
     if (_analyzer_pool.find(fd) == _analyzer_pool.end()) {
         _analyzer_pool[fd] = webshell::RequestAnalyzer(&buffer);
-        resetState(fd);
+        reset_state(fd);
     }
 
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
-        if (_analyzer_pool[fd].isComplete()) {
+        if (_analyzer_pool[fd].is_complete()) {
             _handle_virtual_host(fd);
             buffer.erase(0, i + 1);
             process(fd);
@@ -61,7 +61,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         i++;
     }
     buffer.erase(0, i);
-    return (_analyzer_pool[fd].isComplete());
+    return (_analyzer_pool[fd].is_complete());
 }
 
 void RequestProcessor::_handle_virtual_host(int fd)
@@ -102,10 +102,10 @@ void RequestProcessor::_handle_virtual_host(int fd)
 // to be processed in chunks
 void RequestProcessor::process(int fd)
 {
-    RequestHandlerManager* manager = &RequestHandlerManager::getInstance();
+    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
     EventProcessingState& state = _state[fd];
     webshell::Request& request = _analyzer_pool[fd].request();
-    webshell::Response response = manager->handleRequest(fd, state, request);
+    webshell::Response response = manager->handle_request(fd, state, request);
 
     weblog::Logger::log(weblog::DEBUG,
                         "state: " + explainEventProcessingState(state));
@@ -114,28 +114,28 @@ void RequestProcessor::process(int fd)
         // if the server still processing the upload data, we need to consume
         // the read buffer first and stop reading new requests
         if (state & HANDLE_CHUNKED) {
-            _reactor->modifyHandler(fd, EPOLLOUT, EPOLLIN);
+            _reactor->modify_handler(fd, EPOLLOUT, EPOLLIN);
         }
         // if the read buffer is empty but the server still uploading data, we
         // need to wait for more data
         if (request.empty_buffer()) {
-            _reactor->modifyHandler(fd, EPOLLIN, 0);
+            _reactor->modify_handler(fd, EPOLLIN, 0);
         }
         if (state & COMPELETED) {
-            _handler->prepareWrite(fd, response.serialize());
+            _handler->prepare_write(fd, response.serialize());
             _analyzer_pool[fd].reset();
         }
     }
     // for GET and DELETE requests, we can send the response directly
     else {
-        _handler->prepareWrite(fd, response.serialize());
+        _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
             _analyzer_pool[fd].reset();
         }
     }
 }
 
-void RequestProcessor::removeAnalyzer(int fd)
+void RequestProcessor::remove_analyzer(int fd)
 {
     _analyzer_pool.erase(fd);
 }
@@ -148,12 +148,12 @@ EventProcessingState RequestProcessor::state(int fd) const
     return (_state.at(fd));
 }
 
-void RequestProcessor::setState(int fd, EventProcessingState state)
+void RequestProcessor::set_state(int fd, EventProcessingState state)
 {
     _state[fd] = state;
 }
 
-void RequestProcessor::resetState(int fd)
+void RequestProcessor::reset_state(int fd)
 {
     _state[fd] = INITIAL;
 }

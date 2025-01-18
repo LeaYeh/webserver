@@ -11,32 +11,30 @@
 /* ************************************************************************** */
 
 #ifndef PARSE_EXCEPTION_HPP
-# define PARSE_EXCEPTION_HPP
+#define PARSE_EXCEPTION_HPP
 
 #include "defines.hpp"
 #include <iostream>
 
-
 class ParseException : public std::exception
 {
-    public:
+public:
+    void display_issue() const;
+    webshell::StatusCode code() const;
+    std::string msg() const;
 
-        ParseException(webshell::StatusCode code, std::string msg);
-        ~ParseException() throw();
-        ParseException(const ParseException& other);
-    
-        void displayIssue() const;
-        webshell::StatusCode code() const;
-        std::string msg() const;
-        
+public:
+    ParseException(webshell::StatusCode code, std::string msg);
+    ~ParseException() throw();
+    ParseException(const ParseException& other);
 
-    private:
+private:
+    webshell::StatusCode _code;
+    std::string _msg;
 
-        ParseException(void);
-        ParseException& operator=(const ParseException& other);
-
-        webshell::StatusCode _code;
-        std::string _msg;
+private:
+    ParseException(void);
+    ParseException& operator=(const ParseException& other);
 };
 
 #endif

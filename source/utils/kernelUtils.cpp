@@ -83,7 +83,7 @@ std::string format_size(uint64_t size)
 
     for (int i = 0; i < UNITS_COUNT; i++) {
         if (size < 1024) {
-            formatted_size = utils::toString(size) + " " + units[i];
+            formatted_size = utils::to_string(size) + " " + units[i];
             break;
         }
         size /= 1024;
@@ -131,7 +131,7 @@ std::string uuid()
     std::srand(static_cast<unsigned int>(now));
     int rand_num = std::rand();
 
-    return (utils::toString(now) + "_" + utils::toString(rand_num));
+    return (utils::to_string(now) + "_" + utils::to_string(rand_num));
 }
 
 std::string get_socket_address(int fd)

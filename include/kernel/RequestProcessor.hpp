@@ -1,8 +1,6 @@
 #pragma once
 #include "Reactor.hpp"
-#include "Request.hpp"
 #include "RequestAnalyzer.hpp"
-#include "RequestConfig.hpp"
 #include <map>
 #include <string>
 #include <sys/epoll.h>
@@ -17,11 +15,11 @@ class RequestProcessor
 public:
     bool analyze(int fd, std::string& buffer);
     void process(int fd);
-    void removeAnalyzer(int fd);
+    void remove_analyzer(int fd);
 
     EventProcessingState state(int fd) const;
-    void setState(int fd, EventProcessingState state);
-    void resetState(int fd);
+    void set_state(int fd, EventProcessingState state);
+    void reset_state(int fd);
 
 public:
     RequestProcessor(ConnectionHandler* handler);

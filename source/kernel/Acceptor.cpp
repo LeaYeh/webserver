@@ -1,11 +1,10 @@
 #include "Acceptor.hpp"
-#include "Config.hpp"
 #include "ConnectionHandler.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
-#include <iostream>
+#include "utils.hpp"
+#include <errno.h>
 #include <sys/epoll.h>
 
 namespace webkernel
@@ -32,7 +31,7 @@ Acceptor::~Acceptor()
 // the object will be deleted by the Reactor when the connection is closed
 // Register the connection handler with the reactor and set it to epoll edge
 // triggered mode with Level Triggered (LT) mode as the default
-void Acceptor::handleEvent(int fd, uint32_t events)
+void Acceptor::handle_event(int fd, uint32_t events)
 {
     if (events & EPOLLIN) {
         struct sockaddr_storage client_addr;
@@ -41,16 +40,16 @@ void Acceptor::handleEvent(int fd, uint32_t events)
 
         weblog::Logger::log(weblog::INFO,
                             "Accepted connection on fd: "
-                                + utils::toString(conn_fd));
+                                + utils::to_string(conn_fd));
         if (conn_fd < 0) {
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));
         }
-        _reactor->registerHandler(
+        _reactor->register_handler(
             conn_fd, _reactor->conn_handler, EPOLLIN | EPOLLHUP | EPOLLERR);
         weblog::Logger::log(weblog::DEBUG,
                             "Registered connection handler with fd: "
-                                + utils::toString(conn_fd));
+                                + utils::to_string(conn_fd));
     }
     else {
         weblog::Logger::log(weblog::ERROR,

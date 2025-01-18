@@ -22,7 +22,7 @@ UploadRecord::UploadRecord() :
 {
     weblog::Logger::log(weblog::WARNING,
                         "UploadRecord: constructor address: "
-                            + utils::toString((size_t)this));
+                            + utils::to_string((size_t)this));
 }
 
 UploadRecord::UploadRecord(const std::string& target_filename,
@@ -48,7 +48,7 @@ UploadRecord::~UploadRecord()
     weblog::Logger::log(weblog::WARNING,
                         "UploadRecord: destructor: " + _temp_filename + ", "
                             + _target_filename
-                            + " address: " + utils::toString((size_t)this));
+                            + " address: " + utils::to_string((size_t)this));
     if (access(_temp_filename.c_str(), F_OK) == 0
         && std::remove(_temp_filename.c_str()) == -1) {
         throw std::runtime_error("UploadRecord: failed to remove temp file "
@@ -138,18 +138,18 @@ std::string UploadRecord::serialize() const
     std::string serialized;
 
     serialized += "{\n";
-    serialized += "  \"total_size\": " + utils::toString(_total_size) + ",\n";
+    serialized += "  \"total_size\": " + utils::to_string(_total_size) + ",\n";
     serialized +=
-        "  \"uploaded_size\": " + utils::toString(_uploaded_size) + ",\n";
-    serialized += "  \"start_time\": " + utils::toString(_start_time) + ",\n";
+        "  \"uploaded_size\": " + utils::to_string(_uploaded_size) + ",\n";
+    serialized += "  \"start_time\": " + utils::to_string(_start_time) + ",\n";
     serialized += "  \"filename\": \"" + _target_filename + "\"\n";
     serialized +=
-        "  \"upload_time\": " + utils::toString(upload_time()) + ",\n";
+        "  \"upload_time\": " + utils::to_string(upload_time()) + ",\n";
     serialized +=
-        "  \"upload_speed\": " + utils::toString(upload_speed()) + ",\n";
+        "  \"upload_speed\": " + utils::to_string(upload_speed()) + ",\n";
     serialized +=
-        "  \"upload_progress\": " + utils::toString(upload_progress()) + ",\n";
-    serialized += "  \"success\": " + utils::toString(success()) + "\n";
+        "  \"upload_progress\": " + utils::to_string(upload_progress()) + ",\n";
+    serialized += "  \"success\": " + utils::to_string(success()) + "\n";
     serialized += "}\n";
 
     return (serialized);

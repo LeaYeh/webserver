@@ -17,12 +17,12 @@
 namespace weblog
 {
 
-Logger* Logger::createInstance()
+Logger* Logger::create_instance()
 {
     return new Logger();
 }
 
-Logger* Logger::createInstance(const std::string& filename)
+Logger* Logger::create_instance(const std::string& filename)
 {
     return new Logger(filename);
 }
@@ -35,52 +35,54 @@ Logger::Logger() : _is_file_mode(false), _level(INFO)
 Logger::Logger(const std::string& filename) : _is_file_mode(true), _level(INFO)
 {
     _file_stream.open(filename.c_str(), std::ios::out | std::ios::app);
-    if (!_file_stream.is_open())
-    {
+    if (!_file_stream.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         _is_file_mode = false;
     }
-    else
+    else {
         std::cout << "Logger created: file mode" << std::endl;
+    }
 }
 
 Logger::~Logger()
 {
-    if (_is_file_mode)
+    if (_is_file_mode) {
         _file_stream.close();
+    }
 }
 
 void Logger::log(LogLevel level, const std::string& message)
 {
     weblog::Logger* logger = weblog::Logger::instance();
 
-    if (level < logger->level())
+    if (level < logger->level()) {
         return;
+    }
 
     const int level_width = 50;
     const int message_width = 100;
-    if (logger->isFileMode())
-    {
-        logger->fileStream() << logger->getCurrentTime() << " [" + logger->getLevelStr(level) + "] "
-                     << std::setw(level_width) << std::left
-                     << std::setw(message_width) << std::left << message
-                     << std::endl;
+    if (logger->is_file_mode()) {
+        logger->file_stream()
+            << logger->get_current_time()
+            << " [" + logger->get_level_str(level) + "] "
+            << std::setw(level_width) << std::left << std::setw(message_width)
+            << std::left << message << std::endl;
     }
-    else
-    {
-        std::cout << logger->getCurrentTime() << " [" + logger->getColorLevelStr(level) + "] "
+    else {
+        std::cout << logger->get_current_time()
+                  << " [" + logger->get_color_level_str(level) + "] "
                   << std::setw(level_width) << std::left
                   << std::setw(message_width) << std::left << message
                   << std::endl;
     }
 }
 
-std::ofstream& Logger::fileStream()
+std::ofstream& Logger::file_stream()
 {
     return _file_stream;
 }
 
-bool Logger::isFileMode() const
+bool Logger::is_file_mode() const
 {
     return _is_file_mode;
 }
@@ -90,34 +92,32 @@ LogLevel Logger::level() const
     return _level;
 }
 
-void Logger::setLevel(LogLevel level)
+void Logger::set_level(LogLevel level)
 {
-    std::cout << "Log level set to: " << getLevelStr(level) << std::endl;
+    std::cout << "Log level set to: " << get_level_str(level) << std::endl;
     _level = level;
 }
 
-void Logger::setFileMode(const std::string& filename)
+void Logger::set_file_mode(const std::string& filename)
 {
-    if (_is_file_mode)
+    if (_is_file_mode) {
         _file_stream.close();
+    }
 
     _file_stream.open(filename.c_str(), std::ios::out | std::ios::app);
-    if (!_file_stream.is_open())
-    {
+    if (!_file_stream.is_open()) {
         std::cerr << "Error opening file: " << filename << std::endl;
         _is_file_mode = false;
     }
-    else
-    {
+    else {
         _is_file_mode = true;
         std::cout << "Logger switched to file mode" << std::endl;
     }
 }
 
-std::string Logger::getLevelStr(LogLevel level) const
+std::string Logger::get_level_str(LogLevel level) const
 {
-    switch (level)
-    {
+    switch (level) {
     case DEBUG:
         return "DEBUG";
     case INFO:
@@ -133,10 +133,9 @@ std::string Logger::getLevelStr(LogLevel level) const
     }
 }
 
-std::string Logger::getColorLevelStr(LogLevel level) const
+std::string Logger::get_color_level_str(LogLevel level) const
 {
-    switch (level)
-    {
+    switch (level) {
     case DEBUG:
         return "\033[34mDEBUG\033[0m";
     case INFO:
@@ -152,7 +151,7 @@ std::string Logger::getColorLevelStr(LogLevel level) const
     }
 }
 
-std::string Logger::getCurrentTime() const
+std::string Logger::get_current_time() const
 {
     time_t rawtime;
     struct tm* timeinfo;

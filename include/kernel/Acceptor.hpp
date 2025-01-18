@@ -1,13 +1,7 @@
 #pragma once
-
-#include "Config.hpp"
-#include "ConnectionHandler.hpp"
 #include "IHandler.hpp"
 #include "Reactor.hpp"
-#include <errno.h>
-#include <iostream>
 #include <netdb.h>
-#include <string.h>
 #include <sys/socket.h>
 
 namespace webkernel
@@ -16,7 +10,7 @@ namespace webkernel
 class Acceptor : public IHandler
 {
 public:
-    void handleEvent(int fd, uint32_t events);
+    void handle_event(int fd, uint32_t events);
 
 public:
     Acceptor(Reactor* reactor);

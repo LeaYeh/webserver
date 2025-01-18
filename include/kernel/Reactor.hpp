@@ -1,5 +1,4 @@
 #pragma once
-
 #include "IHandler.hpp"
 #include "defines.hpp"
 #include <csignal>
@@ -23,11 +22,10 @@ public:
 
 public:
     void run(void);
-    void registerHandler(int fd, IHandler* handler, uint32_t events);
-    void removeHandler(int fd);
+    void register_handler(int fd, IHandler* handler, uint32_t events);
+    void remove_handler(int fd);
     void
-    modifyHandler(int fd, uint32_t events_to_add, uint32_t events_to_remove);
-    int epollFd(void) const;
+    modify_handler(int fd, uint32_t events_to_add, uint32_t events_to_remove);
 
     class InterruptException : public std::exception
     {

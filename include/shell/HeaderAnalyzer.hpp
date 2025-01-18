@@ -11,36 +11,37 @@
 /* ************************************************************************** */
 
 #pragma once
-
-#include "defines.hpp"
 #include "HeaderFieldValidator.hpp"
-#include <iostream>
+#include "defines.hpp"
 #include <map>
-#include <vector>
 
 namespace webshell
 {
-
-// TO_DO: Fix the naming convention to be more consistent.
-//  All custom functions and variables should be named with snake_case.
-//  All class and enum names should be named with CamelCase.
 class HeaderAnalyzer
 {
-  public:
+public:
+    std::map<std::string, std::string> headers();
+    void set_method(RequestMethod method);
+
+public:
+    void feed(unsigned char ch);
+    bool done(void) const;
+    void reset(void);
+
+public:
     HeaderAnalyzer();
     HeaderAnalyzer(const HeaderAnalyzer& other);
     HeaderAnalyzer& operator=(const HeaderAnalyzer& other);
     ~HeaderAnalyzer();
 
-    std::map<std::string, std::string> headers();
-    void set_method(RequestMethod method);
-    
-    void feed(unsigned char ch);
-    bool done(void) const;
-    void reset(void);
+private:
+    HeaderFieldValidator _validator;
+    RequestHeaderState _state;
+    std::map<std::string, std::string> _map;
+    std::string _key;
+    std::string _val;
 
-  private:
-
+private:
     void _start_header(unsigned char c);
     void _field_name(unsigned char c);
     void _leading_ws(unsigned char c);
@@ -49,20 +50,9 @@ class HeaderAnalyzer
     void _field_end_crlf(unsigned char c);
     void _check_obs_fold(unsigned char c);
     void _header_end_crlf(unsigned char c);
-
     bool _is_ows(unsigned char c);
     bool _is_vchar(unsigned char c);
     unsigned char _lowcase(unsigned char c);
-
-    HeaderFieldValidator _validator;
-  
-    RequestHeaderState _state;
-    std::map<std::string, std::string> _map;
-
-    std::string _key;
-    std::string _val;
-    // RequestMethod _method;
-
 
     // TO_DO: Seperate the variables name with prefix by different usage?
     // std::string _host;

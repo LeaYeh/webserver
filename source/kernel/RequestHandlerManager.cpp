@@ -25,16 +25,16 @@ RequestHandlerManager::~RequestHandlerManager()
     }
 }
 
-RequestHandlerManager& RequestHandlerManager::getInstance()
+RequestHandlerManager& RequestHandlerManager::get_instance()
 {
     static RequestHandlerManager instance;
     return instance;
 }
 
 webshell::Response
-RequestHandlerManager::handleRequest(int fd,
-                                     EventProcessingState& state,
-                                     webshell::Request& request)
+RequestHandlerManager::handle_request(int fd,
+                                      EventProcessingState& state,
+                                      webshell::Request& request)
 {
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
         _handlers.find(request.method());

@@ -27,7 +27,7 @@ ARequestHandler& ARequestHandler::operator=(const ARequestHandler& other)
 
 ARequestHandler::~ARequestHandler() {}
 
-bool ARequestHandler::_checkMethodLimit(
+bool ARequestHandler::_check_method_limit(
     webshell::RequestMethod method,
     const std::vector<webshell::RequestMethod>& limit) const
 {
@@ -39,7 +39,7 @@ bool ARequestHandler::_checkMethodLimit(
     return (false);
 }
 
-bool ARequestHandler::_checkPathFormat(const std::string& path) const
+bool ARequestHandler::_check_path_format(const std::string& path) const
 {
     // TODO: Need to check the path format with RFC3986, and which module should
     // implement this? URI Analyzer? if (path[0] != '/')
@@ -190,7 +190,7 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
         full_path = config.root + request_path;
     }
     // Check if the path is a directory or a file
-    if (utils::isDirectory(full_path)) {
+    if (utils::is_directory(full_path)) {
         if (full_path[full_path.size() - 1] != '/') {
             full_path += "/";
         }
@@ -223,12 +223,12 @@ void ARequestHandler::_update_status(EventProcessingState& state,
                             + explainEventProcessingState(state));
 }
 
-void ARequestHandler::_preProcess(const webshell::Request& request)
+void ARequestHandler::_pre_process(const webshell::Request& request)
 {
-    if (!_checkPathFormat(request.uri().path)) {
+    if (!_check_path_format(request.uri().path)) {
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
     }
-    if (!_checkMethodLimit(request.method(), request.config().limit_except)) {
+    if (!_check_method_limit(request.method(), request.config().limit_except)) {
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
     }

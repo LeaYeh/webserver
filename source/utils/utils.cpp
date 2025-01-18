@@ -6,12 +6,12 @@ namespace utils
 
 const std::string EMPTY_STRING = "";
 
-bool safeClose(int& fd)
+bool safe_close(int& fd)
 {
-    if (fd != -1)
-    {
-        if (close(fd) == -1)
+    if (fd != -1) {
+        if (close(fd) == -1) {
             return (false);
+        }
         fd = -1;
     }
     return (true);
@@ -19,50 +19,59 @@ bool safeClose(int& fd)
 
 bool is_tchar(unsigned char c)
 {
-    if (isdigit(c) || isalpha(c))
+    if (isdigit(c) || isalpha(c)) {
         return (true);
-    if (c == '!' || c == '#' || c == '$' || c == '%')
+    }
+    if (c == '!' || c == '#' || c == '$' || c == '%') {
         return (true);
-    if (c == '&' || c == '`' || c == '*' || c == '+')
+    }
+    if (c == '&' || c == '`' || c == '*' || c == '+') {
         return (true);
-    if (c == '-' || c == '.' || c == '^' || c == '_')
+    }
+    if (c == '-' || c == '.' || c == '^' || c == '_') {
         return (true);
-    if (c == '|' || c == '~' || c == '\'')
+    }
+    if (c == '|' || c == '~' || c == '\'') {
         return (true);
+    }
     return (false);
 }
 
-bool isDirectory(const std::string& path)
+bool is_directory(const std::string& path)
 {
     struct stat file_stat;
 
-    if (stat(path.c_str(), &file_stat) == -1)
+    if (stat(path.c_str(), &file_stat) == -1) {
         return (false);
+    }
     return (S_ISDIR(file_stat.st_mode));
 }
 
 std::string basefolder(const std::string& path)
 {
     std::string::size_type pos = path.find_last_of('/');
-    if (pos == std::string::npos)
+    if (pos == std::string::npos) {
         return (path);
+    }
     return (path.substr(0, pos));
 }
 
 std::string basename(const std::string& path)
 {
     std::string::size_type pos = path.find_last_of('/');
-    if (pos == std::string::npos)
+    if (pos == std::string::npos) {
         return (path);
+    }
     return (path.substr(pos + 1));
 }
 
-bool isFile(const std::string& path)
+bool is_file(const std::string& path)
 {
     struct stat file_stat;
 
-    if (stat(path.c_str(), &file_stat) == -1)
+    if (stat(path.c_str(), &file_stat) == -1) {
         return (false);
+    }
     return (S_ISREG(file_stat.st_mode));
 }
 
@@ -74,8 +83,9 @@ bool start_with(const std::string& str, const std::string& prefix)
 std::string file_extension(const std::string& path)
 {
     std::string::size_type pos = path.find_last_of('.');
-    if (pos == std::string::npos)
+    if (pos == std::string::npos) {
         return (EMPTY_STRING);
+    }
     return (path.substr(pos + 1));
 }
 
@@ -102,11 +112,13 @@ std::string file_extension(const std::string& path)
 std::string trim(const std::string& str)
 {
     std::string::size_type start = 0;
-    while (start < str.size() && std::isspace(str[start]))
+    while (start < str.size() && std::isspace(str[start])) {
         ++start;
+    }
     std::string::size_type end = str.size();
-    while (end > start && std::isspace(str[end - 1]))
+    while (end > start && std::isspace(str[end - 1])) {
         --end;
+    }
 
     return (str.substr(start, end - start));
 }
@@ -117,23 +129,27 @@ int stoi(const std::string& str)
     int result;
 
     iss >> result;
-    if (iss.fail())
+    if (iss.fail()) {
         throw std::invalid_argument("stoi: invalid argument");
+    }
     return (result);
 }
 
-size_t convertToSize(const std::string& str)
+size_t convert_to_size(const std::string& str)
 {
     std::string::size_type pos = str.find_last_not_of("0123456789");
     std::string size_str = str.substr(0, pos + 1);
     size_t size = stoi(size_str);
 
-    if (str[pos] == 'k' || str[pos] == 'K')
+    if (str[pos] == 'k' || str[pos] == 'K') {
         size *= 1024;
-    else if (str[pos] == 'm' || str[pos] == 'M')
+    }
+    else if (str[pos] == 'm' || str[pos] == 'M') {
         size *= 1024 * 1024;
-    else if (str[pos] == 'g' || str[pos] == 'G')
+    }
+    else if (str[pos] == 'g' || str[pos] == 'G') {
         size *= 1024 * 1024 * 1024;
+    }
     return (size);
 }
 
@@ -143,8 +159,9 @@ std::vector<std::string> split(const std::string& str, char delimiter)
     std::string token;
     std::istringstream tokenStream(str);
 
-    while (std::getline(tokenStream, token, delimiter))
+    while (std::getline(tokenStream, token, delimiter)) {
         tokens.push_back(token);
+    }
 
     return (tokens);
 }

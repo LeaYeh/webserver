@@ -4,10 +4,9 @@
 namespace webshell
 {
 
-std::string statusReasonPhase(const StatusCode& statusCode)
+std::string status_reason_phase(const StatusCode& status_code)
 {
-    switch (statusCode)
-    {
+    switch (status_code) {
     case OK:
         return ("OK");
     case CREATED:
@@ -53,10 +52,9 @@ std::string statusReasonPhase(const StatusCode& statusCode)
     }
 }
 
-std::string requestMethodToString(webshell::RequestMethod method)
+std::string request_method_to_string(webshell::RequestMethod method)
 {
-    switch (method)
-    {
+    switch (method) {
     case webshell::GET:
         return ("GET");
     case webshell::POST:
@@ -72,10 +70,9 @@ std::string requestMethodToString(webshell::RequestMethod method)
     }
 }
 
-std::string contentTypeToString(webshell::ContentType type)
+std::string content_type_to_string(webshell::ContentType type)
 {
-    switch (type)
-    {
+    switch (type) {
     case webshell::TEXT_HTML:
         return ("text/html");
     case webshell::TEXT_CSS:

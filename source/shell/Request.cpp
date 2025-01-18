@@ -120,8 +120,8 @@ const std::string Request::serialize() const
     std::string serialized;
 
     // serialize request line
-    serialized += requestMethodToString(_method) + " " + _uri.raw + " HTTP/"
-                  + utils::toString(_version) + "\r\n";
+    serialized += request_method_to_string(_method) + " " + _uri.raw + " HTTP/"
+                  + utils::to_string(_version) + "\r\n";
     // serialize headers
     for (std::map<std::string, std::string>::const_iterator it =
              _headers.begin();
@@ -135,32 +135,32 @@ const std::string Request::serialize() const
     return (serialized);
 }
 
-void Request::setMethod(RequestMethod method)
+void Request::set_method(RequestMethod method)
 {
     _method = method;
 }
 
-void Request::setHeaders(std::map<std::string, std::string> headers)
+void Request::set_headers(std::map<std::string, std::string> headers)
 {
     _headers = headers;
 }
 
-void Request::setUri(Uri uri)
+void Request::set_uri(Uri uri)
 {
     _uri = uri;
 }
 
-void Request::setVersion(float version)
+void Request::set_version(float version)
 {
     _version = version;
 }
 
-void Request::setReference(std::string* read_buffer)
+void Request::set_reference(std::string* read_buffer)
 {
     _read_buffer = read_buffer;
 }
 
-void Request::addHeader(std::string& name, std::string& value)
+void Request::add_header(std::string& name, std::string& value)
 {
     _headers[name] = value;
 }
@@ -275,7 +275,7 @@ bool Request::_proceed_chunked(std::vector<char>& chunked_body)
             throw utils::HttpException(
                 webshell::PAYLOAD_TOO_LARGE,
                 "Chunk size cannot be bigger than "
-                    + utils::toString(webkernel::BUFFER_SIZE * 2),
+                    + utils::to_string(webkernel::BUFFER_SIZE * 2),
                 webshell::TEXT_PLAIN);
         }
     }
@@ -289,13 +289,13 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
     webconfig::Config* config = webconfig::Config::instance();
 
     // std::cout << config << std::endl;
-    webconfig::ConfigHttpBlock http_config = config->httpBlock();
+    webconfig::ConfigHttpBlock http_config = config->http_block();
 
-    for (std::size_t i = 0; i < server_config->locationBlockList().size();
+    for (std::size_t i = 0; i < server_config->location_block_list().size();
          i++) {
-        if (utils::start_with(_uri.path,
-                              server_config->locationBlockList()[i].route())) {
-            location_config = &server_config->locationBlockList()[i];
+        if (utils::start_with(
+                _uri.path, server_config->location_block_list()[i].route())) {
+            location_config = &server_config->location_block_list()[i];
             break;
         }
     }
@@ -308,24 +308,23 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
 
     _config = webconfig::RequestConfig();
 
-    _config.client_max_body_size = http_config.clientMaxBodySize();
-    _config.default_type = http_config.defaultType();
-    _config.error_pages = http_config.errorPages();
-    _config.autoindex_page = http_config.autoindexPage();
-    _config.error_log = server_config->errorLog();
-    _config.keep_alive_timeout = server_config->keepAliveTimeout();
-    _config.server_name = server_config->serverName();
+    _config.client_max_body_size = http_config.client_max_body_size();
+    _config.default_type = http_config.default_type();
+    _config.autoindex_page = http_config.autoindex_page();
+    _config.error_log = server_config->error_log();
+    _config.keep_alive_timeout = server_config->keep_alive_timeout();
+    _config.server_name = server_config->server_name();
 
     _config.route = location_config->route();
-    _config.limit_except = location_config->limitExcept();
+    _config.limit_except = location_config->limit_except();
     _config.root = location_config->root();
     _config.index = location_config->index();
     _config.redirect = location_config->redirect();
     _config.autoindex = location_config->autoindex();
-    _config.cgi_extension = location_config->cgiExtension();
-    _config.cgi_path = location_config->cgiPath();
-    _config.enable_upload = location_config->enableUpload();
-    _config.upload_path = location_config->uploadPath();
+    _config.cgi_extension = location_config->cgi_extension();
+    _config.cgi_path = location_config->cgi_path();
+    _config.enable_upload = location_config->enable_upload();
+    _config.upload_path = location_config->upload_path();
 }
 
 void Request::_check_hexdigit(unsigned char c)
@@ -340,7 +339,7 @@ void Request::_check_hexdigit(unsigned char c)
             throw utils::HttpException(
                 webshell::PAYLOAD_TOO_LARGE,
                 "Chunk size cannot be bigger than "
-                    + utils::toString(webkernel::BUFFER_SIZE * 2),
+                    + utils::to_string(webkernel::BUFFER_SIZE * 2),
                 webshell::TEXT_PLAIN);
         }
         _state = SIZE_CRLF;

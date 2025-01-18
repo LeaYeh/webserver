@@ -18,21 +18,21 @@
 namespace webshell
 {
 
-RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR)
-{
-}
+RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR) {}
 
-RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other)
-    : _state(other._state), _uri_analyzer(other._uri_analyzer),
-      _method(other._method), _uri(other._uri), _version(other._version)
+RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other) :
+    _state(other._state),
+    _uri_analyzer(other._uri_analyzer),
+    _method(other._method),
+    _uri(other._uri),
+    _version(other._version)
 {
 }
 
 RequestLineAnalyzer&
 RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         _state = other._state;
         _uri_analyzer = other._uri_analyzer;
         _method = other._method;
@@ -42,44 +42,38 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
     return (*this);
 }
 
-RequestLineAnalyzer::~RequestLineAnalyzer()
-{
-}
+RequestLineAnalyzer::~RequestLineAnalyzer() {}
 
 RequestMethod RequestLineAnalyzer::method() const
 {
-    if (_method == "GET")
-    {
+    if (_method == "GET") {
         return (GET);
     }
-    else if (_method == "POST")
-    {
+    else if (_method == "POST") {
         return (POST);
     }
-    else if (_method == "DELETE")
-    {
+    else if (_method == "DELETE") {
         return (DELETE);
     }
-    else if (_method == "CONNECT")
-    {
+    else if (_method == "CONNECT") {
         return (CONNECT);
     }
-    else if (_method == "OPTIONS")
-    {
+    else if (_method == "OPTIONS") {
         return (OPTIONS);
     }
-    else
-    {
+    else {
         return (UNKNOWN);
     }
 }
 
 float RequestLineAnalyzer::version() const
 {
-    if (_version.size() < 3)
+    if (_version.size() < 3) {
         return (0.0);
-    else
+    }
+    else {
         return (atof(_version.substr(_version.length() - 3, 3).c_str()));
+    }
 }
 
 Uri RequestLineAnalyzer::uri() const
@@ -88,47 +82,47 @@ Uri RequestLineAnalyzer::uri() const
 }
 
 void RequestLineAnalyzer::feed(unsigned char ch)
-{   
-    switch (_state)
-    {
-        case PRE_CR:
-            _validate_start(ch);
-            break;
-        case PRE_LF:
-            _check_lf(ch);
-            break;
-        case METHOD:
-            _analyze_method(ch);
-            break;
-        case URI:
-        {
-            if (_collect_uri(ch))
-                _uri_analyzer.parse_uri(_uri);
-            break;
+{
+    switch (_state) {
+    case PRE_CR:
+        _validate_start(ch);
+        break;
+    case PRE_LF:
+        _check_lf(ch);
+        break;
+    case METHOD:
+        _analyze_method(ch);
+        break;
+    case URI: {
+        if (_collect_uri(ch)) {
+            _uri_analyzer.parse_uri(_uri);
         }
-        case VERSION:
-        {
-            if (_analyze_version(ch))
-                _state = END_RQLINE;
-            else if (ch != '\r')
-                _version.push_back(ch);
-            break;
+        break;
+    }
+    case VERSION: {
+        if (_analyze_version(ch)) {
+            _state = END_RQLINE;
         }
-        default:
-            throw std::runtime_error("Request Line parse error");
+        else if (ch != '\r') {
+            _version.push_back(ch);
+        }
+        break;
+    }
+    default:
+        throw std::runtime_error("Request Line parse error");
     }
 }
 
-
 void RequestLineAnalyzer::_validate_start(unsigned char c)
 {
-    if (c == '\r')
+    if (c == '\r') {
         _state = PRE_LF;
-    else if (!utils::is_tchar(c))
+    }
+    else if (!utils::is_tchar(c)) {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                "RLAnalyzer failed at validate start");
-    else
-    {
+                                   "RLAnalyzer failed at validate start");
+    }
+    else {
         _method.push_back(c);
         _state = METHOD;
     }
@@ -136,33 +130,36 @@ void RequestLineAnalyzer::_validate_start(unsigned char c)
 
 void RequestLineAnalyzer::_check_lf(unsigned char c)
 {
-    if (c == '\n')
+    if (c == '\n') {
         _state = PRE_CR;
-    else
+    }
+    else {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                "RLAnalyzer failed at check_lf");
+                                   "RLAnalyzer failed at check_lf");
+    }
 }
 
 void RequestLineAnalyzer::_analyze_method(unsigned char c)
 {
-    if (c == ' ')
+    if (c == ' ') {
         _state = URI;
-    else if (!utils::is_tchar(c))
+    }
+    else if (!utils::is_tchar(c)) {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                "error at check method");
-    else
+                                   "error at check method");
+    }
+    else {
         _method.push_back(c);
+    }
 }
 
 bool RequestLineAnalyzer::_collect_uri(unsigned char c)
 {
-    if (c == ' ')
-    {
+    if (c == ' ') {
         _state = VERSION;
         return (true);
     }
-    else
-    {
+    else {
         _uri.push_back(c);
         return (false);
     }
@@ -173,25 +170,34 @@ bool RequestLineAnalyzer::_analyze_version(unsigned char c)
     static int pos = 0;
 
     pos++;
-    if (c == 'H' && pos == 1)
+    if (c == 'H' && pos == 1) {
         return (false);
-    else if (c == 'T' && (pos == 2 || pos == 3))
+    }
+    else if (c == 'T' && (pos == 2 || pos == 3)) {
         return (false);
-    else if (c == 'P' && pos == 4)
+    }
+    else if (c == 'P' && pos == 4) {
         return (false);
-    else if (c == '/' && pos == 5)
+    }
+    else if (c == '/' && pos == 5) {
         return (false);
-    else if (isdigit(c) && (pos == 6 || pos == 8))
+    }
+    else if (isdigit(c) && (pos == 6 || pos == 8)) {
         return (false);
-    else if (c == '.' && pos == 7)
+    }
+    else if (c == '.' && pos == 7) {
         return (false);
-    else if (c == '\r' && pos == 9)
+    }
+    else if (c == '\r' && pos == 9) {
         return (false);
-    else if (c == '\n' && pos == 10)
+    }
+    else if (c == '\n' && pos == 10) {
         return (pos = 0, true);
-    else
+    }
+    else {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                "RLAnalyzer failed at check_version");
+                                   "RLAnalyzer failed at check_version");
+    }
 }
 
 bool RequestLineAnalyzer::done(void) const

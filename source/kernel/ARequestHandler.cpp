@@ -41,13 +41,6 @@ bool ARequestHandler::_check_method_limit(
 
 bool ARequestHandler::_check_path_format(const std::string& path) const
 {
-    // TODO: Need to check the path format with RFC3986, and which module should
-    // implement this? URI Analyzer? if (path[0] != '/')
-    //     return (false);
-    // if (path.find("..") != std::string::npos)
-    //     return (false);
-    // if (path.find("//") != std::string::npos)
-    //     return (false);
     if (path.size() > MAX_PATH_LENGTH) {
         return (false);
     }
@@ -191,10 +184,7 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
     }
     // Check if the path is a directory or a file
     if (utils::is_directory(full_path)) {
-        if (full_path[full_path.size() - 1] != '/') {
-            full_path += "/";
-        }
-        full_path += config.index;
+        full_path = utils::join(full_path, config.index);
     }
     return (full_path);
 }

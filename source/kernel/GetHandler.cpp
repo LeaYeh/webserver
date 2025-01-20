@@ -23,7 +23,7 @@ webshell::Response GetHandler::handle(int fd,
                                       webshell::Request& request)
 {
     if (state == INITIAL) {
-        _preProcess(request);
+        _pre_process(request);
         _update_status(state, PROCESSING, true);
     }
     if (!request.config().redirect.empty()) {
@@ -34,10 +34,10 @@ webshell::Response GetHandler::handle(int fd,
     std::string content;
     try {
         content = _process(fd, state, request);
-        _postProcess(request, _target_path, content);
+        _post_process(request, _target_path, content);
     }
     catch (utils::HttpException& e) {
-        _handle_exception(e, e.statusCode(), webshell::TEXT_HTML);
+        _handle_exception(e, e.status_code(), webshell::TEXT_HTML);
     }
     catch (std::exception& e) {
         _handle_exception(e);
@@ -50,9 +50,9 @@ webshell::Response GetHandler::handle(int fd,
                                           state & HANDLE_OTHERS_CHUNKED));
 }
 
-void GetHandler::_preProcess(const webshell::Request& request)
+void GetHandler::_pre_process(const webshell::Request& request)
 {
-    ARequestHandler::_preProcess(request);
+    ARequestHandler::_pre_process(request);
     const webconfig::RequestConfig& config = request.config();
 
     _target_path = _get_resource_path(config, request.uri().path);
@@ -77,7 +77,7 @@ std::string GetHandler::_process(int fd,
     // if (!config.redirect.empty())
     //     throw utils::HttpException(webshell::MOVED_PERMANENTLY,
     //                                "Redirect to: " + config.redirect);
-    if (utils::isDirectory(_target_path)) {
+    if (utils::is_directory(_target_path)) {
         if (!config.autoindex) {
             throw utils::HttpException(webshell::FORBIDDEN,
                                        "Forbidden autoindex is disabled");
@@ -98,24 +98,24 @@ std::string GetHandler::_process(int fd,
     return (content);
 }
 
-void GetHandler::_postProcess(const webshell::Request& request,
-                              const std::string& target_path,
-                              const std::string& content)
+void GetHandler::_post_process(const webshell::Request& request,
+                               const std::string& target_path,
+                               const std::string& content)
 {
-    if (utils::isDirectory(target_path)) {
+    if (utils::is_directory(target_path)) {
         _response_headers["content-type"] = "text/html";
     }
     else {
         _response_headers["content-type"] = _getMimeType(target_path);
     }
-    if (!utils::isDirectory(target_path)
+    if (!utils::is_directory(target_path)
         && (_get_respones_encoding(request) & webkernel::CHUNKED)) {
         int encoding = _get_respones_encoding(request);
         std::string tmp = _get_encoding_string(encoding);
         _response_headers["transfer-encoding"] = tmp;
     }
     else {
-        _response_headers["content-length"] = utils::toString(content.size());
+        _response_headers["content-length"] = utils::to_string(content.size());
     }
 }
 
@@ -194,7 +194,7 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
         std::string object_path;
         while ((ent = readdir(dir)) != NULL) {
             // object_path = request_path + std::string(ent->d_name);
-            // if (utils::isFile(target_path + std::string(ent->d_name)))
+            // if (utils::is_file(target_path + std::string(ent->d_name)))
             object_path = request_path + "/" + std::string(ent->d_name);
             list_items +=
                 "<tr><td><a href=\"" + object_path + "\">"
@@ -214,9 +214,9 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
                                        + target_path);
     }
     try {
-        _template_engine.loadTemplate(config.autoindex_page);
-        _template_engine.setVariable("TITLE", "Index of " + request_path);
-        _template_engine.setVariable("LIST_ITEMS", list_items);
+        _template_engine.load_template(config.autoindex_page);
+        _template_engine.set_variable("TITLE", "Index of " + request_path);
+        _template_engine.set_variable("LIST_ITEMS", list_items);
         content = _template_engine.render();
         _template_engine.reset();
         _update_status(state, COMPELETED, true);

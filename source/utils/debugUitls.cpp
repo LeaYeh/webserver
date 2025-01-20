@@ -3,7 +3,8 @@
 namespace utils
 {
 
-std::string replaceCRLF(std::string str) {
+std::string replaceCRLF(std::string str)
+{
     const std::string target = "\r\n";
     const std::string replacement = "␍\n";
 

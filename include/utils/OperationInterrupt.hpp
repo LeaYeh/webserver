@@ -14,22 +14,22 @@
 #define OP_INTERRUPT_HPP
 
 #include <exception>
-#include <iostream>
 
-#define PRIMED true
+#define PRIMED   true
 #define UNPRIMED false
 
 class OperationInterrupt : public std::exception
 {
-  public:
+public:
+    bool primed;
+
+public:
     OperationInterrupt(void);
     OperationInterrupt(bool primer);
     ~OperationInterrupt() throw();
     OperationInterrupt(const OperationInterrupt& other);
 
-    bool primed;
-
-  private:
+private:
     OperationInterrupt& operator=(const OperationInterrupt& other);
 };
 

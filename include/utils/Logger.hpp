@@ -11,8 +11,8 @@
 /* ************************************************************************** */
 
 #pragma once
-#include "defines.hpp"
 #include "Singleton.hpp"
+#include "defines.hpp"
 #include <ctime>
 #include <fstream>
 
@@ -27,32 +27,33 @@ namespace weblog
  */
 class Logger : public templates::Singleton<Logger, std::string>
 {
-  public:
-    ~Logger();
-
-    static Logger* createInstance();
-    static Logger* createInstance(const std::string& filename);
+public:
+    static Logger* create_instance();
+    static Logger* create_instance(const std::string& filename);
 
     static void log(LogLevel level, const std::string& message);
-    void setLevel(LogLevel level);
-    void setFileMode(const std::string& filename);
-    bool isFileMode(void) const;
+    void set_level(LogLevel level);
+    void set_file_mode(const std::string& filename);
+    bool is_file_mode(void) const;
     LogLevel level(void) const;
-    std::ofstream& fileStream(void);
-    std::string getLevelStr(LogLevel level) const;
-    std::string getColorLevelStr(LogLevel level) const;
-    std::string getCurrentTime() const;
+    std::ofstream& file_stream(void);
+    std::string get_level_str(LogLevel level) const;
+    std::string get_color_level_str(LogLevel level) const;
+    std::string get_current_time() const;
 
-  protected:
-  private:
+public:
+    ~Logger();
+
+private:
+    std::ofstream _file_stream;
+    bool _is_file_mode;
+    LogLevel _level;
+
+private:
     Logger();
     Logger(const std::string& filename);
     Logger(const Logger& other);
     Logger& operator=(const Logger& other);
-
-    std::ofstream _file_stream;
-    bool _is_file_mode;
-    LogLevel _level;
 };
 
 } // namespace weblog

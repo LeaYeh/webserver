@@ -23,7 +23,7 @@ ParseException::ParseException(webshell::StatusCode code, std::string msg)
     _msg = msg;
 }
 
-void ParseException::displayIssue() const
+void ParseException::display_issue() const
 {
     std::cerr << "Parsing went wrong: " << _msg << std::endl;
 }

@@ -13,6 +13,7 @@
 #include "RequestAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
+#include <iostream>
 
 namespace webshell
 {
@@ -96,15 +97,18 @@ void RequestAnalyzer::_validate_method_and_uri()
 {
     if ((_method == CONNECT && _uri.type == AUTHORITY)
         || (_method == OPTIONS && _uri.type == ASTERISK)
-        || _method == UNKNOWN)
-        throw utils::HttpException(webshell::NOT_IMPLEMENTED,
-                "Only GET, POST and DELETE method supported");
-    else if (_uri.type == AUTHORITY || _uri.type == ASTERISK)
+        || _method == UNKNOWN) {
+        throw utils::HttpException(
+            webshell::NOT_IMPLEMENTED,
+            "Only GET, POST and DELETE method supported");
+    }
+    else if (_uri.type == AUTHORITY || _uri.type == ASTERISK) {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                "Please use origin or absolute form");
+                                   "Please use origin or absolute form");
+    }
 }
 
-bool RequestAnalyzer::isComplete(void) const
+bool RequestAnalyzer::is_complete(void) const
 {
     return (_state == COMPLETE);
 }
@@ -142,11 +146,11 @@ void RequestAnalyzer::_assemble_request()
     std::cerr << "Assembling request struct. Method: " << _method
               << " Target: " << _uri.raw << " Version: " << _version
               << std::endl;
-    _req.setMethod(_method);
-    _req.setUri(_uri);
-    _req.setVersion(_version);
-    _req.setHeaders(_headers);
-    _req.setReference(_read_buffer);
+    _req.set_method(_method);
+    _req.set_uri(_uri);
+    _req.set_version(_version);
+    _req.set_headers(_headers);
+    _req.set_reference(_read_buffer);
     // if (!_req.setupRequestConfig()) {
     //     throw utils::HttpException(webshell::NOT_FOUND,
     //                                "No matching location block found: "

@@ -14,12 +14,14 @@ namespace webkernel
 class ARequestHandler
 {
 public:
+    virtual webshell::Response
+    handle(int fd, EventProcessingState& state, webshell::Request& request) = 0;
+
+public:
     ARequestHandler();
     ARequestHandler(const ARequestHandler& other);
     ARequestHandler& operator=(const ARequestHandler& other);
     virtual ~ARequestHandler();
-    virtual webshell::Response
-    handle(int fd, EventProcessingState& state, webshell::Request& request) = 0;
 
 protected:
     std::map<std::string, std::string> _response_headers;
@@ -28,10 +30,11 @@ protected:
     std::string _target_path;
     EventProcessingState _state;
 
-    bool _checkPathFormat(const std::string& path) const;
-    bool
-    _checkMethodLimit(webshell::RequestMethod method,
-                      const std::vector<webshell::RequestMethod>& limit) const;
+protected:
+    bool _check_path_format(const std::string& path) const;
+    bool _check_method_limit(
+        webshell::RequestMethod method,
+        const std::vector<webshell::RequestMethod>& limit) const;
     bool _is_out_of_max_file_size(const webconfig::RequestConfig& config,
                                   const std::string file_path) const;
     virtual bool _check_path_permission(const std::string& path,
@@ -53,10 +56,10 @@ protected:
     virtual std::string _process(int fd,
                                  EventProcessingState& state,
                                  webshell::Request& request) = 0;
-    virtual void _preProcess(const webshell::Request& request);
-    virtual void _postProcess(const webshell::Request& request,
-                              const std::string& target_path,
-                              const std::string& content) = 0;
+    virtual void _pre_process(const webshell::Request& request);
+    virtual void _post_process(const webshell::Request& request,
+                               const std::string& target_path,
+                               const std::string& content) = 0;
 };
 
 } // namespace webkernel

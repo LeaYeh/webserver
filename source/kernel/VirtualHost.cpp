@@ -5,7 +5,7 @@ namespace webkernel
 
 VirtualHost::VirtualHost(const std::string& ipaddr,
                          webconfig::ConfigServerBlock* config) :
-    _ipaaddr(ipaddr), _name(config->serverName()), _config(config)
+    _ipaaddr(ipaddr), _name(config->server_name()), _config(config)
 {
 }
 

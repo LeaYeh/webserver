@@ -33,8 +33,6 @@ private:
     void _parse_config_directive(const std::string& line);
     size_t _parse_client_max_body_size(const std::string& line);
     webshell::ContentType _parse_default_type(const std::string& line);
-    std::string _parse_autoindex_page(const std::string& line);
-    std::string _parse_error_page(const std::string& line);
 };
 
 } // namespace webconfig

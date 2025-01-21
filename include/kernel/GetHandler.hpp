@@ -41,6 +41,7 @@ private:
                            const std::string& request_path,
                            const webconfig::RequestConfig& config,
                            std::string& content);
+    webshell::Response _handle_redirect(const std::string& path) const;
 
 private:
     GetHandler(const GetHandler& other);

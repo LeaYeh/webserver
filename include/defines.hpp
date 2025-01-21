@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #define PROGRAM_NAME "webserv"
 #define SUCCESS      0
@@ -236,6 +237,8 @@ const int MAX_EVENTS = 10;
 // TODO: the CHUNKED_SIZE is critical for the performance of the server, need to
 // be optimized (it is the size of the buffer for the body)
 const int CHUNKED_SIZE = 1024;
+// const char* CHUNKED_END_MARKER = "0\r\n\r\n";
+const std::string CHUNKED_END_MARKER = "0\r\n\r\n";
 
 enum ReactorType
 {

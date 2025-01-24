@@ -11,8 +11,11 @@ public:
     void print_config(void) const;
     std::string parse(std::ifstream& file_stream);
 
-    unsigned int worker_processes(void) const;
-    unsigned int worker_connections(void) const;
+    size_t worker_processes(void) const;
+    size_t worker_connections(void) const;
+    const std::string& session_socket_path(void) const;
+    size_t session_expire_seconds(void) const;
+    size_t session_max_connections(void) const;
 
 public:
     ConfigGlobalBlock();
@@ -21,8 +24,11 @@ public:
     ~ConfigGlobalBlock();
 
 private:
-    unsigned int _worker_processes;
-    unsigned int _worker_connections;
+    size_t _worker_processes;
+    size_t _worker_connections;
+    std::string _session_socket_path;
+    size_t _session_expire_seconds;
+    size_t _session_max_connections;
 
 private:
     void _parse_config_directive(const std::string& line);

@@ -7,10 +7,18 @@ namespace webconfig
 {
 
 ConfigGlobalBlock::ConfigGlobalBlock() :
-    AConfigParser(GLOBAL), _worker_processes(1), _worker_connections(1024)
+    AConfigParser(GLOBAL),
+    _worker_processes(1),
+    _worker_connections(1024),
+    _session_socket_path("/tmp/session.sock"),
+    _session_expire_seconds(3600),
+    _session_max_connections(1000)
 {
     _valid_directives.insert("worker_processes");
     _valid_directives.insert("worker_connections");
+    _valid_directives.insert("session_socket_path");
+    _valid_directives.insert("session_expire_seconds");
+    _valid_directives.insert("session_max_connections");
 }
 
 ConfigGlobalBlock::ConfigGlobalBlock(const ConfigGlobalBlock& other) :
@@ -32,12 +40,12 @@ ConfigGlobalBlock& ConfigGlobalBlock::operator=(const ConfigGlobalBlock& other)
 
 ConfigGlobalBlock::~ConfigGlobalBlock() {}
 
-unsigned int ConfigGlobalBlock::worker_processes(void) const
+size_t ConfigGlobalBlock::worker_processes(void) const
 {
     return (_worker_processes);
 }
 
-unsigned int ConfigGlobalBlock::worker_connections(void) const
+size_t ConfigGlobalBlock::worker_connections(void) const
 {
     return (_worker_connections);
 }
@@ -51,6 +59,29 @@ void ConfigGlobalBlock::print_config(void) const
     weblog::Logger::log(weblog::DEBUG,
                         "\tworker_connections: "
                             + utils::to_string(_worker_connections));
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tsession_socket_path: " + _session_socket_path);
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tsession_expire_seconds: "
+                            + utils::to_string(_session_expire_seconds));
+    weblog::Logger::log(weblog::DEBUG,
+                        "\tsession_max_connections: "
+                            + utils::to_string(_session_max_connections));
+}
+
+const std::string& ConfigGlobalBlock::session_socket_path(void) const
+{
+    return (_session_socket_path);
+}
+
+size_t ConfigGlobalBlock::session_expire_seconds(void) const
+{
+    return (_session_expire_seconds);
+}
+
+size_t ConfigGlobalBlock::session_max_connections(void) const
+{
+    return (_session_max_connections);
 }
 
 std::string ConfigGlobalBlock::parse(std::ifstream& file_stream)
@@ -89,6 +120,20 @@ void ConfigGlobalBlock::_parse_config_directive(const std::string& line)
     else if (directive == "worker_connections") {
         _worker_connections =
             utils::stoi(extract_directive_value(line, directive));
+    }
+    else if (directive == "session_socket_path") {
+        _session_socket_path = extract_directive_value(line, directive);
+    }
+    else if (directive == "session_expire_seconds") {
+        _session_expire_seconds =
+            utils::stoi(extract_directive_value(line, directive));
+    }
+    else if (directive == "session_max_connections") {
+        _session_max_connections =
+            utils::stoi(extract_directive_value(line, directive));
+    }
+    else {
+        throw std::invalid_argument("Invalid directive: " + directive);
     }
 }
 

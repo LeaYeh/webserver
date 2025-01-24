@@ -6,6 +6,7 @@
 #include "Reactor.hpp"
 #include "VirtualHostManager.hpp"
 #include "defines.hpp"
+#include "session_types.hpp"
 #include "utils.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -20,11 +21,14 @@ namespace webkernel
 Kernel::Kernel()
 {
     webconfig::Config* config = webconfig::Config::instance();
+
     if (config->global_block().worker_processes() == 1) {
         weblog::Logger::log(
             weblog::INFO, "Create single reactor and single worker structure");
         _reactor = new Reactor(REACTOR);
+        // TODO: Add session config into the config file
         _acceptor = new Acceptor(_reactor);
+        _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
     }
     else {
@@ -32,6 +36,7 @@ Kernel::Kernel()
                             "Create multi reactor and multi worker structure");
         _reactor = new Reactor(DISPATCHER);
         _acceptor = new Acceptor(_reactor);
+        _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
         for (unsigned int i = 1; i < config->global_block().worker_processes();
              i++) {

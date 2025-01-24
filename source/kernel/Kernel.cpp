@@ -25,14 +25,14 @@ Kernel::Kernel()
             weblog::INFO, "Create single reactor and single worker structure");
         _reactor = new Reactor(REACTOR);
         _acceptor = new Acceptor(_reactor);
-        _registerListener();
+        _register_listener();
     }
     else {
         weblog::Logger::log(weblog::INFO,
                             "Create multi reactor and multi worker structure");
         _reactor = new Reactor(DISPATCHER);
         _acceptor = new Acceptor(_reactor);
-        _registerListener();
+        _register_listener();
         for (unsigned int i = 1; i < config->global_block().worker_processes();
              i++) {
             pid_t pid = fork();
@@ -83,7 +83,7 @@ void Kernel::run()
     _reactor->run();
 }
 
-void Kernel::_registerListener(void)
+void Kernel::_register_listener(void)
 {
     webconfig::Config* config = webconfig::Config::instance();
 
@@ -99,8 +99,8 @@ void Kernel::_registerListener(void)
             continue;
         }
         vhost_manager.add_server(ipaddr, &servConfig);
-        int fd = _createListenSocket(servConfig.listen().first.c_str(),
-                                     servConfig.listen().second.c_str());
+        int fd = _create_listen_socket(servConfig.listen().first.c_str(),
+                                       servConfig.listen().second.c_str());
         if (listen(fd, SOMAXCONN) < 0) {
             throw std::runtime_error("listen() failed: "
                                      + std::string(strerror(errno)));
@@ -110,7 +110,7 @@ void Kernel::_registerListener(void)
     }
 }
 
-int Kernel::_createListenSocket(const char* ip, const char* port)
+int Kernel::_create_listen_socket(const char* ip, const char* port)
 {
     struct addrinfo hints, *res;
     int status;

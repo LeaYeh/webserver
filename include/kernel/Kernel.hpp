@@ -21,8 +21,8 @@ private:
     Reactor* _reactor;
     Acceptor* _acceptor;
 
-    void _registerListener(void);
-    int _createListenSocket(const char* ip, const char* port);
+    void _register_listener(void);
+    int _create_listen_socket(const char* ip, const char* port);
 };
 
 } // namespace webkernel

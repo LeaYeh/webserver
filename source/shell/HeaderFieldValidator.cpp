@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 20:10:31 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:29:37 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,8 +239,11 @@ void HeaderFieldValidator::_cookie_val(unsigned char c)
         else
             _cookie_state = CO_OWS_END;
     }
-    else //TODO: make cookie char validator fn here
+    else if (_is_cookie_val(c))
         _val.push_back(c);
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Invalid character in cookie-val");
 }
 
 void HeaderFieldValidator::_cookie_space(unsigned char c)
@@ -430,6 +433,15 @@ bool HeaderFieldValidator::_is_ows(unsigned char c)
         return (true);
     }
     return (false);
+}
+
+bool HeaderFieldValidator::_is_cookie_val(unsigned char c)
+{
+    if ((c > 0 && c < 31) || c == 127 || c == '\"' || c == ','
+        || c == ';' || c == '\\') {
+        return (false);
+    }
+    return (true);
 }
 
 } // namespace webshell

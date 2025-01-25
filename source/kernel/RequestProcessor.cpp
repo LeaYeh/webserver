@@ -7,6 +7,7 @@
 #include "Response.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
+#include "utils.hpp"
 #include <string>
 #include <sys/epoll.h>
 
@@ -49,11 +50,11 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         _analyzer_pool[fd] = webshell::RequestAnalyzer(&buffer);
         reset_state(fd);
     }
-
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
         if (_analyzer_pool[fd].is_complete()) {
             _handle_virtual_host(fd);
+            _setup_timer(fd, _analyzer_pool[fd].request().config());
             buffer.erase(0, i + 1);
             process(fd);
             return (true);
@@ -98,6 +99,15 @@ void RequestProcessor::_handle_virtual_host(int fd)
     request.setup_config(server_config);
 }
 
+void RequestProcessor::_setup_timer(int fd,
+                                    const webconfig::RequestConfig& config)
+{
+    if (_timer_pool.find(fd) == _timer_pool.end()) {
+        _timer_pool[fd] = utils::Timer(config.keep_alive_timeout);
+    }
+    _timer_pool[fd].start();
+}
+
 // This function can be called after the request is complete or the request need
 // to be processed in chunks
 void RequestProcessor::process(int fd)
@@ -123,14 +133,14 @@ void RequestProcessor::process(int fd)
         }
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());
-            _analyzer_pool[fd].reset();
+            _end_request(fd);
         }
     }
     // for GET and DELETE requests, we can send the response directly
     else {
         _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
-            _analyzer_pool[fd].reset();
+            _end_request(fd);
         }
     }
 }
@@ -156,6 +166,37 @@ void RequestProcessor::set_state(int fd, EventProcessingState state)
 void RequestProcessor::reset_state(int fd)
 {
     _state[fd] = INITIAL;
+}
+
+void RequestProcessor::_handle_keep_alive(int fd)
+{
+    const webshell::Request& request = _analyzer_pool[fd].request();
+
+    if (!request.has_header("connection")
+        || request.get_header("connection") == "close") {
+        _handler->close_connection(fd, weblog::INFO, "Connection: close");
+        _timer_pool.erase(fd);
+    }
+    else if (_timer_pool[fd].timeout()) {
+        _handler->close_connection(
+            fd,
+            weblog::INFO,
+            "Keep-alive timeout: " + utils::to_string(_timer_pool[fd].elapsed())
+                + " seconds, close the connection");
+        _timer_pool.erase(fd);
+    }
+    else {
+        weblog::Logger::log(weblog::DEBUG,
+                            "Keep-alive connection, time passed: "
+                                + utils::to_string(_timer_pool[fd].elapsed())
+                                + " seconds");
+    }
+}
+
+void RequestProcessor::_end_request(int fd)
+{
+    _handle_keep_alive(fd);
+    _analyzer_pool.erase(fd);
 }
 
 } // namespace webkernel

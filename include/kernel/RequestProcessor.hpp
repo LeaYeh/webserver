@@ -1,6 +1,8 @@
 #pragma once
 #include "Reactor.hpp"
 #include "RequestAnalyzer.hpp"
+#include "RequestConfig.hpp"
+#include "Timer.hpp"
 #include <map>
 #include <string>
 #include <sys/epoll.h>
@@ -32,9 +34,13 @@ private:
     Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     std::map<int /* fd */, EventProcessingState> _state;
+    std::map<int /* fd */, utils::Timer> _timer_pool;
 
 private:
     void _handle_virtual_host(int fd);
+    void _setup_timer(int fd, const webconfig::RequestConfig& config);
+    void _handle_keep_alive(int fd);
+    void _end_request(int fd);
 
 private:
     RequestProcessor();

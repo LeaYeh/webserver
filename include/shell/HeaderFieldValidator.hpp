@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 19:45:12 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:05:30 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class HeaderFieldValidator
 public:
     void set_method(RequestMethod method);
     void validate(std::map<std::string, std::string>& map);
+    std::map<std::string, std::string> get_cookie_map() const;
 
 public:
     HeaderFieldValidator();

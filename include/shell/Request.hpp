@@ -53,6 +53,7 @@ private:
     Uri _uri;
     float _version;
     std::map<std::string, std::string> _headers;
+    std::map<std::string, std::string> _cookies;
     std::string* _read_buffer;
     webconfig::RequestConfig _config;
 

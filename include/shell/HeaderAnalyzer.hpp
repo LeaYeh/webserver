@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/23 19:50:49 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:05:16 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ class HeaderAnalyzer
 {
 public:
     std::map<std::string, std::string> headers();
+    std::map<std::string, std::string> cookies() const;
     void set_method(RequestMethod method);
 
 public:
@@ -38,6 +39,7 @@ private:
     HeaderFieldValidator _validator;
     RequestHeaderState _state;
     std::map<std::string, std::string> _map;
+    std::map<std::string, std::string> _cookie_map;
     std::string _key;
     std::string _val;
 

@@ -28,6 +28,7 @@ Request::Request() :
     _uri(),
     _version(),
     _headers(),
+    _cookies(),
     _read_buffer()
 {
 }
@@ -40,6 +41,7 @@ Request::Request(std::string* buffer) :
     _uri(),
     _version(),
     _headers(),
+    _cookies(),
     _read_buffer(buffer)
 {
 }
@@ -52,6 +54,7 @@ Request::Request(const Request& other) :
     _uri(other._uri),
     _version(other._version),
     _headers(other._headers),
+    _cookies(other._cookies),
     _read_buffer(other._read_buffer),
     _config(other._config)
 {
@@ -67,6 +70,7 @@ Request& Request::operator=(const Request& other)
         _uri = other._uri;
         _version = other._version;
         _headers = other._headers;
+        _cookies = other._cookies;
         _read_buffer = other._read_buffer;
         _config = other._config;
     }

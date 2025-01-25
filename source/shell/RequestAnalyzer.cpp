@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/06 01:26:02 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:10:00 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ RequestAnalyzer::RequestAnalyzer(const RequestAnalyzer& other) :
     _uri(other._uri),
     _version(other._version),
     _headers(other._headers),
+    _cookies(other._cookies),
     _body(other._body),
     _req(other._req)
 {
@@ -58,6 +59,7 @@ RequestAnalyzer& RequestAnalyzer::operator=(const RequestAnalyzer& other)
         _uri = other._uri;
         _version = other._version;
         _headers = other._headers;
+        _cookies = other._cookies;
         _body = other._body;
         _req = other._req;
     }
@@ -82,6 +84,7 @@ void RequestAnalyzer::feed(const char ch)
         _header_analyzer.feed(ch);
         if (_header_analyzer.done()) {
             _headers = _header_analyzer.headers();
+            _cookies = _header_analyzer.cookies();
             _assemble_request();
             _state = COMPLETE;
         }

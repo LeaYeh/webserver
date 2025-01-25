@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 19:51:10 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:10:31 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ HeaderFieldValidator::HeaderFieldValidator(const HeaderFieldValidator& other)
 {
     _host_state = other._host_state;
     _cookie_state = other._cookie_state;
+    _cookie_map = other._cookie_map;
 }
 
 HeaderFieldValidator&
@@ -39,6 +40,7 @@ HeaderFieldValidator::operator=(const HeaderFieldValidator& other)
     if (this != &other) {
         _host_state = other._host_state;
         _cookie_state = other._cookie_state;
+        _cookie_map = other._cookie_map;
     }
     return (*this);
 }
@@ -46,6 +48,11 @@ HeaderFieldValidator::operator=(const HeaderFieldValidator& other)
 void HeaderFieldValidator::set_method(RequestMethod method)
 {
     _method = method;
+}
+
+std::map<std::string, std::string> HeaderFieldValidator::get_cookie_map() const
+{
+    return (_cookie_map);
 }
 
 /*

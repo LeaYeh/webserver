@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/06 01:20:58 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:06:12 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ private:
     Uri _uri;
     float _version;
     std::map<std::string, std::string> _headers;
+    std::map<std::string, std::string> _cookies;
     std::string _body;
     Request _req;
 

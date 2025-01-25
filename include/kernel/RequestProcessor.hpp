@@ -31,7 +31,6 @@ public:
 
 private:
     ConnectionHandler* _handler;
-    Reactor* _reactor;
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     std::map<int /* fd */, EventProcessingState> _state;
     std::map<int /* fd */, utils::Timer> _timer_pool;

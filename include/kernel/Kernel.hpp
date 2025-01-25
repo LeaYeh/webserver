@@ -19,7 +19,6 @@ public:
     void run(void);
 
 private:
-    Reactor* _reactor;
     Acceptor* _acceptor;
     SessionManager* _session_manager;
 

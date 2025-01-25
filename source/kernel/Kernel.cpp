@@ -25,17 +25,16 @@ Kernel::Kernel()
     if (config->global_block().worker_processes() == 1) {
         weblog::Logger::log(
             weblog::INFO, "Create single reactor and single worker structure");
-        _reactor = new Reactor(REACTOR);
-        // TODO: Add session config into the config file
-        _acceptor = new Acceptor(_reactor);
+        Reactor::instantiate(REACTOR);
+        _acceptor = new Acceptor();
         // _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
     }
     else {
         weblog::Logger::log(weblog::INFO,
                             "Create multi reactor and multi worker structure");
-        _reactor = new Reactor(DISPATCHER);
-        _acceptor = new Acceptor(_reactor);
+        Reactor::instantiate(DISPATCHER);
+        _acceptor = new Acceptor();
         // _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
         for (unsigned int i = 1; i < config->global_block().worker_processes();
@@ -47,15 +46,15 @@ Kernel::Kernel()
             }
             else if (pid == 0) {
                 // child process will
-                _reactor = new Reactor(WORKER);
+                Reactor::instantiate(WORKER);
                 break;
             }
         }
     }
+    weblog::Logger::log(weblog::DEBUG, "Kernel created");
 }
 
-Kernel::Kernel(const Kernel& other) :
-    _reactor(other._reactor), _acceptor(other._acceptor)
+Kernel::Kernel(const Kernel& other) : _acceptor(other._acceptor)
 {
     weblog::Logger::log(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
 }
@@ -65,7 +64,6 @@ Kernel& Kernel::operator=(const Kernel& other)
     weblog::Logger::log(weblog::DEBUG,
                         "Kernel::operator=(const Kernel& other)");
     if (this != &other) {
-        _reactor = other._reactor;
         _acceptor = other._acceptor;
     }
     return (*this);
@@ -74,9 +72,7 @@ Kernel& Kernel::operator=(const Kernel& other)
 Kernel::~Kernel()
 {
     weblog::Logger::log(weblog::DEBUG, "Kernel::~Kernel()");
-    if (_reactor) {
-        delete _reactor;
-    }
+    Reactor::destroy();
     if (_acceptor) {
         delete _acceptor;
     }
@@ -85,7 +81,7 @@ Kernel::~Kernel()
 void Kernel::run()
 {
     weblog::Logger::log(weblog::DEBUG, "Kernel::run()");
-    _reactor->run();
+    Reactor::instance()->run();
 }
 
 void Kernel::_register_listener(void)
@@ -98,7 +94,7 @@ void Kernel::_register_listener(void)
         const std::string ipaddr =
             servConfig.listen().first + ":" + servConfig.listen().second;
         VirtualHostManager& vhost_manager =
-            _reactor->conn_handler->vhost_manager;
+            Reactor::instance()->conn_handler->vhost_manager;
 
         if (vhost_manager.has_server(ipaddr)) {
             continue;
@@ -111,7 +107,7 @@ void Kernel::_register_listener(void)
                                      + std::string(strerror(errno)));
         }
         weblog::Logger::log(weblog::INFO, "Listening on " + ipaddr);
-        _reactor->register_handler(fd, _acceptor, EPOLLIN);
+        Reactor::instance()->register_handler(fd, _acceptor, EPOLLIN);
     }
 }
 

@@ -13,16 +13,12 @@ public:
     void handle_event(int fd, uint32_t events);
 
 public:
-    Acceptor(Reactor* reactor);
-    Acceptor(const Acceptor& other);
-    Acceptor& operator=(const Acceptor& other);
+    Acceptor();
     ~Acceptor();
 
 private:
-    Reactor* _reactor;
-
-private:
-    Acceptor();
+    Acceptor(const Acceptor& other);
+    Acceptor& operator=(const Acceptor& other);
 };
 
 } // namespace webkernel

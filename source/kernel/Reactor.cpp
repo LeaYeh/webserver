@@ -12,19 +12,29 @@
 namespace webkernel
 {
 
+Reactor* Reactor::create_instance()
+{
+    return new Reactor(REACTOR); // Default instance creation is REACTOR
+}
+
+Reactor* Reactor::create_instance(const ReactorType& type)
+{
+    return new Reactor(type);
+}
+
 // EPOLL_CLOEXEC is a flag that makes sure that the file descriptor is closed
 // when the process is replaced by another process
-Reactor::Reactor(ReactorType type) : conn_handler(NULL), _type(type)
+Reactor::Reactor(const ReactorType& type) : conn_handler(NULL), _type(type)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "Reactor::Reactor(" + utils::to_string(type) + ")");
     if (_type == REACTOR) {
         _epoll_fd = epoll_create1(0);
-        conn_handler = new ConnectionHandler(this);
+        conn_handler = new ConnectionHandler();
     }
     else if (_type == WORKER) {
         _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-        conn_handler = new ConnectionHandler(this);
+        conn_handler = new ConnectionHandler();
     }
     else if (_type == DISPATCHER) {
         _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
@@ -37,29 +47,6 @@ Reactor::Reactor(ReactorType type) : conn_handler(NULL), _type(type)
     }
     weblog::Logger::log(weblog::DEBUG,
                         "Created epoll fd: " + utils::to_string(_epoll_fd));
-}
-
-Reactor::Reactor(const Reactor& other) :
-    conn_handler(other.conn_handler),
-    _type(other._type),
-    _epoll_fd(other._epoll_fd),
-    _handlers(other._handlers)
-{
-    weblog::Logger::log(weblog::DEBUG,
-                        "Reactor::Reactor(const Reactor& other)");
-}
-
-Reactor& Reactor::operator=(const Reactor& other)
-{
-    weblog::Logger::log(weblog::DEBUG,
-                        "Reactor::operator=(const Reactor& other)");
-    if (this != &other) {
-        conn_handler = other.conn_handler;
-        _type = other._type;
-        _epoll_fd = other._epoll_fd;
-        _handlers = other._handlers;
-    }
-    return (*this);
 }
 
 Reactor::~Reactor()

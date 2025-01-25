@@ -1,6 +1,7 @@
 #include "RequestProcessor.hpp"
 #include "ConnectionHandler.hpp"
 #include "Logger.hpp"
+#include "Reactor.hpp"
 #include "Request.hpp"
 #include "RequestAnalyzer.hpp"
 #include "RequestHandlerManager.hpp"
@@ -17,12 +18,10 @@ namespace webkernel
 RequestProcessor::RequestProcessor(ConnectionHandler* handler) :
     _handler(handler), _analyzer_pool()
 {
-    _reactor = handler->reactor();
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other) :
     _handler(other._handler),
-    _reactor(other._reactor),
     _analyzer_pool(other._analyzer_pool)
 {
 }
@@ -33,7 +32,6 @@ RequestProcessor& RequestProcessor::operator=(const RequestProcessor& other)
         _handler = other._handler;
         _analyzer_pool = other._analyzer_pool;
         _handler = other._handler;
-        _reactor = other._reactor;
     }
     return (*this);
 }
@@ -90,12 +88,12 @@ void RequestProcessor::process(int fd)
         // if the server still processing the upload data, we need to consume
         // the read buffer first and stop reading new requests
         if (state & HANDLE_CHUNKED) {
-            _reactor->modify_handler(fd, EPOLLOUT, EPOLLIN);
+            Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
         }
         // if the read buffer is empty but the server still uploading data, we
         // need to wait for more data
         if (request.empty_buffer()) {
-            _reactor->modify_handler(fd, EPOLLIN, 0);
+            Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
         }
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());

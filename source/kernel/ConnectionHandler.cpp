@@ -3,6 +3,7 @@
 #include "ConfigGlobalBlock.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
+#include "Reactor.hpp"
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
 #include "debugUtils.hpp"
@@ -15,10 +16,9 @@
 namespace webkernel
 {
 
-ConnectionHandler::ConnectionHandler(Reactor* reactor) :
-    _reactor(reactor), _processor(this)
+ConnectionHandler::ConnectionHandler() : _processor(this)
 {
-    _connect_to_session_manager();
+    // _connect_to_session_manager();
 }
 
 ConnectionHandler::~ConnectionHandler()
@@ -26,11 +26,6 @@ ConnectionHandler::~ConnectionHandler()
     weblog::Logger::log(weblog::DEBUG, "ConnectionHandler destroyed");
     // TODO: Check the conn_fd is closed by the reactor
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
-}
-
-Reactor* ConnectionHandler::reactor(void) const
-{
-    return (_reactor);
 }
 
 void ConnectionHandler::handle_event(int fd, uint32_t events)
@@ -66,7 +61,7 @@ void ConnectionHandler::close_connection(int fd,
 {
     weblog::Logger::log(level,
                         message + " on conn_fd: " + utils::to_string(fd));
-    _reactor->remove_handler(fd);
+    Reactor::instance()->remove_handler(fd);
     _processor.remove_analyzer(fd);
     _read_buffer.erase(fd);
     _write_buffer.erase(fd);
@@ -83,7 +78,7 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
     }
 
     _write_buffer[fd].append(buffer);
-    _reactor->modify_handler(fd, EPOLLOUT, 0);
+    Reactor::instance()->modify_handler(fd, EPOLLOUT, 0);
 }
 
 void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
@@ -102,7 +97,7 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
                         "Error response: \n" + err_response.serialize());
 
     _error_buffer[fd].append(err_response.serialize());
-    _reactor->modify_handler(fd, EPOLLOUT, EPOLLIN);
+    Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
     _processor.set_state(fd, ERROR);
 }
 
@@ -124,7 +119,7 @@ void ConnectionHandler::_handle_read(int fd)
         weblog::Logger::log(
             weblog::DEBUG,
             "Read buffer is full, need to consume the buffer first.");
-        _reactor->modify_handler(fd, EPOLLOUT, EPOLLIN);
+        Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
         return;
     }
     char buffer[CHUNKED_SIZE];
@@ -193,7 +188,7 @@ void ConnectionHandler::_handle_write(int fd)
     }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
-        _reactor->modify_handler(fd, EPOLLIN, EPOLLOUT);
+        Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     }
     else if (process_state & HANDLE_CHUNKED) {
         _send_normal(fd);

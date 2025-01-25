@@ -146,6 +146,15 @@ enum CacheState
     C_INQUOTE_ESCAPE
 };
 
+enum CookieState
+{
+    CO_ERROR = -1,
+    CO_OWS = 0,
+    CO_NAME,
+    CO_VALUE,
+    CO_SP
+};
+
 enum RequestHeaderState
 {
     INVALID_HEADER = -1,

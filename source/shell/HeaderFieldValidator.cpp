@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/30 21:48:18 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 18:29:45 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include <cctype>
 #include <cstddef>
+#include <stdexcept>
 
 namespace webshell
 {
@@ -23,22 +24,23 @@ namespace webshell
 HeaderFieldValidator::HeaderFieldValidator()
 {
     _host_state = URI_HOST_REGNAME;
+    _cookie_state = CO_OWS;
 }
 HeaderFieldValidator::~HeaderFieldValidator() {}
 HeaderFieldValidator::HeaderFieldValidator(const HeaderFieldValidator& other)
 {
-    (void)other;
+    _host_state = other._host_state;
+    _cookie_state = other._cookie_state;
 }
 
 HeaderFieldValidator&
 HeaderFieldValidator::operator=(const HeaderFieldValidator& other)
 {
-    if (this == &other) {
-        return (*this);
+    if (this != &other) {
+        _host_state = other._host_state;
+        _cookie_state = other._cookie_state;
     }
-    else {
-        return (*this);
-    }
+    return (*this);
 }
 
 void HeaderFieldValidator::set_method(RequestMethod method)
@@ -110,6 +112,9 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     if (map.find("cache-control") != map.end()) {
         _validate_cache_control(map["cache-control"]);
     }
+    if (map.find("cookie") != map.end()) {
+        _validate_cookie(map["cookie"]);
+    }
     if (map.find("transfer-encoding") != map.end()) {
         if (map["transfer-encoding"] != "chunked") {
             throw utils::HttpException(
@@ -143,11 +148,59 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
     }
 }
 
+void HeaderFieldValidator::_validate_cookie(std::string& val)
+{
+    _cookie_state = CO_OWS;
+    size_t len = val.size();
+    size_t idx = 0;
+    while (idx < len)
+    {
+        switch (_cookie_state)
+        {
+            case CO_OWS:
+                _cookie_ows(val[idx]);
+                break;
+            case CO_NAME:
+                _cookie_name(val[idx]);
+                break;
+            case CO_VALUE:
+                _cookie_val(val[idx]);
+                break;
+            case CO_SP:
+                _cookie_space(val[idx]);
+                break;
+            default:
+                throw std::runtime_error("Invalid cookie state");
+        }
+        idx++;
+    }
+}
+
+void HeaderFieldValidator::_cookie_ows(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderFieldValidator::_cookie_name(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderFieldValidator::_cookie_val(unsigned char c)
+{
+    (void)c;
+}
+
+void HeaderFieldValidator::_cookie_space(unsigned char c)
+{
+    (void)c;
+}
+
 void HeaderFieldValidator::_validate_cache_control(std::string& val)
 {
     _cache_state = C_DIRECTIVE_START;
-    int len = val.size();
-    int idx = 0;
+    size_t len = val.size();
+    size_t idx = 0;
     while (idx < len) {
         switch (_cache_state) {
         case C_DIRECTIVE_START:

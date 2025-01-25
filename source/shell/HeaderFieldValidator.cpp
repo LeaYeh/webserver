@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 18:29:45 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 19:51:10 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ namespace webshell
 HeaderFieldValidator::HeaderFieldValidator()
 {
     _host_state = URI_HOST_REGNAME;
-    _cookie_state = CO_OWS;
+    _cookie_state = CO_OWS_START;
 }
 HeaderFieldValidator::~HeaderFieldValidator() {}
 HeaderFieldValidator::HeaderFieldValidator(const HeaderFieldValidator& other)
@@ -150,15 +150,15 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
 
 void HeaderFieldValidator::_validate_cookie(std::string& val)
 {
-    _cookie_state = CO_OWS;
+    _cookie_state = CO_OWS_START;
     size_t len = val.size();
     size_t idx = 0;
     while (idx < len)
     {
         switch (_cookie_state)
         {
-            case CO_OWS:
-                _cookie_ows(val[idx]);
+            case CO_OWS_START:
+                _cookie_ows_start(val[idx]);
                 break;
             case CO_NAME:
                 _cookie_name(val[idx]);
@@ -169,31 +169,80 @@ void HeaderFieldValidator::_validate_cookie(std::string& val)
             case CO_SP:
                 _cookie_space(val[idx]);
                 break;
+            case CO_OWS_END:
+                _cookie_ows_end(val[idx]);
+                break;
             default:
                 throw std::runtime_error("Invalid cookie state");
         }
         idx++;
     }
+    if (_cookie_state == CO_VALUE)
+    {
+        _cookie_map[_name] = _val;
+        _name.clear();
+        _val.clear();
+    }
+    else if (_cookie_state != CO_OWS_END)
+    {
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Incorrectly formatted Cookie header field");
+    }
 }
 
-void HeaderFieldValidator::_cookie_ows(unsigned char c)
+void HeaderFieldValidator::_cookie_ows_start(unsigned char c)
 {
-    (void)c;
+    if (utils::is_tchar(c))
+    {
+        _name.push_back(c);
+        _cookie_state = CO_NAME;
+    }
+    else if (!_is_ows(c))
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie header field val should begin with token or OWS");
+}
+
+void HeaderFieldValidator::_cookie_ows_end(unsigned char c)
+{
+    if (!_is_ows(c))
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie header field val should end with nothing or OWS");
 }
 
 void HeaderFieldValidator::_cookie_name(unsigned char c)
 {
-    (void)c;
+    if (c == '=')
+        _cookie_state = CO_VALUE;
+    else if (utils::is_tchar(c))
+        _name.push_back(c);
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie-name should be token");
 }
 
 void HeaderFieldValidator::_cookie_val(unsigned char c)
 {
-    (void)c;
+    if (c == ';' || _is_ows(c))
+    {
+        _cookie_map[_name] = _val;
+        _name.clear();
+        _val.clear();
+        if (c == ';')
+            _cookie_state = CO_SP;
+        else
+            _cookie_state = CO_OWS_END;
+    }
+    else //TODO: make cookie char validator fn here
+        _val.push_back(c);
 }
 
 void HeaderFieldValidator::_cookie_space(unsigned char c)
 {
-    (void)c;
+    if (_is_ows(c))
+        _cookie_state = CO_NAME;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Semicolon should be followed by single SP");
 }
 
 void HeaderFieldValidator::_validate_cache_control(std::string& val)
@@ -363,6 +412,14 @@ bool HeaderFieldValidator::_is_sub_delim(unsigned char c)
         return (true);
     }
     if (c == ',' || c == ';' || c == '=') {
+        return (true);
+    }
+    return (false);
+}
+
+bool HeaderFieldValidator::_is_ows(unsigned char c)
+{
+    if (c == ' ' || c == '\t') {
         return (true);
     }
     return (false);

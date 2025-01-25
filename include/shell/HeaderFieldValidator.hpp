@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 18:30:28 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 19:45:12 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,10 @@ private:
     CookieState _cookie_state;
     RequestMethod _method;
 
+    std::string _name;
+    std::string _val;
+    std::map<std::string, std::string> _cookie_map;
+
 private:
     void _validate_host(std::string& val);
     void _feed_hostname(unsigned char c);
@@ -43,6 +47,7 @@ private:
     void _uri_port(unsigned char c);
     bool _is_unreserved(unsigned char c);
     bool _is_sub_delim(unsigned char c);
+    bool _is_ows(unsigned char c);
 
     void _validate_content_length(std::string& val);
     void _validate_cache_control(std::string& val);
@@ -52,7 +57,8 @@ private:
     void _c_argument(unsigned char c);
 
     void _validate_cookie(std::string& val);
-    void _cookie_ows(unsigned char c);
+    void _cookie_ows_start(unsigned char c);
+    void _cookie_ows_end(unsigned char c);
     void _cookie_name(unsigned char c);
     void _cookie_val(unsigned char c);
     void _cookie_space(unsigned char c);

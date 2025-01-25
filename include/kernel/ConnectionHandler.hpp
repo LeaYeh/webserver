@@ -22,19 +22,16 @@ public:
     VirtualHostManager vhost_manager;
 
 public:
-    Reactor* reactor(void) const;
-
     void handle_event(int fd, uint32_t events);
     void close_connection(int fd, weblog::LogLevel level, std::string message);
     void prepare_write(int fd, const std::string& buffer);
     void prepare_error(int fd, const utils::HttpException& e);
 
 public:
-    ConnectionHandler(Reactor* reactor);
+    ConnectionHandler();
     ~ConnectionHandler();
 
 private:
-    Reactor* _reactor;
     RequestProcessor _processor;
     int _session_fd;
     // TODO: Use _read_buffer to handle extra data which out of a request
@@ -56,7 +53,6 @@ private:
     // bool _keepAlive(void);
 
 private:
-    ConnectionHandler();
     ConnectionHandler(const ConnectionHandler& other);
     ConnectionHandler& operator=(const ConnectionHandler& other);
 };

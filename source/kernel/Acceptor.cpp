@@ -1,6 +1,7 @@
 #include "Acceptor.hpp"
 #include "ConnectionHandler.hpp"
 #include "Logger.hpp"
+#include "Reactor.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
@@ -10,16 +11,9 @@
 namespace webkernel
 {
 
-Acceptor::Acceptor(Reactor* reactor) : _reactor(reactor) {}
-
-Acceptor::Acceptor(const Acceptor& other) : _reactor(other._reactor) {}
-
-Acceptor& Acceptor::operator=(const Acceptor& other)
+Acceptor::Acceptor()
 {
-    if (this != &other) {
-        _reactor = other._reactor;
-    }
-    return (*this);
+    weblog::Logger::log(weblog::DEBUG, "Acceptor created");
 }
 
 Acceptor::~Acceptor()
@@ -33,6 +27,8 @@ Acceptor::~Acceptor()
 // triggered mode with Level Triggered (LT) mode as the default
 void Acceptor::handle_event(int fd, uint32_t events)
 {
+    Reactor* reactor = Reactor::instance();
+
     if (events & EPOLLIN) {
         struct sockaddr_storage client_addr;
         socklen_t addr_size = sizeof(client_addr);
@@ -45,8 +41,8 @@ void Acceptor::handle_event(int fd, uint32_t events)
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));
         }
-        _reactor->register_handler(
-            conn_fd, _reactor->conn_handler, EPOLLIN | EPOLLHUP | EPOLLERR);
+        reactor->register_handler(
+            conn_fd, reactor->conn_handler, EPOLLIN | EPOLLHUP | EPOLLERR);
         weblog::Logger::log(weblog::DEBUG,
                             "Registered connection handler with fd: "
                                 + utils::to_string(conn_fd));

@@ -1,5 +1,6 @@
 #pragma once
 #include "IHandler.hpp"
+#include "Singleton.hpp"
 #include "defines.hpp"
 #include <csignal>
 #include <exception>
@@ -15,12 +16,15 @@ namespace webkernel
 class Acceptor;
 class ConnectionHandler;
 
-class Reactor
+class Reactor : public templates::Singleton<Reactor, ReactorType>
 {
 public:
     ConnectionHandler* conn_handler;
 
 public:
+    static Reactor* create_instance(); // Default instance creation
+    static Reactor* create_instance(const ReactorType& type);
+
     void run(void);
     void register_handler(int fd, IHandler* handler, uint32_t events);
     void remove_handler(int fd);
@@ -37,9 +41,6 @@ public:
     };
 
 public:
-    Reactor(ReactorType type);
-    Reactor(const Reactor&);
-    Reactor& operator=(const Reactor&);
     ~Reactor();
 
 private:
@@ -54,6 +55,9 @@ private:
 
 private:
     Reactor();
+    Reactor(const ReactorType& type);
+    Reactor(const Reactor&);
+    Reactor& operator=(const Reactor&);
 };
 
 } // namespace webkernel

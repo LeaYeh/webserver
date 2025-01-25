@@ -28,6 +28,7 @@ Request::Request() :
     _uri(),
     _version(),
     _headers(),
+    _cookies(),
     _read_buffer()
 {
 }
@@ -40,6 +41,7 @@ Request::Request(std::string* buffer) :
     _uri(),
     _version(),
     _headers(),
+    _cookies(),
     _read_buffer(buffer)
 {
 }
@@ -52,6 +54,7 @@ Request::Request(const Request& other) :
     _uri(other._uri),
     _version(other._version),
     _headers(other._headers),
+    _cookies(other._cookies),
     _read_buffer(other._read_buffer),
     _config(other._config)
 {
@@ -67,6 +70,7 @@ Request& Request::operator=(const Request& other)
         _uri = other._uri;
         _version = other._version;
         _headers = other._headers;
+        _cookies = other._cookies;
         _read_buffer = other._read_buffer;
         _config = other._config;
     }
@@ -100,6 +104,11 @@ const std::map<std::string, std::string>& Request::headers() const
     return (_headers);
 }
 
+const std::map<std::string, std::string>& Request::cookies() const
+{
+    return (_cookies);
+}
+
 const std::string& Request::get_header(const std::string& name) const
 {
     std::map<std::string, std::string>::const_iterator it = _headers.find(name);
@@ -110,9 +119,29 @@ const std::string& Request::get_header(const std::string& name) const
     return (it->second);
 }
 
+const std::string& Request::get_cookie(const std::string& name) const
+{
+    std::map<std::string, std::string>::const_iterator it = _cookies.find(name);
+
+    if (it == _cookies.end()) {
+        return (utils::EMPTY_STRING);
+    }
+    return (it->second);
+}
+
 bool Request::has_header(const std::string& name) const
 {
     return (_headers.find(name) != _headers.end());
+}
+
+bool Request::has_cookie(const std::string& name) const
+{
+    return (_headers.find(name) != _headers.end());
+}
+
+bool Request::has_cookies() const
+{
+    return (!_cookies.empty());
 }
 
 const std::string Request::serialize() const

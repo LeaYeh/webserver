@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/30 21:48:18 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:29:37 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include <cctype>
 #include <cstddef>
+#include <stdexcept>
 
 namespace webshell
 {
@@ -23,27 +24,35 @@ namespace webshell
 HeaderFieldValidator::HeaderFieldValidator()
 {
     _host_state = URI_HOST_REGNAME;
+    _cookie_state = CO_OWS_START;
 }
 HeaderFieldValidator::~HeaderFieldValidator() {}
 HeaderFieldValidator::HeaderFieldValidator(const HeaderFieldValidator& other)
 {
-    (void)other;
+    _host_state = other._host_state;
+    _cookie_state = other._cookie_state;
+    _cookie_map = other._cookie_map;
 }
 
 HeaderFieldValidator&
 HeaderFieldValidator::operator=(const HeaderFieldValidator& other)
 {
-    if (this == &other) {
-        return (*this);
+    if (this != &other) {
+        _host_state = other._host_state;
+        _cookie_state = other._cookie_state;
+        _cookie_map = other._cookie_map;
     }
-    else {
-        return (*this);
-    }
+    return (*this);
 }
 
 void HeaderFieldValidator::set_method(RequestMethod method)
 {
     _method = method;
+}
+
+std::map<std::string, std::string> HeaderFieldValidator::get_cookie_map() const
+{
+    return (_cookie_map);
 }
 
 /*
@@ -110,6 +119,9 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     if (map.find("cache-control") != map.end()) {
         _validate_cache_control(map["cache-control"]);
     }
+    if (map.find("cookie") != map.end()) {
+        _validate_cookie(map["cookie"]);
+    }
     if (map.find("transfer-encoding") != map.end()) {
         if (map["transfer-encoding"] != "chunked") {
             throw utils::HttpException(
@@ -143,11 +155,111 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
     }
 }
 
+void HeaderFieldValidator::_validate_cookie(std::string& val)
+{
+    _cookie_state = CO_OWS_START;
+    size_t len = val.size();
+    size_t idx = 0;
+    while (idx < len)
+    {
+        switch (_cookie_state)
+        {
+            case CO_OWS_START:
+                _cookie_ows_start(val[idx]);
+                break;
+            case CO_NAME:
+                _cookie_name(val[idx]);
+                break;
+            case CO_VALUE:
+                _cookie_val(val[idx]);
+                break;
+            case CO_SP:
+                _cookie_space(val[idx]);
+                break;
+            case CO_OWS_END:
+                _cookie_ows_end(val[idx]);
+                break;
+            default:
+                throw std::runtime_error("Invalid cookie state");
+        }
+        idx++;
+    }
+    if (_cookie_state == CO_VALUE)
+    {
+        _cookie_map[_name] = _val;
+        _name.clear();
+        _val.clear();
+    }
+    else if (_cookie_state != CO_OWS_END)
+    {
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Incorrectly formatted Cookie header field");
+    }
+}
+
+void HeaderFieldValidator::_cookie_ows_start(unsigned char c)
+{
+    if (utils::is_tchar(c))
+    {
+        _name.push_back(c);
+        _cookie_state = CO_NAME;
+    }
+    else if (!_is_ows(c))
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie header field val should begin with token or OWS");
+}
+
+void HeaderFieldValidator::_cookie_ows_end(unsigned char c)
+{
+    if (!_is_ows(c))
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie header field val should end with nothing or OWS");
+}
+
+void HeaderFieldValidator::_cookie_name(unsigned char c)
+{
+    if (c == '=')
+        _cookie_state = CO_VALUE;
+    else if (utils::is_tchar(c))
+        _name.push_back(c);
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Cookie-name should be token");
+}
+
+void HeaderFieldValidator::_cookie_val(unsigned char c)
+{
+    if (c == ';' || _is_ows(c))
+    {
+        _cookie_map[_name] = _val;
+        _name.clear();
+        _val.clear();
+        if (c == ';')
+            _cookie_state = CO_SP;
+        else
+            _cookie_state = CO_OWS_END;
+    }
+    else if (_is_cookie_val(c))
+        _val.push_back(c);
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Invalid character in cookie-val");
+}
+
+void HeaderFieldValidator::_cookie_space(unsigned char c)
+{
+    if (_is_ows(c))
+        _cookie_state = CO_NAME;
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Semicolon should be followed by single SP");
+}
+
 void HeaderFieldValidator::_validate_cache_control(std::string& val)
 {
     _cache_state = C_DIRECTIVE_START;
-    int len = val.size();
-    int idx = 0;
+    size_t len = val.size();
+    size_t idx = 0;
     while (idx < len) {
         switch (_cache_state) {
         case C_DIRECTIVE_START:
@@ -313,6 +425,23 @@ bool HeaderFieldValidator::_is_sub_delim(unsigned char c)
         return (true);
     }
     return (false);
+}
+
+bool HeaderFieldValidator::_is_ows(unsigned char c)
+{
+    if (c == ' ' || c == '\t') {
+        return (true);
+    }
+    return (false);
+}
+
+bool HeaderFieldValidator::_is_cookie_val(unsigned char c)
+{
+    if ((c > 0 && c < 31) || c == 127 || c == '\"' || c == ','
+        || c == ';' || c == '\\') {
+        return (false);
+    }
+    return (true);
 }
 
 } // namespace webshell

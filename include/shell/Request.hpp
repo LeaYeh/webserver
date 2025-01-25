@@ -21,10 +21,14 @@ public:
     float version() const;
     const webconfig::RequestConfig& config() const;
     const std::map<std::string, std::string>& headers() const;
+    const std::map<std::string, std::string>& cookies() const;
     const std::string& get_header(const std::string& name) const;
+    const std::string& get_cookie(const std::string& name) const;
     const std::string serialize() const;
     bool empty_buffer() const;
     bool has_header(const std::string& name) const;
+    bool has_cookie(const std::string& name) const;
+    bool has_cookies() const;
     bool read_chunked_body(std::vector<char>& chunked_body);
     void set_method(RequestMethod method);
     void set_uri(Uri uri);
@@ -53,6 +57,7 @@ private:
     Uri _uri;
     float _version;
     std::map<std::string, std::string> _headers;
+    std::map<std::string, std::string> _cookies;
     std::string* _read_buffer;
     webconfig::RequestConfig _config;
 

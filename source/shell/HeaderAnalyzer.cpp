@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/11/30 21:52:50 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/25 20:09:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ HeaderAnalyzer::HeaderAnalyzer() /* : _connection_type(KEEP_ALIVE)*/
 }
 
 HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other) :
-    _state(other._state), _map(other._map), _key(other._key), _val(other._val)
+    _state(other._state), _map(other._map), _cookie_map(other._cookie_map), _key(other._key), _val(other._val)
 {
 }
 
@@ -34,6 +34,7 @@ HeaderAnalyzer& HeaderAnalyzer::operator=(const HeaderAnalyzer& other)
     if (this != &other) {
         _state = other._state;
         _map = other._map;
+        _cookie_map = other._cookie_map;
         _key = other._key;
         _val = other._val;
     }
@@ -267,6 +268,11 @@ void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 std::map<std::string, std::string> HeaderAnalyzer::headers()
 {
     return (_map);
+}
+
+std::map<std::string, std::string> HeaderAnalyzer::cookies() const
+{
+    return (_cookie_map);
 }
 
 bool HeaderAnalyzer::done(void) const

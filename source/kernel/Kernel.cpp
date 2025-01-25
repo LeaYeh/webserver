@@ -28,7 +28,7 @@ Kernel::Kernel()
         _reactor = new Reactor(REACTOR);
         // TODO: Add session config into the config file
         _acceptor = new Acceptor(_reactor);
-        _session_manager = new SessionManager(_reactor, SessionConfig());
+        // _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
     }
     else {
@@ -36,7 +36,7 @@ Kernel::Kernel()
                             "Create multi reactor and multi worker structure");
         _reactor = new Reactor(DISPATCHER);
         _acceptor = new Acceptor(_reactor);
-        _session_manager = new SessionManager(_reactor, SessionConfig());
+        // _session_manager = new SessionManager(_reactor, SessionConfig());
         _register_listener();
         for (unsigned int i = 1; i < config->global_block().worker_processes();
              i++) {

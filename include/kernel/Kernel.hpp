@@ -1,6 +1,7 @@
 #pragma once
 #include "Acceptor.hpp"
 #include "Reactor.hpp"
+#include "SessionManager.hpp"
 #include <netdb.h>
 #include <sys/socket.h>
 
@@ -20,9 +21,10 @@ public:
 private:
     Reactor* _reactor;
     Acceptor* _acceptor;
+    SessionManager* _session_manager;
 
-    void _registerListener(void);
-    int _createListenSocket(const char* ip, const char* port);
+    void _register_listener(void);
+    int _create_listen_socket(const char* ip, const char* port);
 };
 
 } // namespace webkernel

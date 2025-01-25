@@ -36,6 +36,7 @@ public:
 private:
     Reactor* _reactor;
     RequestProcessor _processor;
+    int _session_fd;
     // TODO: Use _read_buffer to handle extra data which out of a request
     // TODO: Consider to use pair instead of map
     std::map<int /*fd*/, std::string> _read_buffer;
@@ -51,6 +52,7 @@ private:
     void _send_error(int fd);
     bool _is_buffer_full(const std::string& buffer) const;
     bool _init_buffer(std::string& buffer);
+    void _connect_to_session_manager();
     // bool _keepAlive(void);
 
 private:

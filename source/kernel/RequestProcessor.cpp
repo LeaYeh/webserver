@@ -65,40 +65,6 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
     return (_analyzer_pool[fd].is_complete());
 }
 
-void RequestProcessor::_handle_virtual_host(int fd)
-{
-    VirtualHostManager& vhost_manager = _handler->vhost_manager;
-    const std::string& host = _analyzer_pool[fd].request().get_header("host");
-    webshell::Request& request = _analyzer_pool[fd].request();
-    webconfig::ConfigServerBlock* default_server =
-        vhost_manager.find_default(fd);
-    const std::string& ipaddr = get_socket_address(fd);
-    webconfig::ConfigServerBlock* server_config = NULL;
-
-    if (request.uri().type == webshell::ORIGIN) {
-        server_config = default_server;
-        if (!host.empty()) {
-            server_config = vhost_manager.find_server(ipaddr, host);
-            if (server_config == NULL) {
-                throw utils::HttpException(webshell::NOT_FOUND,
-                                           "No virtual host found: " + host);
-            }
-        }
-    }
-    else if (request.uri().type == webshell::ABSOLUTE) {
-        server_config =
-            vhost_manager.find_server(ipaddr, request.uri().authority);
-        if (server_config == NULL) {
-            server_config = default_server;
-        }
-    }
-    else {
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "Invalid request URI");
-    }
-    request.setup_config(server_config);
-}
-
 void RequestProcessor::_setup_timer(int fd,
                                     const webconfig::RequestConfig& config)
 {
@@ -197,6 +163,40 @@ void RequestProcessor::_end_request(int fd)
 {
     _handle_keep_alive(fd);
     _analyzer_pool.erase(fd);
+}
+
+void RequestProcessor::_handle_virtual_host(int fd)
+{
+    VirtualHostManager& vhost_manager = _handler->vhost_manager;
+    const std::string& host = _analyzer_pool[fd].request().get_header("host");
+    webshell::Request& request = _analyzer_pool[fd].request();
+    webconfig::ConfigServerBlock* default_server =
+        vhost_manager.find_default(fd);
+    const std::string& ipaddr = get_socket_address(fd);
+    webconfig::ConfigServerBlock* server_config = NULL;
+
+    if (request.uri().type == webshell::ORIGIN) {
+        server_config = default_server;
+        if (!host.empty()) {
+            server_config = vhost_manager.find_server(ipaddr, host);
+            if (server_config == NULL) {
+                throw utils::HttpException(webshell::NOT_FOUND,
+                                           "No virtual host found: " + host);
+            }
+        }
+    }
+    else if (request.uri().type == webshell::ABSOLUTE) {
+        server_config =
+            vhost_manager.find_server(ipaddr, request.uri().authority);
+        if (server_config == NULL) {
+            server_config = default_server;
+        }
+    }
+    else {
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Invalid request URI");
+    }
+    request.setup_config(server_config);
 }
 
 } // namespace webkernel

@@ -1,4 +1,6 @@
 #include "ConnectionHandler.hpp"
+#include "Config.hpp"
+#include "ConfigGlobalBlock.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
@@ -8,6 +10,7 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <sys/epoll.h>
+#include <sys/un.h>
 
 namespace webkernel
 {
@@ -15,6 +18,7 @@ namespace webkernel
 ConnectionHandler::ConnectionHandler(Reactor* reactor) :
     _reactor(reactor), _processor(this)
 {
+    _connect_to_session_manager();
 }
 
 ConnectionHandler::~ConnectionHandler()
@@ -288,22 +292,23 @@ bool ConnectionHandler::_init_buffer(std::string& buffer)
     return (true);
 }
 
-// TODO: Consider implementing the keep-alive timeout in the processor,
-// because we need the request headers to determine the connection type bool
-// ConnectionHandler::_keepAlive(void)
-// {
-//     time_t now = time(0);
-//     double elapsed = difftime(now, _start_time);
+void ConnectionHandler::_connect_to_session_manager()
+{
+    const std::string& socket_path =
+        webconfig::Config::instance()->global_block().session_socket_path();
+    struct sockaddr_un addr;
 
-//     weblog::Logger::log(weblog::DEBUG,
-//                        "Elapsed time: " + utils::to_string(elapsed));
-//     // if (_request_parser.header_analyzer().connection_type() ==
-//     // webshell::CLOSE)
-//     //     return (false);
-//     if (elapsed > _server_config.keep_alive_timeout())
-//         return (false);
-
-//     return (true);
-// }
+    if ((_session_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        throw std::runtime_error("Failed to create session socket: "
+                                 + utils::to_string(strerror(errno)));
+    }
+    addr.sun_family = AF_UNIX;
+    std::strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path));
+    if (connect(_session_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        close(_session_fd);
+        throw std::runtime_error("Failed to connect to session manager: "
+                                 + utils::to_string(strerror(errno)));
+    }
+}
 
 } // namespace webkernel

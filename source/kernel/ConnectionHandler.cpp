@@ -33,7 +33,7 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
     weblog::Logger::log(weblog::DEBUG,
                         "ConnectionHandler::handle_event() on fd: "
                             + utils::to_string(fd)
-                            + " with events: " + explainEpollEvent(events));
+                            + " with events: " + explain_epoll_event(events));
     if (events & EPOLLIN) {
         _handle_read(fd);
     }
@@ -179,7 +179,7 @@ void ConnectionHandler::_handle_write(int fd)
     weblog::Logger::log(
         weblog::DEBUG,
         "Write event on fd: " + utils::to_string(fd) + " with state: "
-            + explainEventProcessingState(_processor.state(fd)));
+            + explain_event_processing_state(_processor.state(fd)));
 
     const EventProcessingState& process_state = _processor.state(fd);
 

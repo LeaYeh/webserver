@@ -108,7 +108,8 @@ void Reactor::modify_handler(int fd,
     ev.data.fd = fd;
     weblog::Logger::log(weblog::DEBUG,
                         "Modifying handler with fd: " + utils::to_string(fd)
-                            + ", new events: " + explainEpollEvent(ev.events));
+                            + ", new events: "
+                            + explain_epoll_event(ev.events));
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
         throw std::runtime_error("epoll_ctl failed to modify events");
@@ -143,7 +144,7 @@ void Reactor::_wait_for_events(struct epoll_event* events)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "Reactor is waiting for events: "
-                            + explainEpollEvent(events->events));
+                            + explain_epoll_event(events->events));
     int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
 
     if (nfds == -1 && !stop_flag) {

@@ -210,7 +210,7 @@ void ARequestHandler::_update_status(EventProcessingState& state,
     }
     weblog::Logger::log(weblog::DEBUG,
                         "ARequestHandler: update status to "
-                            + explainEventProcessingState(state));
+                            + explain_event_processing_state(state));
 }
 
 void ARequestHandler::_pre_process(const webshell::Request& request)

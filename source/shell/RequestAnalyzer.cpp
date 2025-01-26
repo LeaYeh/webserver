@@ -12,7 +12,9 @@
 
 #include "RequestAnalyzer.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
+#include "utils.hpp"
 #include <iostream>
 
 namespace webshell
@@ -146,9 +148,10 @@ Request& RequestAnalyzer::request(void)
 
 void RequestAnalyzer::_assemble_request()
 {
-    std::cerr << "Assembling request struct. Method: " << _method
-              << " Target: " << _uri.raw << " Version: " << _version
-              << std::endl;
+    weblog::Logger::log(weblog::DEBUG,
+                        "Assembling request struct Method: "
+                            + utils::to_string(_method) + " Target: " + _uri.raw
+                            + " Version: " + utils::to_string(_version));
     _req.set_method(_method);
     _req.set_uri(_uri);
     _req.set_version(_version);

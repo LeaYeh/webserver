@@ -37,7 +37,7 @@ void Acceptor::handle_event(int fd, uint32_t events)
         weblog::Logger::log(weblog::DEBUG,
                             "Accepted connection on fd["
                                 + utils::to_string(conn_fd)
-                                + "] from: " + get_client_address(fd));
+                                + "] from: " + get_client_address(conn_fd));
         if (conn_fd < 0) {
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));

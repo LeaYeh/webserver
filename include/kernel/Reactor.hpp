@@ -19,9 +19,6 @@ class ConnectionHandler;
 class Reactor : public templates::Singleton<Reactor, ReactorType>
 {
 public:
-    ConnectionHandler* conn_handler;
-
-public:
     static Reactor* create_instance(); // Default instance creation
     static Reactor* create_instance(const ReactorType& type);
 

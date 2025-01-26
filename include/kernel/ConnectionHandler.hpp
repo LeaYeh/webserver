@@ -4,6 +4,7 @@
 #include "IHandler.hpp"
 #include "Reactor.hpp"
 #include "RequestProcessor.hpp"
+#include "Singleton.hpp"
 #include "VirtualHostManager.hpp"
 #include "defines.hpp"
 #include <ctime>
@@ -16,12 +17,16 @@ namespace webkernel
 {
 
 static const size_t BUFFER_SIZE = 4096;
-class ConnectionHandler : public IHandler
+class ConnectionHandler :
+    public IHandler,
+    public templates::Singleton<ConnectionHandler>
 {
 public:
     VirtualHostManager vhost_manager;
 
 public:
+    static ConnectionHandler* create_instance();
+
     void handle_event(int fd, uint32_t events);
     void close_connection(int fd, weblog::LogLevel level, std::string message);
     void prepare_write(int fd, const std::string& buffer);
@@ -30,7 +35,6 @@ public:
     bool set_session_data(const std::string& sid, const std::string& data);
 
 public:
-    ConnectionHandler();
     ~ConnectionHandler();
 
 private:
@@ -54,6 +58,7 @@ private:
     void _connect_to_session_manager();
 
 private:
+    ConnectionHandler();
     ConnectionHandler(const ConnectionHandler& other);
     ConnectionHandler& operator=(const ConnectionHandler& other);
 };

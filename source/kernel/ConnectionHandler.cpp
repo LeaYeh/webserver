@@ -28,6 +28,11 @@ ConnectionHandler::~ConnectionHandler()
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
+ConnectionHandler* ConnectionHandler::create_instance()
+{
+    return new ConnectionHandler();
+}
+
 void ConnectionHandler::handle_event(int fd, uint32_t events)
 {
     // TODO: Consider to make connection to session manager in the constructor

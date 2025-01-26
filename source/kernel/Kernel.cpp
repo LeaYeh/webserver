@@ -94,7 +94,7 @@ void Kernel::_register_listener(void)
         const std::string ipaddr =
             servConfig.listen().first + ":" + servConfig.listen().second;
         VirtualHostManager& vhost_manager =
-            Reactor::instance()->conn_handler->vhost_manager;
+            ConnectionHandler::instance()->vhost_manager;
 
         if (vhost_manager.has_server(ipaddr)) {
             continue;

@@ -24,17 +24,17 @@ Reactor* Reactor::create_instance(const ReactorType& type)
 
 // EPOLL_CLOEXEC is a flag that makes sure that the file descriptor is closed
 // when the process is replaced by another process
-Reactor::Reactor(const ReactorType& type) : conn_handler(NULL), _type(type)
+Reactor::Reactor(const ReactorType& type) : _type(type)
 {
     weblog::Logger::log(weblog::DEBUG,
                         "Reactor::Reactor(" + utils::to_string(type) + ")");
     if (_type == REACTOR) {
         _epoll_fd = epoll_create1(0);
-        conn_handler = new ConnectionHandler();
+        ConnectionHandler::instantiate();
     }
     else if (_type == WORKER) {
         _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-        conn_handler = new ConnectionHandler();
+        ConnectionHandler::instantiate();
     }
     else if (_type == DISPATCHER) {
         _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
@@ -58,9 +58,7 @@ Reactor::~Reactor()
          it++) {
         close(it->first);
     }
-    if (conn_handler) {
-        delete conn_handler;
-    }
+    ConnectionHandler::destroy();
 }
 
 void Reactor::run(void)
@@ -173,7 +171,7 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
         }
         catch (utils::HttpException& e) {
             weblog::Logger::log(weblog::ERROR, e.what());
-            conn_handler->prepare_error(fd, e);
+            ConnectionHandler::instance()->prepare_error(fd, e);
         }
     }
 }

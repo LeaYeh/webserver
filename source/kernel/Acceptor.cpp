@@ -43,7 +43,7 @@ void Acceptor::handle_event(int fd, uint32_t events)
                                      + std::string(strerror(errno)));
         }
         reactor->register_handler(
-            conn_fd, reactor->conn_handler, EPOLLIN | EPOLLHUP | EPOLLERR);
+            conn_fd, ConnectionHandler::instance(), EPOLLIN | EPOLLHUP | EPOLLERR);
         weblog::Logger::log(weblog::DEBUG,
                             "Registered connection handler with fd: "
                                 + utils::to_string(conn_fd));

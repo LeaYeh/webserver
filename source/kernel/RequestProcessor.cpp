@@ -21,8 +21,7 @@ RequestProcessor::RequestProcessor(ConnectionHandler* handler) :
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other) :
-    _handler(other._handler),
-    _analyzer_pool(other._analyzer_pool)
+    _handler(other._handler), _analyzer_pool(other._analyzer_pool)
 {
 }
 

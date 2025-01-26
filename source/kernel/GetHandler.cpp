@@ -97,7 +97,7 @@ void GetHandler::_post_process(const webshell::Request& request,
         _response_headers["content-type"] = "text/html";
     }
     else {
-        _response_headers["content-type"] = _getMimeType(target_path);
+        _response_headers["content-type"] = _get_mime_type(target_path);
     }
     if (!utils::is_directory(target_path)
         && (_get_respones_encoding(request) & webkernel::CHUNKED)) {

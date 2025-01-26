@@ -1,7 +1,7 @@
 #pragma once
 #include "IHandler.hpp"
-#include "Reactor.hpp"
 #include "session_types.hpp"
+#include <map>
 #include <set>
 
 namespace webkernel
@@ -11,15 +11,15 @@ class SessionManager : public IHandler
 public:
     void handle_event(int fd, uint32_t events);
     int get_fd() const;
+    void cleanup_expired_sessions();
 
 public:
-    SessionManager(Reactor* reactor, const SessionConfig& config);
+    SessionManager(const SessionConfig& config);
     SessionManager(const SessionManager& other);
     SessionManager& operator=(const SessionManager& other);
     ~SessionManager();
 
 private:
-    Reactor* _reactor;
     SessionConfig _config;
     int _server_fd;
     std::map<std::string /* SID */, SessionData> _sessions;
@@ -35,7 +35,6 @@ private:
     void _handle_session_delete(int fd, const SessionMessage& msg);
     void _send_resp(int fd, SessionMessageType type, const std::string& data);
     void _send_error(int fd, const std::string& msg);
-    void cleanup_expired_sessions();
 
 private:
     SessionManager();

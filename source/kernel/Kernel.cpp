@@ -27,7 +27,7 @@ Kernel::Kernel()
             weblog::INFO, "Create single reactor and single worker structure");
         Reactor::instantiate(REACTOR);
         _acceptor = new Acceptor();
-        // _session_manager = new SessionManager(_reactor, SessionConfig());
+        _session_manager = new SessionManager(SessionConfig());
         _register_listener();
     }
     else {
@@ -35,7 +35,7 @@ Kernel::Kernel()
                             "Create multi reactor and multi worker structure");
         Reactor::instantiate(DISPATCHER);
         _acceptor = new Acceptor();
-        // _session_manager = new SessionManager(_reactor, SessionConfig());
+        _session_manager = new SessionManager(SessionConfig());
         _register_listener();
         for (unsigned int i = 1; i < config->global_block().worker_processes();
              i++) {

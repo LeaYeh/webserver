@@ -75,7 +75,7 @@ bool ARequestHandler::_is_out_of_max_file_size(
 }
 
 const std::string
-ARequestHandler::_getMimeType(const std::string& file_path) const
+ARequestHandler::_get_mime_type(const std::string& file_path) const
 {
     std::string extension = file_path.substr(file_path.find_last_of(".") + 1);
 
@@ -222,6 +222,14 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
     }
+    // std::string session_id = request.get_cookie("session_id");
+
+    // if (session_id.empty()) {
+    //     session_id = uuid();
+    //     weblog::Logger::log(weblog::DEBUG,
+    //                         "Create new session id: " + session_id);
+    // }
+
 }
 
 } // namespace webkernel

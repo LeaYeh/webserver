@@ -1,4 +1,5 @@
 #include "RequestHandlerManager.hpp"
+#include "ConnectionHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "GetHandler.hpp"
 #include "HttpException.hpp"

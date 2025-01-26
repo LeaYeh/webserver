@@ -14,8 +14,7 @@
 namespace webkernel
 {
 
-SessionManager::SessionManager(Reactor* reactor, const SessionConfig& config) :
-    _reactor(reactor), _config(config)
+SessionManager::SessionManager(const SessionConfig& config) : _config(config)
 {
     _server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (_server_fd < 0) {
@@ -109,7 +108,8 @@ void SessionManager::_handle_new_connection()
         throw std::runtime_error("Failed to accept new session connection: "
                                  + utils::to_string(strerror(errno)));
     }
-    if (static_cast<unsigned int>(_client_fds.size()) >= _config.max_connections) {
+    if (static_cast<unsigned int>(_client_fds.size())
+        >= _config.max_connections) {
         weblog::Logger::log(weblog::DEBUG,
                             "Session connection limit reached, closing: "
                                 + utils::to_string(client_fd));
@@ -120,7 +120,7 @@ void SessionManager::_handle_new_connection()
                         "Accepted new session connection: "
                             + utils::to_string(client_fd));
     _client_fds.insert(client_fd);
-    _reactor->register_handler(client_fd, this, EPOLLIN);
+    Reactor::instance()->register_handler(client_fd, this, EPOLLIN);
 }
 
 void SessionManager::_handle_session_request(int fd)
@@ -137,7 +137,7 @@ void SessionManager::_handle_session_request(int fd)
                             "Session connection closed: "
                                 + utils::to_string(fd));
         _client_fds.erase(fd);
-        _reactor->remove_handler(fd);
+        Reactor::instance()->remove_handler(fd);
         close(fd);
         return;
     }

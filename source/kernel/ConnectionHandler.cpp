@@ -9,27 +9,31 @@
 #include "debugUtils.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
+#include "session_types.hpp"
 #include "utils.hpp"
 #include <sys/epoll.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 namespace webkernel
 {
 
-ConnectionHandler::ConnectionHandler() : _processor(this)
-{
-    // _connect_to_session_manager();
-}
+ConnectionHandler::ConnectionHandler() : _processor(this), _session_fd(-1) {}
 
 ConnectionHandler::~ConnectionHandler()
 {
     weblog::Logger::log(weblog::DEBUG, "ConnectionHandler destroyed");
+    close(_session_fd);
     // TODO: Check the conn_fd is closed by the reactor
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
 }
 
 void ConnectionHandler::handle_event(int fd, uint32_t events)
 {
+    // TODO: Consider to make connection to session manager in the constructor
+    if (_session_fd == -1) {
+        _connect_to_session_manager();
+    }
     weblog::Logger::log(weblog::DEBUG,
                         "ConnectionHandler::handle_event() on fd: "
                             + utils::to_string(fd)
@@ -99,6 +103,68 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
     _error_buffer[fd].append(err_response.serialize());
     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
     _processor.set_state(fd, ERROR);
+}
+
+bool ConnectionHandler::get_session_data(const std::string& sid,
+                                         std::string& out_data)
+{
+    SessionMessage msg;
+
+    msg.type = SESSION_GET;
+    std::strncpy(msg.session_id, sid.c_str(), sizeof(msg.session_id) - 1);
+    msg.data_length = 0;
+    int bytes = send(_session_fd, &msg, sizeof(msg), 0);
+
+    if (bytes != sizeof(msg)) {
+        weblog::Logger::log(weblog::ERROR,
+                            "Send session message failed: "
+                                + utils::to_string(bytes));
+        return (false);
+    }
+    SessionMessage resp;
+
+    bytes = recv(_session_fd, &resp, sizeof(resp), 0);
+    if (bytes != sizeof(resp)) {
+        weblog::Logger::log(weblog::ERROR,
+                            "Receive session message failed: "
+                                + utils::to_string(bytes));
+        return (false);
+    }
+    if (resp.type == SESSION_RESPONSE) {
+        out_data = std::string(resp.data, resp.data_length);
+        return (true);
+    }
+    return (false);
+}
+
+bool ConnectionHandler::set_session_data(const std::string& sid,
+                                         const std::string& data)
+{
+    SessionMessage msg;
+
+    msg.type = SESSION_SET;
+    std::strncpy(msg.session_id, sid.c_str(), sizeof(msg.session_id));
+    msg.data_length = data.length();
+    std::strncpy(msg.data, data.c_str(), sizeof(msg.data));
+    int bytes = send(_session_fd, &msg, sizeof(msg), 0);
+
+    if (bytes != sizeof(msg)) {
+        weblog::Logger::log(weblog::ERROR,
+                            "Send session message failed: "
+                                + utils::to_string(bytes));
+        return (false);
+    }
+    SessionMessage resp;
+
+    bytes = recv(_session_fd, &resp, sizeof(resp), 0);
+    if (bytes != sizeof(resp)) {
+        weblog::Logger::log(weblog::ERROR,
+                            "Receive session message failed: "
+                                + utils::to_string(bytes));
+        return (false);
+    }
+
+    return (resp.type == SESSION_RESPONSE);
 }
 
 /*
@@ -304,6 +370,9 @@ void ConnectionHandler::_connect_to_session_manager()
         throw std::runtime_error("Failed to connect to session manager: "
                                  + utils::to_string(strerror(errno)));
     }
+    weblog::Logger::log(weblog::DEBUG,
+                        "Connected to session manager on fd: "
+                            + utils::to_string(_session_fd));
 }
 
 } // namespace webkernel

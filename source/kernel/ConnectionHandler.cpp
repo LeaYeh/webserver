@@ -22,7 +22,7 @@ ConnectionHandler::ConnectionHandler() : _processor(this), _session_fd(-1) {}
 
 ConnectionHandler::~ConnectionHandler()
 {
-    weblog::Logger::log(weblog::DEBUG, "ConnectionHandler destroyed");
+    LOG(weblog::DEBUG, "ConnectionHandler destroyed");
     close(_session_fd);
     // TODO: Check the conn_fd is closed by the reactor
     // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
@@ -39,10 +39,9 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
     if (_session_fd == -1) {
         _connect_to_session_manager();
     }
-    weblog::Logger::log(weblog::DEBUG,
-                        "ConnectionHandler::handle_event() on fd: "
-                            + utils::to_string(fd)
-                            + " with events: " + explain_epoll_event(events));
+    LOG(weblog::DEBUG,
+        "ConnectionHandler::handle_event() on fd: " + utils::to_string(fd)
+            + " with events: " + explain_epoll_event(events));
     if (events & EPOLLIN) {
         _handle_read(fd);
     }
@@ -68,8 +67,7 @@ void ConnectionHandler::close_connection(int fd,
                                          weblog::LogLevel level,
                                          std::string message)
 {
-    weblog::Logger::log(level,
-                        message + " on conn_fd: " + utils::to_string(fd));
+    LOG(level, message + " on conn_fd: " + utils::to_string(fd));
     Reactor::instance()->remove_handler(fd);
     _processor.remove_analyzer(fd);
     _read_buffer.erase(fd);
@@ -78,9 +76,9 @@ void ConnectionHandler::close_connection(int fd,
 
 void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Prepare to write " + utils::to_string(buffer.size())
-                            + " bytes to fd: " + utils::to_string(fd));
+    LOG(weblog::DEBUG,
+        "Prepare to write " + utils::to_string(buffer.size())
+            + " bytes to fd: " + utils::to_string(fd));
     if (_write_buffer.find(fd) == _write_buffer.end()
         && !_init_buffer(_write_buffer[fd])) {
         close_connection(fd, weblog::ERROR, "Write buffer allocation failed");
@@ -92,9 +90,8 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
 
 void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Prepare to write error response to fd: "
-                            + utils::to_string(fd));
+    LOG(weblog::DEBUG,
+        "Prepare to write error response to fd: " + utils::to_string(fd));
     if (_error_buffer.find(fd) == _error_buffer.end()
         && !_init_buffer(_error_buffer[fd])) {
         close_connection(fd, weblog::ERROR, "Error buffer allocation failed");
@@ -102,8 +99,7 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
     webshell::Response err_response = webshell::ResponseBuilder::error(
         e.status_code(), e.reasonDetail(), e.contentType());
 
-    weblog::Logger::log(weblog::WARNING,
-                        "Error response: \n" + err_response.serialize());
+    LOG(weblog::WARNING, "Error response: \n" + err_response.serialize());
 
     _error_buffer[fd].append(err_response.serialize());
     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
@@ -121,18 +117,16 @@ bool ConnectionHandler::get_session_data(const std::string& sid,
     int bytes = send(_session_fd, &msg, sizeof(msg), 0);
 
     if (bytes != sizeof(msg)) {
-        weblog::Logger::log(weblog::ERROR,
-                            "Send session message failed: "
-                                + utils::to_string(bytes));
+        LOG(weblog::ERROR,
+            "Send session message failed: " + utils::to_string(bytes));
         return (false);
     }
     SessionMessage resp;
 
     bytes = recv(_session_fd, &resp, sizeof(resp), 0);
     if (bytes != sizeof(resp)) {
-        weblog::Logger::log(weblog::ERROR,
-                            "Receive session message failed: "
-                                + utils::to_string(bytes));
+        LOG(weblog::ERROR,
+            "Receive session message failed: " + utils::to_string(bytes));
         return (false);
     }
     if (resp.type == SESSION_RESPONSE) {
@@ -154,22 +148,12 @@ bool ConnectionHandler::set_session_data(const std::string& sid,
     int bytes = send(_session_fd, &msg, sizeof(msg), 0);
 
     if (bytes != sizeof(msg)) {
-        weblog::Logger::log(weblog::ERROR,
-                            "Send session message failed: "
-                                + utils::to_string(bytes));
+        LOG(weblog::ERROR,
+            "Send session message failed: " + utils::to_string(bytes));
         return (false);
     }
-    SessionMessage resp;
-
-    bytes = recv(_session_fd, &resp, sizeof(resp), 0);
-    if (bytes != sizeof(resp)) {
-        weblog::Logger::log(weblog::ERROR,
-                            "Receive session message failed: "
-                                + utils::to_string(bytes));
-        return (false);
-    }
-
-    return (resp.type == SESSION_RESPONSE);
+    Reactor::instance()->modify_handler(_session_fd, EPOLLIN, 0);
+    return (true);
 }
 
 /*
@@ -187,8 +171,7 @@ void ConnectionHandler::_handle_read(int fd)
         return;
     }
     if (_is_buffer_full(_read_buffer[fd])) {
-        weblog::Logger::log(
-            weblog::DEBUG,
+        LOG(weblog::DEBUG,
             "Read buffer is full, need to consume the buffer first.");
         Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
         return;
@@ -228,11 +211,10 @@ void ConnectionHandler::_process_read_data(int fd,
                                            const char buffer[],
                                            ssize_t bytes_read)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Read " + utils::to_string(bytes_read)
-                            + " bytes from fd: " + utils::to_string(fd));
-    weblog::Logger::log(
-        weblog::DEBUG,
+    LOG(weblog::DEBUG,
+        "Read " + utils::to_string(bytes_read)
+            + " bytes from fd: " + utils::to_string(fd));
+    LOG(weblog::DEBUG,
         "Read content: \n"
             + utils::replaceCRLF(std::string(buffer, bytes_read)));
     _read_buffer[fd].append(buffer, bytes_read);
@@ -247,8 +229,7 @@ void ConnectionHandler::_process_read_data(int fd,
 
 void ConnectionHandler::_handle_write(int fd)
 {
-    weblog::Logger::log(
-        weblog::DEBUG,
+    LOG(weblog::DEBUG,
         "Write event on fd: " + utils::to_string(fd) + " with state: "
             + explain_event_processing_state(_processor.state(fd)));
 
@@ -266,24 +247,23 @@ void ConnectionHandler::_handle_write(int fd)
         _processor.process(fd);
     }
     else {
-        weblog::Logger::log(weblog::ERROR,
-                            "Unknown state " + utils::to_string(process_state)
-                                + " on fd: " + utils::to_string(fd));
+        LOG(weblog::ERROR,
+            "Unknown state " + utils::to_string(process_state)
+                + " on fd: " + utils::to_string(fd));
     }
 }
 
 void ConnectionHandler::_send_normal(int fd)
 {
     if (_write_buffer.find(fd) == _write_buffer.end()) {
-        weblog::Logger::log(weblog::DEBUG,
-                            "No write buffer found for fd: "
-                                + utils::to_string(fd) + ", do nothing");
+        LOG(weblog::DEBUG,
+            "No write buffer found for fd: " + utils::to_string(fd)
+                + ", do nothing");
         return;
     }
 
-    weblog::Logger::log(weblog::DEBUG,
-                        "Write content: \n"
-                            + utils::replaceCRLF(_write_buffer[fd]));
+    LOG(weblog::DEBUG,
+        "Write content: \n" + utils::replaceCRLF(_write_buffer[fd]));
     int bytes_sent =
         send(fd, _write_buffer[fd].c_str(), _write_buffer[fd].size(), 0);
 
@@ -293,16 +273,15 @@ void ConnectionHandler::_send_normal(int fd)
                                        + std::string(strerror(errno)));
     }
     else if (bytes_sent == 0) {
-        weblog::Logger::log(weblog::INFO,
-                            "Write 0 bytes, client closing connection");
+        LOG(weblog::INFO, "Write 0 bytes, client closing connection");
         // TODO: keep-alive?
         close_connection(
             fd, weblog::INFO, "Write 0 bytes, client closing connection");
     }
     else {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Sent " + utils::to_string(bytes_sent)
-                                + " bytes to fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG,
+            "Sent " + utils::to_string(bytes_sent)
+                + " bytes to fd: " + utils::to_string(fd));
     }
     _write_buffer.erase(fd);
 }
@@ -312,15 +291,14 @@ void ConnectionHandler::_send_error(int fd)
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
     if (it == _error_buffer.end()) {
-        weblog::Logger::log(weblog::WARNING,
-                            "No error buffer found for fd: "
-                                + utils::to_string(fd) + ", do nothing");
+        LOG(weblog::WARNING,
+            "No error buffer found for fd: " + utils::to_string(fd)
+                + ", do nothing");
         return;
     }
     else {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Error buffer found for fd: "
-                                + utils::to_string(fd));
+        LOG(weblog::DEBUG,
+            "Error buffer found for fd: " + utils::to_string(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
         _error_buffer.erase(it);
@@ -375,9 +353,8 @@ void ConnectionHandler::_connect_to_session_manager()
         throw std::runtime_error("Failed to connect to session manager: "
                                  + utils::to_string(strerror(errno)));
     }
-    weblog::Logger::log(weblog::DEBUG,
-                        "Connected to session manager on fd: "
-                            + utils::to_string(_session_fd));
+    LOG(weblog::DEBUG,
+        "Connected to session manager on fd: " + utils::to_string(_session_fd));
 }
 
 } // namespace webkernel

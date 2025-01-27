@@ -51,7 +51,7 @@ void Response::set_status_code(StatusCode status_code)
 void Response::set_headers(std::map<std::string, std::string> headers)
 {
     if (_headers.size() > 0) {
-        weblog::Logger::log(weblog::WARNING, "Overwrite headers");
+        LOG(weblog::WARNING, "Overwrite headers");
     }
     _headers = headers;
 }

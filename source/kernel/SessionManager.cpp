@@ -40,9 +40,9 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
                                  + utils::to_string(strerror(errno)));
     }
 
-    weblog::Logger::log(weblog::DEBUG,
-                        std::string("Session manager listening on socket: ")
-                            + utils::to_string(_server_fd));
+    LOG(weblog::DEBUG,
+        std::string("Session manager listening on socket: ")
+            + utils::to_string(_server_fd));
 }
 
 SessionManager::SessionManager(const SessionManager& other)
@@ -110,15 +110,15 @@ void SessionManager::_handle_new_connection()
     }
     if (static_cast<unsigned int>(_client_fds.size())
         >= _config.max_connections) {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Session connection limit reached, closing: "
-                                + utils::to_string(client_fd));
+        LOG(weblog::DEBUG,
+            "Session connection limit reached, closing: "
+                + utils::to_string(client_fd));
         close(client_fd);
         return;
     }
-    weblog::Logger::log(weblog::DEBUG,
-                        "Accepted new session connection: "
-                            + utils::to_string(client_fd));
+    LOG(weblog::DEBUG,
+        "SessionManager: Accepted new session connection: "
+            + utils::to_string(client_fd));
     _client_fds.insert(client_fd);
     Reactor::instance()->register_handler(client_fd, this, EPOLLIN);
 }
@@ -133,9 +133,8 @@ void SessionManager::_handle_session_request(int fd)
                                  + utils::to_string(strerror(errno)));
     }
     if (bytes == 0) {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Session connection closed: "
-                                + utils::to_string(fd));
+        LOG(weblog::DEBUG,
+            "Session connection closed: " + utils::to_string(fd));
         _client_fds.erase(fd);
         Reactor::instance()->remove_handler(fd);
         close(fd);

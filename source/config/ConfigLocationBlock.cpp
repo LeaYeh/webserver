@@ -152,22 +152,19 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 
 void ConfigLocationBlock::print_config(void) const
 {
-    weblog::Logger::log(weblog::DEBUG, "\troute: " + _route);
-    weblog::Logger::log(weblog::DEBUG, "\tlimit_except:");
+    LOG(weblog::DEBUG, "\troute: " + _route);
+    LOG(weblog::DEBUG, "\tlimit_except:");
     for (std::size_t i = 0; i < _limit_except.size(); ++i) {
-        weblog::Logger::log(
-            weblog::DEBUG,
+        LOG(weblog::DEBUG,
             "\t\t" + webshell::request_method_to_string(_limit_except[i]));
     }
-    weblog::Logger::log(weblog::DEBUG, "\troot: " + _root);
-    weblog::Logger::log(weblog::DEBUG, "\tindex: " + _index);
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tautoindex: " + utils::to_string(_autoindex));
-    weblog::Logger::log(weblog::DEBUG, "\tcgi_extension: " + _cgi_extension);
-    weblog::Logger::log(weblog::DEBUG, "\tcgi_path: " + _cgi_path);
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tenable_upload: " + utils::to_string(_enable_upload));
-    weblog::Logger::log(weblog::DEBUG, "\tupload_path: " + _upload_path);
+    LOG(weblog::DEBUG, "\troot: " + _root);
+    LOG(weblog::DEBUG, "\tindex: " + _index);
+    LOG(weblog::DEBUG, "\tautoindex: " + utils::to_string(_autoindex));
+    LOG(weblog::DEBUG, "\tcgi_extension: " + _cgi_extension);
+    LOG(weblog::DEBUG, "\tcgi_path: " + _cgi_path);
+    LOG(weblog::DEBUG, "\tenable_upload: " + utils::to_string(_enable_upload));
+    LOG(weblog::DEBUG, "\tupload_path: " + _upload_path);
 }
 
 void ConfigLocationBlock::_parse_config_directive(const std::string& line)

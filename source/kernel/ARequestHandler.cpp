@@ -194,7 +194,7 @@ void ARequestHandler::_handle_exception(
     const webshell::StatusCode code,
     const webshell::ContentType content_type)
 {
-    weblog::Logger::log(weblog::ERROR, e.what());
+    LOG(weblog::ERROR, e.what());
     throw utils::HttpException(code, e.what(), content_type);
 }
 
@@ -208,7 +208,7 @@ void ARequestHandler::_update_status(EventProcessingState& state,
     else {
         state = static_cast<EventProcessingState>(state | flags);
     }
-    weblog::Logger::log(weblog::DEBUG,
+    LOG(weblog::DEBUG,
                         "ARequestHandler: update status to "
                             + explain_event_processing_state(state));
 }

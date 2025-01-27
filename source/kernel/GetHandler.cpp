@@ -113,7 +113,7 @@ void GetHandler::_handle_standard(EventProcessingState& state,
                                   const std::string& target_path,
                                   std::string& content) const
 {
-    weblog::Logger::log(weblog::DEBUG, "Handle standard: " + target_path);
+    LOG(weblog::DEBUG, "Handle standard: " + target_path);
     std::ifstream file(target_path.c_str(), std::ios::binary);
 
     if (!file.is_open()) {
@@ -131,7 +131,7 @@ void GetHandler::_handle_chunked(int fd,
                                  const std::string& target_path,
                                  std::string& content)
 {
-    weblog::Logger::log(weblog::DEBUG, "Handle chunked: " + target_path);
+    LOG(weblog::DEBUG, "Handle chunked: " + target_path);
     std::ifstream file(target_path.c_str(), std::ios::binary);
 
     if (!file.is_open()) {
@@ -178,7 +178,7 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     std::string list_items;
     std::string target_path = _get_resource_path(config, request_path);
 
-    weblog::Logger::log(weblog::DEBUG, "Handle autoindex: " + request_path);
+    LOG(weblog::DEBUG, "Handle autoindex: " + request_path);
 
     if ((dir = opendir(target_path.c_str())) != NULL) {
         std::string object_path;

@@ -52,21 +52,18 @@ size_t ConfigGlobalBlock::worker_connections(void) const
 
 void ConfigGlobalBlock::print_config(void) const
 {
-    weblog::Logger::log(weblog::DEBUG, "Global scope:");
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tworker_processes: "
-                            + utils::to_string(_worker_processes));
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tworker_connections: "
-                            + utils::to_string(_worker_connections));
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tsession_socket_path: " + _session_socket_path);
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tsession_expire_seconds: "
-                            + utils::to_string(_session_expire_seconds));
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tsession_max_connections: "
-                            + utils::to_string(_session_max_connections));
+    LOG(weblog::DEBUG, "Global scope:");
+    LOG(weblog::DEBUG,
+        "\tworker_processes: " + utils::to_string(_worker_processes));
+    LOG(weblog::DEBUG,
+        "\tworker_connections: " + utils::to_string(_worker_connections));
+    LOG(weblog::DEBUG, "\tsession_socket_path: " + _session_socket_path);
+    LOG(weblog::DEBUG,
+        "\tsession_expire_seconds: "
+            + utils::to_string(_session_expire_seconds));
+    LOG(weblog::DEBUG,
+        "\tsession_max_connections: "
+            + utils::to_string(_session_max_connections));
 }
 
 const std::string& ConfigGlobalBlock::session_socket_path(void) const

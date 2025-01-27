@@ -20,9 +20,8 @@ UploadRecord::UploadRecord() :
     _state(UPLOAD_INIT),
     _already_exist(false)
 {
-    weblog::Logger::log(weblog::WARNING,
-                        "UploadRecord: constructor address: "
-                            + utils::to_string((size_t)this));
+    LOG(weblog::WARNING,
+        "UploadRecord: constructor address: " + utils::to_string((size_t)this));
 }
 
 UploadRecord::UploadRecord(const std::string& target_filename,
@@ -45,10 +44,9 @@ UploadRecord::UploadRecord(const std::string& target_filename,
 
 UploadRecord::~UploadRecord()
 {
-    weblog::Logger::log(weblog::WARNING,
-                        "UploadRecord: destructor: " + _temp_filename + ", "
-                            + _target_filename
-                            + " address: " + utils::to_string((size_t)this));
+    LOG(weblog::WARNING,
+        "UploadRecord: destructor: " + _temp_filename + ", " + _target_filename
+            + " address: " + utils::to_string((size_t)this));
     if (access(_temp_filename.c_str(), F_OK) == 0
         && std::remove(_temp_filename.c_str()) == -1) {
         throw std::runtime_error("UploadRecord: failed to remove temp file "

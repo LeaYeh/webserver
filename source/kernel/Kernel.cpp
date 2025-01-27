@@ -23,16 +23,14 @@ Kernel::Kernel()
     webconfig::Config* config = webconfig::Config::instance();
 
     if (config->global_block().worker_processes() == 1) {
-        weblog::Logger::log(
-            weblog::INFO, "Create single reactor and single worker structure");
+        LOG(weblog::INFO, "Create single reactor and single worker structure");
         Reactor::instantiate(REACTOR);
         _acceptor = new Acceptor();
         _session_manager = new SessionManager(SessionConfig());
         _register_listener();
     }
     else {
-        weblog::Logger::log(weblog::INFO,
-                            "Create multi reactor and multi worker structure");
+        LOG(weblog::INFO, "Create multi reactor and multi worker structure");
         Reactor::instantiate(DISPATCHER);
         _acceptor = new Acceptor();
         _session_manager = new SessionManager(SessionConfig());
@@ -51,18 +49,17 @@ Kernel::Kernel()
             }
         }
     }
-    weblog::Logger::log(weblog::DEBUG, "Kernel created");
+    LOG(weblog::DEBUG, "Kernel created");
 }
 
 Kernel::Kernel(const Kernel& other) : _acceptor(other._acceptor)
 {
-    weblog::Logger::log(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
+    LOG(weblog::DEBUG, "Kernel::Kernel(const Kernel& other)");
 }
 
 Kernel& Kernel::operator=(const Kernel& other)
 {
-    weblog::Logger::log(weblog::DEBUG,
-                        "Kernel::operator=(const Kernel& other)");
+    LOG(weblog::DEBUG, "Kernel::operator=(const Kernel& other)");
     if (this != &other) {
         _acceptor = other._acceptor;
     }
@@ -71,7 +68,7 @@ Kernel& Kernel::operator=(const Kernel& other)
 
 Kernel::~Kernel()
 {
-    weblog::Logger::log(weblog::DEBUG, "Kernel::~Kernel()");
+    LOG(weblog::DEBUG, "Kernel::~Kernel()");
     Reactor::destroy();
     if (_acceptor) {
         delete _acceptor;
@@ -80,7 +77,7 @@ Kernel::~Kernel()
 
 void Kernel::run()
 {
-    weblog::Logger::log(weblog::DEBUG, "Kernel::run()");
+    LOG(weblog::DEBUG, "Kernel::run()");
     Reactor::instance()->run();
 }
 
@@ -106,7 +103,7 @@ void Kernel::_register_listener(void)
             throw std::runtime_error("listen() failed: "
                                      + std::string(strerror(errno)));
         }
-        weblog::Logger::log(weblog::INFO, "Listening on " + ipaddr);
+        LOG(weblog::INFO, "Listening on " + ipaddr);
         Reactor::instance()->register_handler(fd, _acceptor, EPOLLIN);
     }
 }

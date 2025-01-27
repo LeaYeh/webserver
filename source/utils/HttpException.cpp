@@ -13,9 +13,9 @@ HttpException::HttpException(const webshell::StatusCode& status_code,
     _reasonDetail(reasonDetail),
     _content_type(content_type)
 {
-    weblog::Logger::log(weblog::CRITICAL,
-                        "HttpException::HttpException content_type: "
-                            + webshell::content_type_to_string(content_type));
+    LOG(weblog::CRITICAL,
+        "HttpException::HttpException content_type: "
+            + webshell::content_type_to_string(content_type));
 }
 
 HttpException::HttpException(const HttpException& other) :
@@ -23,8 +23,7 @@ HttpException::HttpException(const HttpException& other) :
     _reasonDetail(other._reasonDetail),
     _content_type(other._content_type)
 {
-    weblog::Logger::log(
-        weblog::CRITICAL,
+    LOG(weblog::CRITICAL,
         "HttpException::HttpException other content_type: "
             + webshell::content_type_to_string(other._content_type));
 }
@@ -36,8 +35,7 @@ HttpException& HttpException::operator=(const HttpException& other)
         _reasonDetail = other._reasonDetail;
         _content_type = other._content_type;
     }
-    weblog::Logger::log(
-        weblog::CRITICAL,
+    LOG(weblog::CRITICAL,
         "HttpException::operator= other content_type: "
             + webshell::content_type_to_string(other._content_type));
     return (*this);

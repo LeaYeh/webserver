@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 20:09:13 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:36:03 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,33 +88,17 @@ void HeaderAnalyzer::set_method(RequestMethod method)
     _validator.set_method(method);
 }
 
-bool HeaderAnalyzer::_is_ows(unsigned char c)
-{
-    if (c == ' ' || c == '\t') {
-        return (true);
-    }
-    return (false);
-}
-
-unsigned char HeaderAnalyzer::_lowcase(unsigned char c)
-{
-    if (c >= 'A' && c <= 'Z') {
-        return (c += 32);
-    }
-    return (c);
-}
-
-bool HeaderAnalyzer::_is_vchar(unsigned char c)
-{
-    if (c > 32 && c < 127) { // 32 is technically printable but its part of ows
-        return (true);
-    }
-    return (false);
-}
+// unsigned char HeaderAnalyzer::_lowcase(unsigned char c)
+// {
+//     if (c >= 'A' && c <= 'Z') {
+//         return (c += 32);
+//     }
+//     return (c);
+// }
 
 void HeaderAnalyzer::_start_header(unsigned char c)
 {
-    if (utils::is_tchar(c)) {
+    if (_is_tchar(c)) {
         _key.push_back(_lowcase(c));
         _state = FIELD_NAME;
     }
@@ -128,7 +112,7 @@ void HeaderAnalyzer::_start_header(unsigned char c)
 
 void HeaderAnalyzer::_field_name(unsigned char c)
 {
-    if (utils::is_tchar(c)) {
+    if (_is_tchar(c)) {
         _key.push_back(_lowcase(c));
     }
     else if (c == ':') {
@@ -235,7 +219,7 @@ void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 
 void HeaderAnalyzer::_check_obs_fold(unsigned char c)
 {
-    if (utils::is_tchar(c)) {
+    if (_is_tchar(c)) {
         _key.push_back(_lowcase(c));
         _state = FIELD_NAME;
     }

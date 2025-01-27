@@ -6,18 +6,19 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 20:05:16 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:35:22 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
+#include "AParser.hpp"
 #include "HeaderFieldValidator.hpp"
 #include "defines.hpp"
 #include <map>
 
 namespace webshell
 {
-class HeaderAnalyzer
+class HeaderAnalyzer : public AParser
 {
 public:
     std::map<std::string, std::string> headers();
@@ -52,9 +53,9 @@ private:
     void _field_end_crlf(unsigned char c);
     void _check_obs_fold(unsigned char c);
     void _header_end_crlf(unsigned char c);
-    bool _is_ows(unsigned char c);
-    bool _is_vchar(unsigned char c);
-    unsigned char _lowcase(unsigned char c);
+    // bool _is_ows(unsigned char c);
+    // bool _is_vchar(unsigned char c);
+    // unsigned char _lowcase(unsigned char c);
 
     // TO_DO: Seperate the variables name with prefix by different usage?
     // std::string _host;

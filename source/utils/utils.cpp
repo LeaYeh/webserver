@@ -17,26 +17,6 @@ bool safe_close(int& fd)
     return (true);
 }
 
-bool is_tchar(unsigned char c)
-{
-    if (isdigit(c) || isalpha(c)) {
-        return (true);
-    }
-    if (c == '!' || c == '#' || c == '$' || c == '%') {
-        return (true);
-    }
-    if (c == '&' || c == '`' || c == '*' || c == '+') {
-        return (true);
-    }
-    if (c == '-' || c == '.' || c == '^' || c == '_') {
-        return (true);
-    }
-    if (c == '|' || c == '~' || c == '\'') {
-        return (true);
-    }
-    return (false);
-}
-
 bool is_directory(const std::string& path)
 {
     struct stat file_stat;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AParser.hpp"
 #include "Uri.hpp"
 #include "UriAnalyzer.hpp"
 #include "defines.hpp"
@@ -8,7 +9,7 @@
 namespace webshell
 {
 
-class RequestLineAnalyzer
+class RequestLineAnalyzer : public AParser
 {
 public:
     RequestMethod method(void) const;

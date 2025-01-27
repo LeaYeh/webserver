@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/06 01:32:34 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:32:35 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -520,14 +520,6 @@ bool UriAnalyzer::_valid_hexdigit(unsigned char c)
     return (false);
 }
 
-unsigned char UriAnalyzer::_lowcase(unsigned char c)
-{
-    if (c >= 'A' && c <= 'Z') {
-        return (c += 32);
-    }
-    return (c);
-}
-
 unsigned char UriAnalyzer::_hexval(unsigned char c)
 {
     if (isdigit(c)) {
@@ -537,72 +529,6 @@ unsigned char UriAnalyzer::_hexval(unsigned char c)
         return (c - 'a' + 10);
     }
     return (c - 'A' + 10);
-}
-
-// TODO: move the following 2 to utils. Duplicate version exists in
-// HeaderFieldValidator.
-bool UriAnalyzer::_is_unreserved(unsigned char c)
-{
-    if (isalpha(c)) {
-        return (true);
-    }
-    if (isdigit(c)) {
-        return (true);
-    }
-    if (c == '-' || c == '.' || c == '_' || c == '~') {
-        return (true);
-    }
-    return (false);
-}
-
-bool UriAnalyzer::_is_sub_delim(unsigned char c)
-{
-    if (c == '!' || c == '$' || c == '&' || c == '\'') {
-        return (true);
-    }
-    if (c == '(' || c == ')' || c == '*' || c == '+') {
-        return (true);
-    }
-    if (c == ',' || c == ';' || c == '=') {
-        return (true);
-    }
-    return (false);
-}
-
-bool UriAnalyzer::_is_gen_delim(unsigned char c)
-{
-    if (c == ':' || c == '/' || c == '?' || c == '#') {
-        return (true);
-    }
-    if (c == '[' || c == ']' || c == '@') {
-        return (true);
-    }
-    return (false);
-}
-
-bool UriAnalyzer::_is_pchar(unsigned char c)
-{
-    if (_is_unreserved(c)) {
-        return (true);
-    }
-    if (_is_sub_delim(c)) {
-        return (true);
-    }
-    if (c == ':') {
-        return (true);
-    }
-    return (false);
-}
-
-bool UriAnalyzer::_is_query_or_fragment_part(unsigned char c)
-{
-    if (_is_pchar(c)) {
-        return (true);
-    }
-    if (c == '/' || c == '?') {
-        return (true);
-    }
-    return (false);
 }
 
 } // namespace webshell

@@ -6,14 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 20:29:37 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:42:10 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderFieldValidator.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
-#include "utils.hpp"
 #include <cctype>
 #include <cstddef>
 #include <stdexcept>
@@ -199,7 +198,7 @@ void HeaderFieldValidator::_validate_cookie(std::string& val)
 
 void HeaderFieldValidator::_cookie_ows_start(unsigned char c)
 {
-    if (utils::is_tchar(c))
+    if (_is_tchar(c))
     {
         _name.push_back(c);
         _cookie_state = CO_NAME;
@@ -220,7 +219,7 @@ void HeaderFieldValidator::_cookie_name(unsigned char c)
 {
     if (c == '=')
         _cookie_state = CO_VALUE;
-    else if (utils::is_tchar(c))
+    else if (_is_tchar(c))
         _name.push_back(c);
     else
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -289,7 +288,7 @@ void HeaderFieldValidator::_validate_cache_control(std::string& val)
 
 void HeaderFieldValidator::_c_start(unsigned char c)
 {
-    if (utils::is_tchar(c)) {
+    if (_is_tchar(c)) {
         _cache_state = C_DIRECTIVE;
     }
     else {
@@ -307,7 +306,7 @@ void HeaderFieldValidator::_c_directive(unsigned char c)
     else if (c == ',') {
         _cache_state = C_DIRECTIVE_START;
     }
-    else if (utils::is_tchar(c)) {
+    else if (_is_tchar(c)) {
         return;
     }
     else {
@@ -396,52 +395,6 @@ void HeaderFieldValidator::_uri_port(unsigned char c)
             webshell::BAD_REQUEST,
             "Bad configuration of hostname port field value");
     }
-}
-
-// TODO: move the following 2 to utils. Duplicate version exists in UriAnalyzer.
-bool HeaderFieldValidator::_is_unreserved(unsigned char c)
-{
-    if (isalpha(c)) {
-        return (true);
-    }
-    if (isdigit(c)) {
-        return (true);
-    }
-    if (c == '-' || c == '.' || c == '_' || c == '~') {
-        return (true);
-    }
-    return (false);
-}
-
-bool HeaderFieldValidator::_is_sub_delim(unsigned char c)
-{
-    if (c == '!' || c == '$' || c == '&' || c == '\'') {
-        return (true);
-    }
-    if (c == '(' || c == ')' || c == '*' || c == '+') {
-        return (true);
-    }
-    if (c == ',' || c == ';' || c == '=') {
-        return (true);
-    }
-    return (false);
-}
-
-bool HeaderFieldValidator::_is_ows(unsigned char c)
-{
-    if (c == ' ' || c == '\t') {
-        return (true);
-    }
-    return (false);
-}
-
-bool HeaderFieldValidator::_is_cookie_val(unsigned char c)
-{
-    if ((c > 0 && c < 31) || c == 127 || c == '\"' || c == ','
-        || c == ';' || c == '\\') {
-        return (false);
-    }
-    return (true);
 }
 
 } // namespace webshell

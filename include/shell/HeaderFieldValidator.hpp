@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:45:26 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:48:12 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,6 @@ private:
     void _feed_hostname(unsigned char c);
     void _uri_host_regname(unsigned char c);
     void _uri_port(unsigned char c);
-    // bool _is_unreserved(unsigned char c);
-    // bool _is_sub_delim(unsigned char c);
-    // bool _is_ows(unsigned char c);
 
     void _validate_content_length(std::string& val);
     void _validate_cache_control(std::string& val);

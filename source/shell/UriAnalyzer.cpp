@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:32:35 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:49:33 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,6 @@ Uri UriAnalyzer::take_uri() const
 {
     Uri ret;
     ret.raw = _uri;
-    // ret.scheme = "http://";
     ret.authority = _host + ":" + _port;
     ret.host = _host;
     ret.port = _port;

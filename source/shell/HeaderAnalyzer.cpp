@@ -6,13 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:36:03 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:53:50 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
 #include "HttpException.hpp"
-#include "utils.hpp"
+#include <stdexcept>
 
 namespace webshell
 {
@@ -87,14 +87,6 @@ void HeaderAnalyzer::set_method(RequestMethod method)
 {
     _validator.set_method(method);
 }
-
-// unsigned char HeaderAnalyzer::_lowcase(unsigned char c)
-// {
-//     if (c >= 'A' && c <= 'Z') {
-//         return (c += 32);
-//     }
-//     return (c);
-// }
 
 void HeaderAnalyzer::_start_header(unsigned char c)
 {

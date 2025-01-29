@@ -1,5 +1,6 @@
 #include "IPAddress.hpp"
 #include "utils.hpp"
+#include <arpa/inet.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -40,6 +41,22 @@ bool IPAddress::is_ipv4(const std::string& ip)
         return (false);
     }
     return (true);
+}
+
+bool IPAddress::is_ipv4(const struct sockaddr_storage& addr)
+{
+    if (addr.ss_family == AF_INET) {
+        return (true);
+    }
+    return (false);
+}
+
+bool IPAddress::is_ipv6(const struct sockaddr_storage& addr)
+{
+    if (addr.ss_family == AF_INET6) {
+        return (true);
+    }
+    return (false);
 }
 
 bool IPAddress::is_ipv6(const std::string& ip)
@@ -167,6 +184,31 @@ std::string IPAddress::to_ipv6(const std::string& ip)
         oss << ((octets[2] << 8) | octets[3]);
         return oss.str();
     }
+}
+
+std::string IPAddress::to_ipv6(const struct in6_addr& addr)
+{
+    const uint16_t* words = reinterpret_cast<const uint16_t*>(&addr);
+    std::ostringstream oss;
+
+    for (int i = 0; i < 8; i++) {
+        oss << std::hex << words[i];
+        if (i > 0 && i < 7) {
+            oss << ":";
+        }
+    }
+    return to_ipv6(oss.str());
+}
+
+std::string IPAddress::to_ipv4(const struct in_addr& addr)
+{
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&addr);
+    std::ostringstream oss;
+
+    oss << static_cast<int>(bytes[0]) << "." << static_cast<int>(bytes[1])
+        << "." << static_cast<int>(bytes[2]) << "."
+        << static_cast<int>(bytes[3]);
+    return to_ipv4(oss.str());
 }
 
 std::string IPAddress::to_ipv4(const std::string& ip)

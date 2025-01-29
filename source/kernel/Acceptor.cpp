@@ -34,9 +34,10 @@ void Acceptor::handle_event(int fd, uint32_t events)
         socklen_t addr_size = sizeof(client_addr);
         int conn_fd = accept(fd, (struct sockaddr*)&client_addr, &addr_size);
 
-        weblog::Logger::log(weblog::INFO,
-                            "Accepted connection on fd: "
-                                + utils::to_string(conn_fd));
+        weblog::Logger::log(weblog::DEBUG,
+                            "Accepted connection on fd["
+                                + utils::to_string(conn_fd)
+                                + "] from: " + get_client_address(conn_fd));
         if (conn_fd < 0) {
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));
@@ -50,7 +51,7 @@ void Acceptor::handle_event(int fd, uint32_t events)
     else {
         weblog::Logger::log(weblog::ERROR,
                             "Acceptor got unknown event: "
-                                + explainEpollEvent(events));
+                                + explain_epoll_event(events));
     }
 }
 

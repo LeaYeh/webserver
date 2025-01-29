@@ -82,7 +82,7 @@ void RequestProcessor::process(int fd)
     webshell::Response response = manager->handle_request(fd, state, request);
 
     weblog::Logger::log(weblog::DEBUG,
-                        "state: " + explainEventProcessingState(state));
+                        "state: " + explain_event_processing_state(state));
 
     if (request.method() == webshell::POST) {
         // if the server still processing the upload data, we need to consume

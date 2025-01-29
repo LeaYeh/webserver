@@ -1,4 +1,5 @@
 #include "kernelUtils.hpp"
+#include "IPAddress.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
 #include <arpa/inet.h>
@@ -10,7 +11,7 @@
 
 namespace webkernel
 {
-std::string explainEpollEvent(uint32_t events)
+std::string explain_epoll_event(uint32_t events)
 {
     std::string explanation;
 
@@ -99,7 +100,7 @@ std::string format_time(time_t time)
     return (std::string(buffer));
 }
 
-std::string explainEventProcessingState(EventProcessingState state)
+std::string explain_event_processing_state(EventProcessingState state)
 {
     std::string explanation;
 
@@ -134,6 +135,33 @@ std::string uuid()
     return (utils::to_string(now) + "_" + utils::to_string(rand_num));
 }
 
+std::string get_client_address(int fd)
+{
+    struct sockaddr_storage addr;
+    socklen_t addr_size = sizeof(addr);
+    int res = -1;
+
+    // remove the wrapper for getpeername(fd, (struct sockaddr*)&addr, &addr_size)
+    __asm__ volatile (
+        "mov $52, %%rax;"
+        "syscall;"
+        : "=a" (res)
+        : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
+        :
+    );
+
+    if (res < 0) {
+        throw std::runtime_error("getpeername() failed: "
+                                 + std::string(strerror(errno)));
+    }
+    return (format_address(addr));
+}
+
+std::string get_client_address(const struct sockaddr_storage& addr)
+{
+    return (format_address(addr));
+}
+
 std::string get_socket_address(int fd)
 {
     struct sockaddr_storage addr;
@@ -156,26 +184,18 @@ std::string format_address(const struct sockaddr_storage& addr)
     std::ostringstream oss;
 
     // IPv4 address
-    if (addr.ss_family == AF_INET) {
+    if (utils::IPAddress::is_ipv4(addr)) {
         struct sockaddr_in* in4 = (struct sockaddr_in*)&addr;
-        char buf[INET_ADDRSTRLEN];
 
-        if (inet_ntop(AF_INET, &in4->sin_addr, buf, sizeof(buf)) == NULL) {
-            throw std::runtime_error("inet_ntop() failed: "
-                                     + std::string(strerror(errno)));
-        }
-        oss << buf << ":" << ntohs(in4->sin_port);
+        oss << utils::IPAddress::to_ipv4(in4->sin_addr) << ":"
+            << ntohs(in4->sin_port);
     }
     // IPv6 address
-    else if (addr.ss_family == AF_INET6) {
+    else if (utils::IPAddress::is_ipv6(addr)) {
         struct sockaddr_in6* in6 = (struct sockaddr_in6*)&addr;
-        char buf[INET6_ADDRSTRLEN];
 
-        if (inet_ntop(AF_INET6, &in6->sin6_addr, buf, sizeof(buf)) == NULL) {
-            throw std::runtime_error("inet_ntop() failed: "
-                                     + std::string(strerror(errno)));
-        }
-        oss << buf << ntohs(in6->sin6_port);
+        oss << utils::IPAddress::to_ipv6(in6->sin6_addr)
+            << ":" << ntohs(in6->sin6_port);
     }
     else {
         throw std::runtime_error("Unknown address family");

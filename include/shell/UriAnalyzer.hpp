@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AParser.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include <string>
@@ -7,7 +8,7 @@
 namespace webshell
 {
 
-class UriAnalyzer
+class UriAnalyzer : public AParser
 {
 public:
     void parse_uri(std::string& uri);
@@ -51,19 +52,12 @@ private:
     void _uri_query(unsigned char c);
     void _uri_fragment(unsigned char c);
 
-    bool _is_gen_delim(unsigned char c);
-    bool _is_sub_delim(unsigned char c);
-    bool _is_unreserved(unsigned char c);
-    bool _is_pchar(unsigned char c);
-    bool _is_query_or_fragment_part(unsigned char c);
-
     unsigned char _decode_percent(std::string& str);
     unsigned char _decode_num_and_alpha();
     void _decode(std::string& str);
     void _percent_decode_all();
     unsigned char _hexval(unsigned char c);
     bool _valid_hexdigit(unsigned char c);
-    unsigned char _lowcase(unsigned char c);
 
     std::string _remove_dot_segments() const;
     void _remove_last_segment(std::string& str) const;

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/06 01:22:54 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/01/27 17:34:55 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ void RequestLineAnalyzer::_validate_start(unsigned char c)
     if (c == '\r') {
         _state = PRE_LF;
     }
-    else if (!utils::is_tchar(c)) {
+    else if (!_is_tchar(c)) {
         throw utils::HttpException(webshell::BAD_REQUEST,
                                    "RLAnalyzer failed at validate start");
     }
@@ -144,7 +144,7 @@ void RequestLineAnalyzer::_analyze_method(unsigned char c)
     if (c == ' ') {
         _state = URI;
     }
-    else if (!utils::is_tchar(c)) {
+    else if (!_is_tchar(c)) {
         throw utils::HttpException(webshell::BAD_REQUEST,
                                    "error at check method");
     }

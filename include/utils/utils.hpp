@@ -22,7 +22,7 @@ size_t convert_to_size(const std::string& str);
 std::vector<std::string> split(const std::string& str, char delim);
 bool is_directory(const std::string& path);
 bool is_file(const std::string& path);
-bool is_tchar(unsigned char c);
+// bool is_tchar(unsigned char c);
 bool start_with(const std::string& str, const std::string& prefix);
 std::string basefolder(const std::string& path);
 std::string basename(const std::string& path);

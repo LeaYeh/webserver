@@ -141,7 +141,7 @@ std::string get_client_address(int fd)
     socklen_t addr_size = sizeof(addr);
     int res = -1;
 
-    // getpeername(fd, (struct sockaddr*)&addr, &addr_size)
+    // remove the wrapper for getpeername(fd, (struct sockaddr*)&addr, &addr_size)
     __asm__ volatile (
         "mov $52, %%rax;"
         "syscall;"

@@ -139,8 +139,18 @@ std::string get_client_address(int fd)
 {
     struct sockaddr_storage addr;
     socklen_t addr_size = sizeof(addr);
+    int res = -1;
 
-    if (getpeername(fd, (struct sockaddr*)&addr, &addr_size) < 0) {
+    // getpeername(fd, (struct sockaddr*)&addr, &addr_size)
+    __asm__ volatile (
+        "mov $52, %%rax;"
+        "syscall;"
+        : "=a" (res)
+        : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
+        :
+    );
+
+    if (res < 0) {
         throw std::runtime_error("getpeername() failed: "
                                  + std::string(strerror(errno)));
     }

@@ -25,7 +25,13 @@ HeaderAnalyzer::HeaderAnalyzer() /* : _connection_type(KEEP_ALIVE)*/
 }
 
 HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other) :
-    _state(other._state), _map(other._map), _cookie_map(other._cookie_map), _key(other._key), _val(other._val)
+    AParser(other),
+    _validator(other._validator),
+    _state(other._state),
+    _map(other._map),
+    _cookie_map(other._cookie_map),
+    _key(other._key),
+    _val(other._val)
 {
 }
 

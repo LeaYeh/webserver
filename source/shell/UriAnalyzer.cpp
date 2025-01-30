@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "UriAnalyzer.hpp"
+#include "AParser.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
 #include <cctype>
@@ -37,6 +38,7 @@ UriAnalyzer::UriAnalyzer()
 }
 
 UriAnalyzer::UriAnalyzer(const UriAnalyzer& other) :
+    AParser(other),
     _uri(other._uri),
     _host(other._host),
     _port(other._port),

@@ -137,7 +137,7 @@ std::string uuid()
 
 std::string get_client_address(int fd)
 {
-    struct sockaddr_storage addr;
+    struct sockaddr_storage addr = {};
     socklen_t addr_size = sizeof(addr);
     int res = -1;
 
@@ -147,7 +147,7 @@ std::string get_client_address(int fd)
         "syscall;"
         : "=a" (res)
         : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
-        :
+        : "memory"
     );
 
     if (res < 0) {

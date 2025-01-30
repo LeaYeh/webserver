@@ -134,6 +134,7 @@ void RequestAnalyzer::reset(void)
     Request empty;
     _req = empty;
     _state = PARSING_REQUEST_LINE;
+    _cookies.clear();
 }
 
 RequestAnalyzerState RequestAnalyzer::state(void) const
@@ -157,6 +158,7 @@ void RequestAnalyzer::_assemble_request()
     _req.set_version(_version);
     _req.set_headers(_headers);
     _req.set_reference(_read_buffer);
+    _req.set_cookies(_cookies);
     // if (!_req.setupRequestConfig()) {
     //     throw utils::HttpException(webshell::NOT_FOUND,
     //                                "No matching location block found: "

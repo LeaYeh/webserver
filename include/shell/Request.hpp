@@ -30,6 +30,7 @@ public:
     bool has_cookie(const std::string& name) const;
     bool has_cookies() const;
     bool read_chunked_body(std::vector<char>& chunked_body);
+
     void set_method(RequestMethod method);
     void set_uri(Uri uri);
     void set_version(float version);
@@ -37,6 +38,7 @@ public:
     void add_header(std::string& name, std::string& value);
     void set_reference(std::string* read_buffer);
     void setup_config(webconfig::ConfigServerBlock* server_config);
+    void set_cookies(std::map<std::string, std::string> cookies);
 
 public:
     Request();

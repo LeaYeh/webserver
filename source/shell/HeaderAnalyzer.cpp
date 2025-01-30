@@ -233,6 +233,7 @@ void HeaderAnalyzer::_header_end_crlf(unsigned char c)
 {
     if (c == '\n') {
         _validator.validate(_map);
+        _cookie_map = _validator.get_cookie_map();
         _state = END_HEADERS;
     }
     else {

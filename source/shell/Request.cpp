@@ -121,8 +121,9 @@ const std::string& Request::get_header(const std::string& name) const
 
 const std::string& Request::get_cookie(const std::string& name) const
 {
-    std::map<std::string, std::string>::const_iterator it = _cookies.find(name);
-
+    (void) name;
+    std::map<std::string, std::string>::const_iterator it =
+        _cookies.find(name);
     if (it == _cookies.end()) {
         return (utils::EMPTY_STRING);
     }
@@ -167,6 +168,11 @@ const std::string Request::serialize() const
 void Request::set_method(RequestMethod method)
 {
     _method = method;
+}
+
+void Request::set_cookies(std::map<std::string, std::string> cookies)
+{
+    _cookies = cookies;
 }
 
 void Request::set_headers(std::map<std::string, std::string> headers)

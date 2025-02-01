@@ -78,9 +78,12 @@ void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
     ev.events = events;
     ev.data.fd = fd;
 
-    LOG(weblog::DEBUG, "Registering handler with fd: " + utils::to_string(fd));
+    LOG(weblog::DEBUG,
+        "Registering handler with fd: " + utils::to_string(fd)
+            + ", events: " + explain_epoll_event(events));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        throw std::runtime_error("epoll_ctl failed");
+        throw std::runtime_error("epoll_ctl failed, "
+                                 + std::string(strerror(errno)));
     }
     _handlers[fd] = handler;
 }
@@ -93,7 +96,8 @@ void Reactor::modify_handler(int fd,
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
         if (errno != ENOENT) {
-            throw std::runtime_error("epoll_ctl failed to get current events");
+            throw std::runtime_error("epoll_ctl failed to get current events, "
+                                     + std::string(strerror(errno)));
         }
         ev.events = 0;
     }
@@ -106,7 +110,8 @@ void Reactor::modify_handler(int fd,
             + ", new events: " + explain_epoll_event(ev.events));
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
-        throw std::runtime_error("epoll_ctl failed to modify events");
+        throw std::runtime_error("epoll_ctl failed to modify events, "
+                                 + std::string(strerror(errno)));
     }
 }
 
@@ -160,6 +165,9 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
                                      + utils::to_string(fd));
         }
         try {
+            LOG(weblog::DEBUG,
+                "Handling event on fd: " + utils::to_string(fd)
+                    + " with events: " + explain_epoll_event(events[i].events));
             _handlers[fd]->handle_event(fd, events[i].events);
         }
         catch (utils::HttpException& e) {

@@ -104,8 +104,11 @@ std::string explain_event_processing_state(EventProcessingState state)
 {
     std::string explanation;
 
-    if (state & INITIAL) {
+    if (state == INITIAL) {
         explanation += "INITIAL ";
+    }
+    if (state & WAITING_SESSION) {
+        explanation += "WAITING_SESSION ";
     }
     if (state & PROCESSING) {
         explanation += "PROCESSING ";

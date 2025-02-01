@@ -275,14 +275,14 @@ enum EncodingMode
 
 enum EventProcessingState
 {
-    INITIAL = 0b00000000,
-    PROCESSING = 0b00000001,
-    HANDLE_OTHERS_CHUNKED = 0b00000010,
-    HANDLE_FIRST_CHUNKED = 0b00000100,
-    HANDLE_CHUNKED = 0b00001000,
-    COMPELETED = 0b00010000,
-    ERROR = 0b01000000,
-    UNKNOWN = 0b10000000
+    INITIAL = 0b00000000,               // 0x00
+    WAITING_SESSION = 0b00000001,       // 0x01
+    PROCESSING = 0b00000010,            // 0x02
+    HANDLE_OTHERS_CHUNKED = 0b00000100, // 0x04
+    HANDLE_FIRST_CHUNKED = 0b00001000,  // 0x08
+    HANDLE_CHUNKED = 0b00010000,        // 0x10
+    COMPELETED = 0b00100000,            // 0x20
+    ERROR = 0b01000000,                 // 0x40
+    UNKNOWN = 0b10000000                // 0x80
 };
-
 } // namespace webkernel

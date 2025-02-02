@@ -21,8 +21,7 @@ RequestProcessor::RequestProcessor(ConnectionHandler* handler) :
 }
 
 RequestProcessor::RequestProcessor(const RequestProcessor& other) :
-    _handler(other._handler),
-    _analyzer_pool(other._analyzer_pool)
+    _handler(other._handler), _analyzer_pool(other._analyzer_pool)
 {
 }
 
@@ -81,8 +80,7 @@ void RequestProcessor::process(int fd)
     webshell::Request& request = _analyzer_pool[fd].request();
     webshell::Response response = manager->handle_request(fd, state, request);
 
-    weblog::Logger::log(weblog::DEBUG,
-                        "state: " + explain_event_processing_state(state));
+    LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
 
     if (request.method() == webshell::POST) {
         // if the server still processing the upload data, we need to consume
@@ -150,10 +148,9 @@ void RequestProcessor::_handle_keep_alive(int fd)
         _timer_pool.erase(fd);
     }
     else {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Keep-alive connection, time passed: "
-                                + utils::to_string(_timer_pool[fd].elapsed())
-                                + " seconds");
+        LOG(weblog::DEBUG,
+            "Keep-alive connection, time passed: "
+                + utils::to_string(_timer_pool[fd].elapsed()) + " seconds");
     }
 }
 

@@ -9,9 +9,7 @@
 namespace webconfig
 {
 
-Config::~Config()
-{
-}
+Config::~Config() {}
 
 Config* Config::create_instance()
 {
@@ -65,8 +63,7 @@ void Config::print_config(void) const
     _global_block.print_config();
     _http_block.print_config();
     for (size_t i = 0; i < _server_block_list.size(); ++i) {
-        weblog::Logger::log(weblog::DEBUG,
-                            "Server block [" + utils::to_string(i) + "]:");
+        LOG(weblog::DEBUG, "Server block [" + utils::to_string(i) + "]:");
         _server_block_list[i].print_config();
     }
 }

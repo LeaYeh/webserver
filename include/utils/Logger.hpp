@@ -13,6 +13,7 @@
 #pragma once
 #include "Singleton.hpp"
 #include "defines.hpp"
+#include "utils.hpp"
 #include <ctime>
 #include <fstream>
 
@@ -57,3 +58,11 @@ private:
 };
 
 } // namespace weblog
+
+#define LOG(level, message)                                                 \
+    do {                                                                    \
+        weblog::Logger::instance()->log(                                    \
+            level,                                                          \
+            std::string("\t[") + __FILE__ + ":" + utils::to_string(__LINE__) \
+                + "] " + utils::to_string(message));                        \
+    } while (0)

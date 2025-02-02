@@ -104,8 +104,11 @@ std::string explain_event_processing_state(EventProcessingState state)
 {
     std::string explanation;
 
-    if (state & INITIAL) {
+    if (state == INITIAL) {
         explanation += "INITIAL ";
+    }
+    if (state & WAITING_SESSION) {
+        explanation += "WAITING_SESSION ";
     }
     if (state & PROCESSING) {
         explanation += "PROCESSING ";
@@ -137,7 +140,7 @@ std::string uuid()
 
 std::string get_client_address(int fd)
 {
-    struct sockaddr_storage addr;
+    struct sockaddr_storage addr = {};
     socklen_t addr_size = sizeof(addr);
     int res = -1;
 
@@ -147,7 +150,7 @@ std::string get_client_address(int fd)
         "syscall;"
         : "=a" (res)
         : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
-        :
+        : "memory"
     );
 
     if (res < 0) {

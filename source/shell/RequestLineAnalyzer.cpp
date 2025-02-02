@@ -21,6 +21,7 @@ namespace webshell
 RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR) {}
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other) :
+    AParser(other),
     _state(other._state),
     _uri_analyzer(other._uri_analyzer),
     _method(other._method),

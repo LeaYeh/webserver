@@ -20,7 +20,7 @@ public:
 
 private:
     Acceptor* _acceptor;
-    // SessionManager* _session_manager;
+    SessionManager* _session_manager;
 
     void _register_listener(void);
     int _create_listen_socket(const char* ip, const char* port);

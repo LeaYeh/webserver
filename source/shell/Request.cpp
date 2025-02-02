@@ -121,9 +121,9 @@ const std::string& Request::get_header(const std::string& name) const
 
 const std::string& Request::get_cookie(const std::string& name) const
 {
-    (void) name;
     std::map<std::string, std::string>::const_iterator it =
         _cookies.find(name);
+
     if (it == _cookies.end()) {
         return (utils::EMPTY_STRING);
     }
@@ -137,7 +137,7 @@ bool Request::has_header(const std::string& name) const
 
 bool Request::has_cookie(const std::string& name) const
 {
-    return (_headers.find(name) != _headers.end());
+    return (_cookies.find(name) != _cookies.end());
 }
 
 bool Request::has_cookies() const

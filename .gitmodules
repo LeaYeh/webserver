@@ -1,0 +1,3 @@
+[submodule "www/html/game"]
+	path = www/html/game
+	url = https://github.com/LeaYeh/webserv-2048.git

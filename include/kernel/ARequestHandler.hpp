@@ -43,7 +43,7 @@ protected:
     std::string _get_encoding_string(int encoding) const;
     std::string _get_resource_path(const webconfig::RequestConfig& config,
                                    const std::string& path) const;
-    const std::string _getMimeType(const std::string& file_path) const;
+    const std::string _get_mime_type(const std::string& file_path) const;
 
     void _handle_exception(
         const std::exception& e,

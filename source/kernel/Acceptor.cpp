@@ -13,12 +13,12 @@ namespace webkernel
 
 Acceptor::Acceptor()
 {
-    weblog::Logger::log(weblog::DEBUG, "Acceptor created");
+    LOG(weblog::DEBUG, "Acceptor created");
 }
 
 Acceptor::~Acceptor()
 {
-    weblog::Logger::log(weblog::DEBUG, "Acceptor destroyed");
+    LOG(weblog::DEBUG, "Acceptor destroyed");
 }
 
 // The ConnectionHandler object is created and registered with the Reactor
@@ -34,24 +34,23 @@ void Acceptor::handle_event(int fd, uint32_t events)
         socklen_t addr_size = sizeof(client_addr);
         int conn_fd = accept(fd, (struct sockaddr*)&client_addr, &addr_size);
 
-        weblog::Logger::log(weblog::DEBUG,
-                            "Accepted connection on fd["
-                                + utils::to_string(conn_fd)
-                                + "] from: " + get_client_address(conn_fd));
+        LOG(weblog::DEBUG,
+            "Accepted connection on fd[" + utils::to_string(conn_fd)
+                + "] from: " + get_client_address(conn_fd));
         if (conn_fd < 0) {
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));
         }
-        reactor->register_handler(
-            conn_fd, reactor->conn_handler, EPOLLIN | EPOLLHUP | EPOLLERR);
-        weblog::Logger::log(weblog::DEBUG,
-                            "Registered connection handler with fd: "
-                                + utils::to_string(conn_fd));
+        reactor->register_handler(conn_fd,
+                                  ConnectionHandler::instance(),
+                                  EPOLLIN | EPOLLHUP | EPOLLERR);
+        LOG(weblog::DEBUG,
+            "Registered connection handler with fd: "
+                + utils::to_string(conn_fd));
     }
     else {
-        weblog::Logger::log(weblog::ERROR,
-                            "Acceptor got unknown event: "
-                                + explain_epoll_event(events));
+        LOG(weblog::ERROR,
+            "Acceptor got unknown event: " + explain_epoll_event(events));
     }
 }
 

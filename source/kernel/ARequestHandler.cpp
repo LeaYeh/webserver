@@ -75,7 +75,7 @@ bool ARequestHandler::_is_out_of_max_file_size(
 }
 
 const std::string
-ARequestHandler::_getMimeType(const std::string& file_path) const
+ARequestHandler::_get_mime_type(const std::string& file_path) const
 {
     std::string extension = file_path.substr(file_path.find_last_of(".") + 1);
 
@@ -194,7 +194,7 @@ void ARequestHandler::_handle_exception(
     const webshell::StatusCode code,
     const webshell::ContentType content_type)
 {
-    weblog::Logger::log(weblog::ERROR, e.what());
+    LOG(weblog::ERROR, e.what());
     throw utils::HttpException(code, e.what(), content_type);
 }
 
@@ -208,7 +208,7 @@ void ARequestHandler::_update_status(EventProcessingState& state,
     else {
         state = static_cast<EventProcessingState>(state | flags);
     }
-    weblog::Logger::log(weblog::DEBUG,
+    LOG(weblog::DEBUG,
                         "ARequestHandler: update status to "
                             + explain_event_processing_state(state));
 }
@@ -222,6 +222,14 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
     }
+    // std::string session_id = request.get_cookie("session_id");
+
+    // if (session_id.empty()) {
+    //     session_id = uuid();
+    //     weblog::Logger::log(weblog::DEBUG,
+    //                         "Create new session id: " + session_id);
+    // }
+
 }
 
 } // namespace webkernel

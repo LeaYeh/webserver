@@ -68,14 +68,12 @@ std::string ConfigHttpBlock::parse(std::ifstream& file_stream)
 
 void ConfigHttpBlock::print_config(void) const
 {
-    weblog::Logger::log(weblog::DEBUG, "HTTP scope:");
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tclient_max_body_size: "
-                            + utils::to_string(_client_max_body_size));
-    weblog::Logger::log(weblog::DEBUG,
-                        "\tdefault_type: "
-                            + webshell::content_type_to_string(_default_type));
-    weblog::Logger::log(weblog::DEBUG, "\tautoindex_page: " + _autoindex_page);
+    LOG(weblog::DEBUG, "HTTP scope:");
+    LOG(weblog::DEBUG,
+        "\tclient_max_body_size: " + utils::to_string(_client_max_body_size));
+    LOG(weblog::DEBUG,
+        "\tdefault_type: " + webshell::content_type_to_string(_default_type));
+    LOG(weblog::DEBUG, "\tautoindex_page: " + _autoindex_page);
 }
 
 size_t ConfigHttpBlock::client_max_body_size(void) const

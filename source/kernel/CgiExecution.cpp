@@ -1,0 +1,89 @@
+#include "CgiExecution.hpp"
+#include "Reactor.hpp"
+
+extern char** environ;
+
+namespace webkernel
+{
+    CgiExecution::CgiExecution(){}
+    CgiExecution::~CgiExecution(){
+        //clear_map(_cgi_handlers);
+    }
+
+char** get_env(webshell::Request& request)
+{
+    
+    std::vector <std::string> envp;
+    for (int i = 0; environ[i] != NULL; i++)
+    {
+        envp.push_back(environ[i]);
+    }
+
+    if (request.method() == webshell::GET)
+    {
+        envp.push_back("REQUEST_METHOD = GET");
+    }
+    else if (request.method() == webshell::POST)
+    {
+        envp.push_back("REQUEST_METHOD = POST");
+    }
+    else
+    {
+        envp.push_back("REQUEST_METHOD = UNKNOWN");
+    }
+
+    envp.push_back("GATEWAY_INTERFACE = CGI/1.1");
+    envp.push_back("SERVER_PROTOCOL = HTTP/1.1");
+    envp.push_back("SERVER_SOFTWARE = webkernel/1.0");
+    envp.push_back("SERVER_NAME" + request.config().server_name);
+    envp.push_back("SERVER_PORT = " + request.uri().port);
+    envp.push_back("REQUEST_URI = " + request.uri().path + "?" + request.uri().query);
+    envp.push_back("QUERY_STRING = " + request.uri().query);
+    envp.push_back("SCRIPT_NAME = " + request.uri().path);
+    envp.push_back("PATH_INFO = " + request.uri().path);
+    envp.push_back("PATH_TRANSLATED = " + request.uri().path);
+    //envp.push_back("REMOTE_ADDR = " + request.client().ip);
+    envp.push_back("REMOTE_HOST = " + request.uri().host);
+
+    char** env = new char*[envp.size()];
+    for (size_t i = 0; i < envp.size(); i++)
+    {
+        env[i] = new char[envp[i].size() + 1];
+        strcpy(env[i], envp[i].c_str());
+    }
+
+    return env;
+}
+
+void cgi_exec(webshell::Request &request, int client_fd)
+{
+    int pipefd[2];
+    if (pipe(pipefd) == -1)
+    {
+        throw std::runtime_error("pipe() failed: " + std::string(strerror(errno)));
+    }
+    IHandler* handler_event = new CgiHandler(request, client_fd, pipefd[0]);
+    Reactor::instance()->register_handler(client_fd, handler_event, EPOLLIN);
+    pid_t pid = fork();
+
+    if (pid > 0)
+    {
+        close(pipefd[1]);
+
+        exit(0);
+    }
+    else if (pid == 0)
+    {
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        char** argv_null = NULL;
+        execve(request.uri().path.c_str(), argv_null, get_env(request));
+    }
+    else
+    {
+        throw std::runtime_error("fork() failed: " + std::string(strerror(errno)));
+    }
+}
+
+} // namespace webkernel

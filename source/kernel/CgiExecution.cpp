@@ -71,6 +71,13 @@ void cgi_exec(webshell::Request &request, int client_fd)
     if (pid > 0)
     {
         close(pipefd[1]);
+        pid_t pid_unwanted_child = fork();
+        if (pid_unwanted_child == 0)
+        {
+            sleep(3);
+            kill(pid, SIGKILL);
+            exit(0);
+        }
     }
     else if (pid == 0)
     {

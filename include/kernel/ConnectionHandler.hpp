@@ -8,6 +8,7 @@
 #include "VirtualHostManager.hpp"
 #include "defines.hpp"
 #include <ctime>
+#include <fcntl.h>
 #include <map>
 #include <string>
 #include <sys/epoll.h>
@@ -31,13 +32,39 @@ public:
     void close_connection(int fd, weblog::LogLevel level, std::string message);
     void prepare_write(int fd, const std::string& buffer);
     void prepare_error(int fd, const utils::HttpException& e);
-    bool get_session_data(const std::string& sid, std::string& out_data);
+    bool request_session_data(const std::string& sid, int client_fd);
+    std::string get_session_data(const std::string& sid);
     bool set_session_data(const std::string& sid, const std::string& data);
+    bool is_session_ready(const std::string& sid) const;
 
 public:
     ~ConnectionHandler();
 
 private:
+    struct PendingSessionRequest
+    {
+        static const int MAX_RETRY = 3;
+        static const int RETRY_INTERVAL = 5;
+        static const int MAX_WAIT_TIME = 3;
+        PendingSessionRequest(const std::string& sid, int client_fd) :
+            session_id(sid),
+            client_fd(client_fd),
+            completed(false),
+            request_time(time(0)),
+            retry_count(0)
+        {
+        }
+        std::string session_id;
+        int client_fd;
+        std::string out_data;
+        bool completed;
+        time_t request_time;
+        int retry_count;
+    };
+
+private:
+    typedef std::map<std::string /*sid*/, PendingSessionRequest*>
+        PendingSessionRequestMap;
     RequestProcessor _processor;
     int _session_fd;
     // TODO: Use _read_buffer to handle extra data which out of a request
@@ -45,6 +72,7 @@ private:
     std::map<int /*fd*/, std::string> _read_buffer;
     std::map<int /*fd*/, std::string> _write_buffer;
     std::map<int /*fd*/, std::string> _error_buffer;
+    PendingSessionRequestMap _pending_session_requests;
 
 private:
     void _handle_read(int fd);
@@ -56,6 +84,8 @@ private:
     bool _is_buffer_full(const std::string& buffer) const;
     bool _init_buffer(std::string& buffer);
     void _connect_to_session_manager();
+    std::string _handle_session_response(int fd);
+    void _cleanup_stale_requests();
 
 private:
     ConnectionHandler();

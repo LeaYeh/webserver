@@ -37,7 +37,7 @@ webshell::Response PostHandler::handle(int fd,
                                        webshell::Request& request)
 {
     try {
-        if (state == INITIAL) {
+        if (state == READY_TO_PROCESS) {
             _pre_process(request);
         }
         _update_status(state, PROCESSING);
@@ -54,6 +54,24 @@ webshell::Response PostHandler::handle(int fd,
     }
     _update_status(state, HANDLE_CHUNKED);
     return webshell::Response();
+}
+
+void PostHandler::_handle_session(webshell::Request& request)
+{
+    (void)request;
+    throw utils::HttpException(webshell::FORBIDDEN,
+                               "Forbidden session request");
+}
+
+webshell::Response PostHandler::_handle_request(int fd,
+                                                EventProcessingState& state,
+                                                webshell::Request& request)
+{
+    (void)fd;
+    (void)state;
+    (void)request;
+    throw utils::HttpException(webshell::FORBIDDEN,
+                               "Forbidden default request");
 }
 
 webshell::Response
@@ -99,9 +117,8 @@ std::string PostHandler::_process(int fd,
     //     throw utils::HttpException(
     //         webshell::CONTINUE, "Continue", webshell::TEXT_PLAIN);
     // }
-    weblog::Logger::log(weblog::DEBUG,
-                        "PostHandler: handle the request with target path: "
-                            + _target_path);
+    LOG(weblog::DEBUG,
+        "PostHandler: handle the request with target path: " + _target_path);
     _check_upload_permission(request);
     if (!_check_path_permission(_target_path, W_OK)) {
         throw utils::HttpException(webshell::FORBIDDEN,
@@ -151,7 +168,7 @@ std::string PostHandler::_determine_file_name(const webshell::Request& request)
         file_name = request.uri().query;
     }
 
-    weblog::Logger::log(weblog::DEBUG, "Upload File name: " + file_name);
+    LOG(weblog::DEBUG, "Upload File name: " + file_name);
     return (file_name);
 }
 

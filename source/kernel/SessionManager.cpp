@@ -7,6 +7,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <stdexcept>
+#include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/wait.h>
@@ -39,10 +40,11 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
         throw std::runtime_error("Failed to listen on session socket: "
                                  + utils::to_string(strerror(errno)));
     }
-
     LOG(weblog::DEBUG,
         std::string("Session manager listening on socket: ")
             + utils::to_string(_server_fd));
+    Reactor::instance()->register_handler(_server_fd, this, EPOLLIN);
+    LOG(weblog::DEBUG, "Session server registered into reactor");
 }
 
 SessionManager::SessionManager(const SessionManager& other)
@@ -88,6 +90,19 @@ int SessionManager::get_fd() const
     return (_server_fd);
 }
 
+void SessionManager::cleanup_expired_sessions()
+{
+    time_t now = time(0);
+
+    for (std::map<std::string, SessionData>::iterator it = _sessions.begin();
+         it != _sessions.end();
+         ++it) {
+        if (it->second.expire_time < now) {
+            _sessions.erase(it);
+        }
+    }
+}
+
 bool SessionManager::_is_client_socket(int fd) const
 {
     return (_client_fds.find(fd) != _client_fds.end());
@@ -116,19 +131,43 @@ void SessionManager::_handle_new_connection()
         close(client_fd);
         return;
     }
+    Reactor::instance()->register_handler(client_fd, this, EPOLLIN);
     LOG(weblog::DEBUG,
         "SessionManager: Accepted new session connection: "
             + utils::to_string(client_fd));
     _client_fds.insert(client_fd);
-    Reactor::instance()->register_handler(client_fd, this, EPOLLIN);
+    SessionMessage msg;
+    int bytes = recv(client_fd, &msg, sizeof(msg), MSG_DONTWAIT);
+
+    if (bytes < 0) {
+        // TODO: Forbidden function
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            LOG(weblog::DEBUG, "No data ready for new session connection");
+            return;
+        }
+        close(client_fd);
+        throw std::runtime_error("Recv failed: "
+                                 + utils::to_string(strerror(errno)));
+    }
+    if (bytes != sizeof(msg)) {
+        throw std::runtime_error("Invalid session message");
+    }
+    _handle_session_set(client_fd, msg);
 }
 
 void SessionManager::_handle_session_request(int fd)
 {
     SessionMessage msg;
-    int bytes = recv(fd, &msg, sizeof(msg), 0);
+    int bytes = recv(fd, &msg, sizeof(msg), MSG_DONTWAIT);
 
     if (bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            LOG(weblog::DEBUG,
+                "No data ready for session connection: "
+                    + utils::to_string(fd));
+            return;
+        }
+        close(fd);
         throw std::runtime_error("Failed to receive session message: "
                                  + utils::to_string(strerror(errno)));
     }
@@ -155,7 +194,7 @@ void SessionManager::_handle_session_request(int fd)
         _handle_session_delete(fd, msg);
         break;
     default:
-        _send_error(fd, "Invalid session message type");
+        _send_error(fd, msg.session_id, "Invalid session message type");
         break;
     }
 }
@@ -171,7 +210,7 @@ void SessionManager::_handle_session_set(int fd, const SessionMessage& msg)
     }
     session.expire_time = time(0) + _config.expire_seconds;
     session.last_access = time(0);
-    _send_resp(fd, SESSION_RESPONSE, "Session data updated");
+    _send_resp(fd, SESSION_RESPONSE, msg.session_id, "");
 }
 
 void SessionManager::_handle_session_get(int fd, const SessionMessage& msg)
@@ -179,35 +218,39 @@ void SessionManager::_handle_session_get(int fd, const SessionMessage& msg)
     std::map<std::string, SessionData>::iterator it =
         _sessions.find(msg.session_id);
 
-    if (it == _sessions.end() || !it->second.is_valid) {
-        _send_error(fd, "Session not found");
+    if (it == _sessions.end()) {
+        LOG(weblog::DEBUG,
+            "Session not found: " + std::string(msg.session_id)
+                + " going to register the sid with empty data");
+        _handle_session_set(fd, msg);
         return;
     }
     SessionData& session = it->second;
 
     if (session.expire_time < time(0)) {
-        _send_error(fd, "Session expired");
+        _send_error(fd, msg.session_id, "Session expired");
         session.is_valid = false;
         return;
     }
     session.last_access = time(0);
-    _send_resp(fd, SESSION_RESPONSE, session.data);
+    _send_resp(fd, SESSION_RESPONSE, msg.session_id, session.data);
 }
 
 void SessionManager::_handle_session_delete(int fd, const SessionMessage& msg)
 {
     _sessions.erase(msg.session_id);
-    _send_resp(fd, SESSION_RESPONSE, "Session deleted");
+    _send_resp(fd, SESSION_RESPONSE, msg.session_id, "");
 }
 
 void SessionManager::_send_resp(int fd,
                                 SessionMessageType type,
+                                const std::string& sid,
                                 const std::string& data)
 {
     SessionMessage msg;
 
     msg.type = type;
-    std::strncpy(msg.session_id, "server", sizeof(msg.session_id));
+    std::strncpy(msg.session_id, sid.c_str(), sizeof(msg.session_id));
     msg.data_length = data.length();
     std::strncpy(msg.data, data.c_str(), sizeof(msg.data));
     if (send(fd, &msg, sizeof(msg), 0) < 0) {
@@ -216,22 +259,11 @@ void SessionManager::_send_resp(int fd,
     }
 }
 
-void SessionManager::_send_error(int fd, const std::string& msg)
+void SessionManager::_send_error(int fd,
+                                 const std::string& sid,
+                                 const std::string& msg)
 {
-    _send_resp(fd, SESSION_ERROR, msg);
-}
-
-void SessionManager::cleanup_expired_sessions()
-{
-    time_t now = time(0);
-
-    for (std::map<std::string, SessionData>::iterator it = _sessions.begin();
-         it != _sessions.end();
-         ++it) {
-        if (it->second.expire_time < now) {
-            _sessions.erase(it);
-        }
-    }
+    _send_resp(fd, SESSION_ERROR, sid, msg);
 }
 
 } // namespace webkernel

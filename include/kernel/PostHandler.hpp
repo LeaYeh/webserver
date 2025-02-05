@@ -22,6 +22,10 @@ private:
     std::map<int /* fd */, UploadRecord*> _upload_record_pool;
 
 private:
+    void _handle_session(webshell::Request& request);
+    webshell::Response _handle_request(int fd,
+                                       EventProcessingState& state,
+                                       webshell::Request& request);
     void _pre_process(const webshell::Request& request);
     std::string
     _process(int fd, EventProcessingState& state, webshell::Request& request);

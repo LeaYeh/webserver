@@ -6,6 +6,7 @@
 
 namespace webkernel
 {
+
 class SessionManager : public IHandler
 {
 public:
@@ -22,6 +23,8 @@ public:
 private:
     SessionConfig _config;
     int _server_fd;
+    // Long-term session history data, it will only be cleanup when the server
+    // shotdown
     std::map<std::string /* SID */, SessionData> _sessions;
     std::set<int /* fd */> _client_fds;
 
@@ -33,8 +36,11 @@ private:
     void _handle_session_set(int fd, const SessionMessage& msg);
     void _handle_session_get(int fd, const SessionMessage& msg);
     void _handle_session_delete(int fd, const SessionMessage& msg);
-    void _send_resp(int fd, SessionMessageType type, const std::string& data);
-    void _send_error(int fd, const std::string& msg);
+    void _send_resp(int fd,
+                    SessionMessageType type,
+                    const std::string& sid,
+                    const std::string& data);
+    void _send_error(int fd, const std::string& sid, const std::string& msg);
 
 private:
     SessionManager();

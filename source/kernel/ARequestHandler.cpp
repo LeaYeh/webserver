@@ -1,4 +1,5 @@
 #include "ARequestHandler.hpp"
+#include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "RequestConfig.hpp"
@@ -209,8 +210,15 @@ void ARequestHandler::_update_status(EventProcessingState& state,
         state = static_cast<EventProcessingState>(state | flags);
     }
     LOG(weblog::DEBUG,
-                        "ARequestHandler: update status to "
-                            + explain_event_processing_state(state));
+        "ARequestHandler: update status to "
+            + explain_event_processing_state(state));
+}
+
+std::string
+ARequestHandler::_format_session_cookie(const std::string& session_id,
+                                        const std::string& data)
+{
+    return ("session_id=" + session_id + "; Path=/game/" + data);
 }
 
 void ARequestHandler::_pre_process(const webshell::Request& request)
@@ -222,14 +230,19 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
     }
-    // std::string session_id = request.get_cookie("session_id");
 
-    // if (session_id.empty()) {
-    //     session_id = uuid();
-    //     weblog::Logger::log(weblog::DEBUG,
-    //                         "Create new session id: " + session_id);
-    // }
+    // TODO: Move to post_process?
+    // No matter what the request is, we should always give a session id
+    std::string session_id = request.get_cookie("session_id");
 
+    if (session_id.empty()) {
+        session_id = uuid();
+        if (!ConnectionHandler::instance()->set_session_data(session_id, "")) {
+            throw std::runtime_error(
+                "ARequestHandler: failed to set session data");
+        }
+        _response_headers["Set-Cookie"] = "session_id=" + session_id;
+    }
 }
 
 } // namespace webkernel

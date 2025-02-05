@@ -75,12 +75,78 @@ void RequestProcessor::_setup_timer(int fd,
 // to be processed in chunks
 void RequestProcessor::process(int fd)
 {
-    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
     EventProcessingState& state = _state[fd];
     webshell::Request& request = _analyzer_pool[fd].request();
-    webshell::Response response = manager->handle_request(fd, state, request);
 
-    LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
+    LOG(weblog::DEBUG,
+        "Processing request with state: "
+            + explain_event_processing_state(state)
+            + " on fd: " + utils::to_string(fd));
+    if (state == INITIAL) {
+        if (_need_session_data(request)) {
+            std::string sid = request.get_cookie("session_id");
+            if (_handler->request_session_data(sid, fd)) {
+                state = WAITING_SESSION;
+                return;
+            }
+        }
+        else {
+            state = READY_TO_PROCESS;
+        }
+    }
+    else if (state == WAITING_SESSION) {
+        std::string sid = request.get_cookie("session_id");
+        if (_handler->is_session_ready(sid)) {
+            state = READY_TO_PROCESS;
+        }
+        else {
+            return;
+        }
+    }
+    if (state == READY_TO_PROCESS) {
+        _process_request(fd, request);
+    }
+    LOG(weblog::WARNING,
+        "Request processed with state: " + explain_event_processing_state(state)
+            + " on fd: " + utils::to_string(fd));
+}
+
+void RequestProcessor::remove_analyzer(int fd)
+{
+    _analyzer_pool.erase(fd);
+}
+
+EventProcessingState RequestProcessor::state(int fd) const
+{
+    if (_state.find(fd) == _state.end()) {
+        return (UNKNOWN);
+    }
+    return (_state.at(fd));
+}
+
+void RequestProcessor::set_state(int fd, EventProcessingState state)
+{
+    _state[fd] = state;
+}
+
+void RequestProcessor::reset_state(int fd)
+{
+    _state[fd] = INITIAL;
+}
+
+bool RequestProcessor::_need_session_data(
+    const webshell::Request& request) const
+{
+    // (void)request;
+    // return (false);
+    return ((request.uri().path.find("/game/") != std::string::npos));
+}
+
+void RequestProcessor::_process_request(int fd, webshell::Request& request)
+{
+    EventProcessingState& state = _state[fd];
+    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
+    webshell::Response response = manager->handle_request(fd, state, request);
 
     if (request.method() == webshell::POST) {
         // if the server still processing the upload data, we need to consume
@@ -105,29 +171,6 @@ void RequestProcessor::process(int fd)
             _end_request(fd);
         }
     }
-}
-
-void RequestProcessor::remove_analyzer(int fd)
-{
-    _analyzer_pool.erase(fd);
-}
-
-EventProcessingState RequestProcessor::state(int fd) const
-{
-    if (_state.find(fd) == _state.end()) {
-        return (UNKNOWN);
-    }
-    return (_state.at(fd));
-}
-
-void RequestProcessor::set_state(int fd, EventProcessingState state)
-{
-    _state[fd] = state;
-}
-
-void RequestProcessor::reset_state(int fd)
-{
-    _state[fd] = INITIAL;
 }
 
 void RequestProcessor::_handle_keep_alive(int fd)

@@ -52,7 +52,12 @@ protected:
     void _update_status(EventProcessingState& state,
                         EventProcessingState flags,
                         bool overwrite = false) const;
-
+    std::string _format_session_cookie(const std::string& session_id,
+                                       const std::string& data);
+    virtual webshell::Response _handle_request(int fd,
+                                               EventProcessingState& state,
+                                               webshell::Request& request) = 0;
+    virtual void _handle_session(webshell::Request& request) = 0;
     virtual std::string _process(int fd,
                                  EventProcessingState& state,
                                  webshell::Request& request) = 0;

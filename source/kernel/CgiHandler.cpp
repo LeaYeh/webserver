@@ -4,12 +4,14 @@
 #include "HttpException.hpp"
 #include "kernelUtils.hpp"
 #include "Logger.hpp"
+#include <sys/types.h>
 
 namespace webkernel
 {
     CgiHandler::CgiHandler(webshell::Request& request, int client_fd, int read_end)
-        : _request(request), _client_fd(client_fd), _read_end(read_end)
+        : _request(request), _buffer(""), _client_fd(client_fd), _read_end(read_end)
     {
+        
     }
 
     CgiHandler::~CgiHandler()
@@ -24,7 +26,19 @@ namespace webkernel
             + " with events: " + explain_epoll_event(events));
         if (events & EPOLLIN)
         {
-            //webkernel::ConnectionHandler::prepare_write(_client_fd, );
+            char buffer[1024];
+            memset(buffer, 0, sizeof(buffer));
+            ssize_t bytes_read = read(_read_end, buffer, sizeof(buffer));
+            if (bytes_read > 0)
+            {
+                _buffer.append(buffer, bytes_read);
+            }
+            else
+            {
+                webkernel::ConnectionHandler::instance()->prepare_write(_client_fd, _buffer);
+                webkernel::Reactor::instance()->remove_handler(fd);
+                //delete this;
+            }
         }
         else 
         {

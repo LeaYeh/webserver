@@ -14,6 +14,7 @@ namespace webkernel
 
     private:
         webshell::Request& _request;
+        std::string _buffer;
         int _client_fd;
         int _read_end;
     };

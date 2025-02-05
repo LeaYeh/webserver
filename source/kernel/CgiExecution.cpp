@@ -5,8 +5,9 @@ extern char** environ;
 
 namespace webkernel
 {
-    CgiExecution::CgiExecution(){}
-    CgiExecution::~CgiExecution(){
+    CgiExecution::CgiExecution() {}
+    CgiExecution::~CgiExecution()
+    {
         //clear_map(_cgi_handlers);
     }
 
@@ -51,6 +52,7 @@ char** get_env(webshell::Request& request)
         env[i] = new char[envp[i].size() + 1];
         strcpy(env[i], envp[i].c_str());
     }
+    env[envp.size()] = NULL;
 
     return env;
 }
@@ -63,22 +65,30 @@ void cgi_exec(webshell::Request &request, int client_fd)
         throw std::runtime_error("pipe() failed: " + std::string(strerror(errno)));
     }
     IHandler* handler_event = new CgiHandler(request, client_fd, pipefd[0]);
-    Reactor::instance()->register_handler(client_fd, handler_event, EPOLLIN);
+    Reactor::instance()->register_handler(pipefd[0], handler_event, EPOLLIN);
     pid_t pid = fork();
 
     if (pid > 0)
     {
         close(pipefd[1]);
-
-        exit(0);
     }
     else if (pid == 0)
     {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
+
         char** argv_null = NULL;
-        execve(request.uri().path.c_str(), argv_null, get_env(request));
+        char** environment = get_env(request);
+        execve(request.uri().path.c_str(), argv_null, environment);
+        for (size_t i = 0; environment[i] != NULL; i++)
+        {
+            delete[] environment[i];
+        }
+        delete[] environment;
+
+        //TODO: check the exit point, and fd leaks
+        exit(-1);
     }
     else
     {

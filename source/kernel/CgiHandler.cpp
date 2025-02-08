@@ -37,7 +37,7 @@ namespace webkernel
             {
                 webkernel::ConnectionHandler::instance()->prepare_write(_client_fd, _buffer);
                 webkernel::Reactor::instance()->remove_handler(fd);
-                //delete this;
+                //TODO: delete this;
             }
         }
         else 

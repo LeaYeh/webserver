@@ -37,7 +37,7 @@ std::string CgiExecution::_extract_path_info(const std::string& path, const std:
     if (pos >= path.length() || path[pos] != '/')
     {
         throw utils::HttpException(
-            webshell::BAD_REQUEST,
+            webshell::NOT_FOUND,
             "No Script-Name found in PATH.");
     }
 
@@ -54,7 +54,7 @@ std::string CgiExecution::_extract_path_info(const std::string& path, const std:
     if (script_name.length() < cgi_extension.size() || script_name.substr(script_name.length() - cgi_extension.size()) != cgi_extension)
     {
         throw utils::HttpException(
-            webshell::BAD_REQUEST,
+            webshell::FORBIDDEN,
             "Script-Name does not have the correct extension.");
     }
 
@@ -101,6 +101,8 @@ char** CgiExecution::_get_env(webshell::Request& request)
         envp.push_back("PATH_INFO = " + path_info);
         envp.push_back("PATH_TRANSLATED = " + path_translated);
     }
+
+    envp.push_back("SCRIPT_NAME = " + _script_path);
 
     char** env = new char*[envp.size()];
     for (size_t i = 0; i < envp.size(); i++)

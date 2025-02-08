@@ -15,7 +15,6 @@ namespace webkernel
 {
 public:
 
-    char** get_env(webshell::Request& request);
     void cgi_exec(webshell::Request &request, int client_fd);
     /*void handle_event(int fd, uint32_t events);
     void close_connection(int fd, weblog::LogLevel level, std::string message);
@@ -29,11 +28,16 @@ public:
 
 private:
     std::map<int /*pid*/, CgiHandler*> _cgi_handlers;
+    std::string _script_path;
 
 private:
     CgiExecution();
     CgiExecution(const CgiExecution& other);
     CgiExecution& operator=(const CgiExecution& other);
+
+    std::string _replace_route(std::string route_path, const std::string& s1, const std::string& s2);
+    std::string _extract_path_info(const std::string& path, const std::string& cgi_path, const std::string& cgi_extension);
+    char** _get_env(webshell::Request& request);
 };
 
 } // namespace webkernel

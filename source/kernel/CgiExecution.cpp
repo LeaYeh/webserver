@@ -13,7 +13,7 @@ namespace webkernel
         //clear_map(_cgi_handlers);
     }
 
-std::string replace_route(std::string route_path, const std::string& s1, const std::string& s2) {
+std::string CgiExecution::_replace_route(std::string route_path, const std::string& s1, const std::string& s2) {
     if (s1.empty()) return route_path;
 
     size_t pos = 0;
@@ -25,7 +25,7 @@ std::string replace_route(std::string route_path, const std::string& s1, const s
     return route_path;
 }
 
-std::string extract_path_info(const std::string& path, const std::string& cgi_path, const std::string& cgi_extension)
+std::string CgiExecution::_extract_path_info(const std::string& path, const std::string& cgi_path, const std::string& cgi_extension)
 {
     size_t pos = path.find(cgi_path);
     if (pos == std::string::npos)
@@ -36,7 +36,9 @@ std::string extract_path_info(const std::string& path, const std::string& cgi_pa
     pos += cgi_path.length();
     if (pos >= path.length() || path[pos] != '/')
     {
-        //throw http exception - no binary
+        throw utils::HttpException(
+            webshell::BAD_REQUEST,
+            "No Script-Name found in PATH.");
     }
 
     size_t next_slash = path.find('/', pos + 1);
@@ -45,16 +47,21 @@ std::string extract_path_info(const std::string& path, const std::string& cgi_pa
         return ""; //no PATH_INFO found
     }
 
+    std::string _script_path = path.substr(0, next_slash);
+
     std::string script_name = path.substr(pos + 1, next_slash - pos - 1);
+    
     if (script_name.length() < cgi_extension.size() || script_name.substr(script_name.length() - cgi_extension.size()) != cgi_extension)
     {
-        //throw http exception - wrong extension
+        throw utils::HttpException(
+            webshell::BAD_REQUEST,
+            "Script-Name does not have the correct extension.");
     }
 
     return path.substr(next_slash);
 }
 
-char** get_env(webshell::Request& request)
+char** CgiExecution::_get_env(webshell::Request& request)
 {
     
     std::vector <std::string> envp;
@@ -87,14 +94,14 @@ char** get_env(webshell::Request& request)
     envp.push_back("PATH_TRANSLATED = " + request.uri().path);
     envp.push_back("REMOTE_HOST = " + request.uri().host);
 
-    std::string path_info = extract_path_info(request.uri().path, request.config().cgi_path, request.config().cgi_extension);
-    std::string path_translated = replace_route(request.uri().path, request.config().route, request.config().cgi_path);
+    std::string path_info = _extract_path_info(request.uri().path, request.config().cgi_path, request.config().cgi_extension);
+    std::string path_translated = _replace_route(request.uri().path, request.config().route, request.config().cgi_path);
     if (path_info != "")
     {
         envp.push_back("PATH_INFO = " + path_info);
         envp.push_back("PATH_TRANSLATED = " + path_translated);
     }
-    
+
     char** env = new char*[envp.size()];
     for (size_t i = 0; i < envp.size(); i++)
     {
@@ -106,7 +113,7 @@ char** get_env(webshell::Request& request)
     return env;
 }
 
-void cgi_exec(webshell::Request &request, int client_fd)
+void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
 {
     int pipefd[2];
     if (pipe(pipefd) == -1)
@@ -135,8 +142,8 @@ void cgi_exec(webshell::Request &request, int client_fd)
         close(pipefd[1]);
 
         char** argv_null = NULL;
-        char** environment = get_env(request);
-        execve(request.uri().path.c_str(), argv_null, environment);
+        char** environment = _get_env(request);
+        execve(_script_path.c_str(), argv_null, environment);
         for (size_t i = 0; environment[i] != NULL; i++)
         {
             delete[] environment[i];

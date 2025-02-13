@@ -1,11 +1,12 @@
 import cgi
 import os
 
-print("Content-type: text/html\n")
-print()
 
 print("<html><head><title>CGI Response</title></head><body>")
 print("<body><h1>CGI Response</h1>")
+
+print("Content-type: text/html\n")
+print()
 
 form = cgi.FieldStorage()
 

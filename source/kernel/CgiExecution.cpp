@@ -164,6 +164,8 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
         int status;
         waitpid(pid, &status, 0);
         waitpid(pid_unwanted_child, &status, 0);
+
+
     }
     else if (pid == 0)
     {
@@ -187,7 +189,7 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
     }
     else
     {
-        throw std::runtime_error("fork() failed: " + std::string(strerror(errno)));
+        throw std::runtime_error("fork() failed: " + utils::to_string(webshell::INTERNAL_SERVER_ERROR));
     }
 }
 

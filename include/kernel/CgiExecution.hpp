@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <unistd.h>
 #include <cstring>
+#include <sys/wait.h>
+#include <iostream>
 
 namespace webkernel
 {
@@ -38,6 +40,7 @@ private:
     std::string _replace_route(std::string route_path, const std::string& s1, const std::string& s2);
     std::string _extract_path_info(const std::string& path, const std::string& cgi_path, const std::string& cgi_extension);
     char** _get_env(webshell::Request& request);
+    void _free_env(char** env, size_t size);
 };
 
 } // namespace webkernel

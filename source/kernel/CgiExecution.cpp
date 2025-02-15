@@ -13,7 +13,8 @@ namespace webkernel
         //clear_map(_cgi_handlers);
     }
 
-std::string CgiExecution::_replace_route(std::string route_path, const std::string& s1, const std::string& s2) {
+std::string CgiExecution::_replace_route(std::string route_path, const std::string& s1, const std::string& s2)
+{
     if (s1.empty()) return route_path;
 
     size_t pos = 0;
@@ -61,6 +62,18 @@ std::string CgiExecution::_extract_path_info(const std::string& path, const std:
     return path.substr(next_slash);
 }
 
+void CgiExecution::_free_env(char** env, size_t size)
+{
+    if (env)
+    {
+        for (size_t i = 0; i < size; i++)
+        {
+            delete[] env[i];
+        }
+        delete[] env;
+    }
+}
+
 char** CgiExecution::_get_env(webshell::Request& request)
 {
     
@@ -104,15 +117,26 @@ char** CgiExecution::_get_env(webshell::Request& request)
 
     envp.push_back("SCRIPT_NAME = " + _script_path);
 
-    char** env = new char*[envp.size()];
-    for (size_t i = 0; i < envp.size(); i++)
+    char** env = NULL;
+    
+    try
     {
-        env[i] = new char[envp[i].size() + 1];
-        strcpy(env[i], envp[i].c_str());
-    }
-    env[envp.size()] = NULL;
+        env = new char*[envp.size() + 1];
+        for (size_t i = 0; i < envp.size(); i++)
+        {
+            env[i] = new char[envp[i].size() + 1];
+            strcpy(env[i], envp[i].c_str());
+        }
+        env[envp.size()] = NULL;
 
-    return env;
+        return env;
+    }
+    catch (const std::bad_alloc&)
+    {
+        std::cerr << "Speicherallokation für die CGI-Umgebung fehlgeschlagen!" << std::endl;
+        _free_env(env, envp.size());
+        return NULL;
+    }
 }
 
 void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
@@ -136,6 +160,10 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
             kill(pid, SIGKILL);
             exit(0);
         }
+        // wait for the child to avoid zombie
+        int status;
+        waitpid(pid, &status, 0);
+        waitpid(pid_unwanted_child, &status, 0);
     }
     else if (pid == 0)
     {
@@ -145,7 +173,10 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
 
         char** argv_null = NULL;
         char** environment = _get_env(request);
-        execve(_script_path.c_str(), argv_null, environment);
+        if (!execve(_script_path.c_str(), argv_null, environment))
+        {
+            throw std::runtime_error("execve() failed: " + utils::to_string(webshell::INTERNAL_SERVER_ERROR));
+        }
         for (size_t i = 0; environment[i] != NULL; i++)
         {
             delete[] environment[i];

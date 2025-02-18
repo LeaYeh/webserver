@@ -38,7 +38,9 @@ std::string CgiExecution::_extract_path_info(const std::string& path, const std:
     size_t pos = path.find(cgi_path);
     if (pos == std::string::npos)
     {
-        throw std::runtime_error("Base path not found in input path"); //this should not happen
+        throw utils::HttpException(
+            webshell::NOT_FOUND,
+            "No Script-Name found in PATH.");
     }
 
     pos += cgi_path.length();
@@ -131,25 +133,28 @@ char** CgiExecution::_get_env(webshell::Request& request)
         env = new char*[envp.size() + 1];
         if (env == NULL)
         {
-            throw std::bad_alloc();
+            throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "Failed to create new env");
         }
         for (size_t i = 0; i < envp.size(); i++)
         {
             env[i] = new char[envp[i].size() + 1];
             if (env[i] == NULL)
             {
-                throw std::bad_alloc();
+                throw utils::HttpException(
+                webshell::INTERNAL_SERVER_ERROR,
+                "Failed to create new env 2");
             }
             strcpy(env[i], envp[i].c_str());
         }
         env[envp.size()] = NULL;
         return env;
     }
-    catch (const std::bad_alloc&)
+    catch (const std::exception& e)
     {
-        std::cerr << "Failed to create new env!" << std::endl;
         _free_env(env, envp.size());
-        return NULL;
+        throw;
     }
 }
 
@@ -158,12 +163,22 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
     int pipefd[2];
     if (pipe(pipefd) == -1)
     {
-        throw std::runtime_error("pipe() failed: " + std::string(strerror(errno)));
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "Failed to create pipe");
     }
     IHandler* handler_event = new CgiHandler(request, client_fd, pipefd[0]);
+    if (handler_event == NULL)
+    {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "Failed to create new handler");
+    }
+
     Reactor::instance()->register_handler(pipefd[0], handler_event, EPOLLIN);
     pid_t pid = fork();
-
     if (pid > 0)
     {
         close(pipefd[1]);
@@ -192,7 +207,9 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
         char** environment = _get_env(request);
         if (!execve(_script_path.c_str(), argv_null, environment))
         {
-            throw std::runtime_error("execve() failed: " + utils::to_string(webshell::INTERNAL_SERVER_ERROR));
+            throw utils::HttpException(
+                webshell::INTERNAL_SERVER_ERROR,
+                "Failed to execute env script");
         }
         for (size_t i = 0; environment[i] != NULL; i++)
         {
@@ -204,7 +221,9 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
     }
     else
     {
-        throw std::runtime_error("fork() failed: " + utils::to_string(webshell::INTERNAL_SERVER_ERROR));
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "Failed to fork");
     }
 }
 

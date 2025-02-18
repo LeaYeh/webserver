@@ -7,10 +7,17 @@ extern char** environ;
 
 namespace webkernel
 {
-    CgiExecution::CgiExecution() {}
+    CgiExecution::CgiExecution()
+    {
+    }
+
     CgiExecution::~CgiExecution()
     {
-        //clear_map(_cgi_handlers);
+        for (std::map<int, CgiHandler*>::iterator it = _cgi_handlers.begin(); it != _cgi_handlers.end(); it++)
+        {
+            delete it->second;
+        }
+        _cgi_handlers.clear();
     }
 
 std::string CgiExecution::_replace_route(std::string route_path, const std::string& s1, const std::string& s2)
@@ -122,18 +129,25 @@ char** CgiExecution::_get_env(webshell::Request& request)
     try
     {
         env = new char*[envp.size() + 1];
+        if (env == NULL)
+        {
+            throw std::bad_alloc();
+        }
         for (size_t i = 0; i < envp.size(); i++)
         {
             env[i] = new char[envp[i].size() + 1];
+            if (env[i] == NULL)
+            {
+                throw std::bad_alloc();
+            }
             strcpy(env[i], envp[i].c_str());
         }
         env[envp.size()] = NULL;
-
         return env;
     }
     catch (const std::bad_alloc&)
     {
-        std::cerr << "Speicherallokation für die CGI-Umgebung fehlgeschlagen!" << std::endl;
+        std::cerr << "Failed to create new env!" << std::endl;
         _free_env(env, envp.size());
         return NULL;
     }
@@ -162,6 +176,7 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
         }
         // wait for the child to avoid zombie
         int status;
+
         waitpid(pid, &status, 0);
         waitpid(pid_unwanted_child, &status, 0);
 

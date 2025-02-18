@@ -13,17 +13,10 @@
 namespace webkernel
 {
     class CgiExecution
-    //public templates::Singleton<ConnectionHandler>
 {
 public:
 
     void cgi_exec(webshell::Request &request, int client_fd);
-    /*void handle_event(int fd, uint32_t events);
-    void close_connection(int fd, weblog::LogLevel level, std::string message);
-    void prepare_write(int fd, const std::string& buffer);
-    void prepare_error(int fd, const utils::HttpException& e);
-    bool get_session_data(const std::string& sid, std::string& out_data);
-    bool set_session_data(const std::string& sid, const std::string& data);*/
 
 public:
     ~CgiExecution();

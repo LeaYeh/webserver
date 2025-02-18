@@ -2,6 +2,8 @@
 #include "Logger.hpp"
 #include "Reactor.hpp"
 #include "defines.hpp"
+#include <cstdlib>
+#include <new>
 
 extern char** environ;
 
@@ -37,11 +39,7 @@ std::string CgiExecution::_extract_path_info(const std::string& path, const std:
 {
     size_t pos = path.find(cgi_path);
     if (pos == std::string::npos)
-    {
-        throw utils::HttpException(
-            webshell::NOT_FOUND,
-            "No Script-Name found in PATH.");
-    }
+        throw std::runtime_error("Base path not found in input path");
 
     pos += cgi_path.length();
     if (pos >= path.length() || path[pos] != '/')
@@ -131,12 +129,6 @@ char** CgiExecution::_get_env(webshell::Request& request)
     try
     {
         env = new char*[envp.size() + 1];
-        if (env == NULL)
-        {
-            throw utils::HttpException(
-            webshell::INTERNAL_SERVER_ERROR,
-            "Failed to create new env");
-        }
         for (size_t i = 0; i < envp.size(); i++)
         {
             env[i] = new char[envp[i].size() + 1];
@@ -151,10 +143,10 @@ char** CgiExecution::_get_env(webshell::Request& request)
         env[envp.size()] = NULL;
         return env;
     }
-    catch (const std::exception& e)
+    catch (const std::bad_alloc& e)
     {
         _free_env(env, envp.size());
-        throw;
+        return NULL;
     }
 }
 
@@ -207,9 +199,8 @@ void CgiExecution::cgi_exec(webshell::Request &request, int client_fd)
         char** environment = _get_env(request);
         if (!execve(_script_path.c_str(), argv_null, environment))
         {
-            throw utils::HttpException(
-                webshell::INTERNAL_SERVER_ERROR,
-                "Failed to execute env script");
+            _free_env(environment, 0);
+            exit(EXIT_FAILURE);
         }
         for (size_t i = 0; environment[i] != NULL; i++)
         {

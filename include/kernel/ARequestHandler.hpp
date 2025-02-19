@@ -25,6 +25,7 @@ public:
     virtual ~ARequestHandler();
 
 protected:
+    bool _is_cgi;
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
     TemplateEngine _template_engine;

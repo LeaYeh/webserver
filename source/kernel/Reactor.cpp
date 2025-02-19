@@ -1,4 +1,5 @@
 #include "Reactor.hpp"
+#include "CgiHandler.hpp"
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
@@ -7,6 +8,7 @@
 #include "utils/utils.hpp"
 #include <cerrno>
 #include <cstdio>
+#include <exception>
 #include <unistd.h>
 
 namespace webkernel
@@ -97,7 +99,8 @@ void Reactor::modify_handler(int fd,
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
         if (errno != ENOENT) {
             throw std::runtime_error("epoll_ctl failed to get current events, "
-                                     + std::string(strerror(errno)));
+                                     + std::string(strerror(errno))
+                                     + " for fd: " + utils::to_string(fd));
         }
         ev.events = 0;
     }

@@ -27,8 +27,6 @@ Acceptor::~Acceptor()
 // triggered mode with Level Triggered (LT) mode as the default
 void Acceptor::handle_event(int fd, uint32_t events)
 {
-    Reactor* reactor = Reactor::instance();
-
     if (events & EPOLLIN) {
         struct sockaddr_storage client_addr;
         socklen_t addr_size = sizeof(client_addr);
@@ -41,9 +39,9 @@ void Acceptor::handle_event(int fd, uint32_t events)
             throw std::runtime_error("accept() failed: "
                                      + std::string(strerror(errno)));
         }
-        reactor->register_handler(conn_fd,
-                                  ConnectionHandler::instance(),
-                                  EPOLLIN | EPOLLHUP | EPOLLERR);
+        Reactor::instance()->register_handler(conn_fd,
+                                              ConnectionHandler::instance(),
+                                              EPOLLIN | EPOLLHUP | EPOLLERR);
         LOG(weblog::DEBUG,
             "Registered connection handler with fd: "
                 + utils::to_string(conn_fd));

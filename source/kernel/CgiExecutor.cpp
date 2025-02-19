@@ -4,9 +4,14 @@
 #include "Logger.hpp"
 #include "Reactor.hpp"
 #include "defines.hpp"
+#include <cerrno>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <new>
+#include <sys/epoll.h>
+#include <unistd.h>
 
 extern char** environ;
 
@@ -17,6 +22,7 @@ CgiExecutor::CgiExecutor() {}
 
 CgiExecutor::~CgiExecutor()
 {
+    LOG(weblog::DEBUG, "CgiExecutor destroyed");
     for (std::map<int, IHandler*>::iterator it = _cgi_handler_map.begin();
          it != _cgi_handler_map.end();
          it++) {
@@ -149,22 +155,24 @@ char** CgiExecutor::_get_env(webshell::Request& request)
 
 void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 {
+    LOG(weblog::CRITICAL, "Handling CGI request...");
     int pipefd[2];
-    IHandler* handler_event = NULL;
+    IHandler* handler = NULL;
 
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Failed to create pipe");
     }
+    LOG(weblog::CRITICAL, "pipefd[0]: " + utils::to_string(pipefd[0]));
+    LOG(weblog::CRITICAL, "pipefd[1]: " + utils::to_string(pipefd[1]));
     try {
-        handler_event = new CgiHandler(request, client_fd, pipefd[0]);
+        handler = new CgiHandler(request, client_fd);
+        Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN);
         pid_t pid = fork();
 
-        Reactor::instance()->register_handler(
-            pipefd[0], handler_event, EPOLLIN);
         // parent
         if (pid > 0) {
-            _cgi_handler_map[pid] = handler_event;
+            _cgi_handler_map[pid] = handler;
             close(pipefd[1]);
 
             // the monitor process
@@ -175,19 +183,20 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                                            "Failed to fork");
             }
             if (pid_unwanted_child == 0) {
+                close(pipefd[0]);
                 sleep(3);
                 kill(pid, SIGKILL);
                 exit(SUCCESS);
             }
+            // sleep(100);
+            // wait for the child to avoid zombie
+            // int status;
 
             // wait for the child to avoid zombie
-            int status;
+            // waitpid(pid, &status, 0);
 
-            // wait for the child to avoid zombie
-            waitpid(pid, &status, 0);
-
-            // wait for the monitor process to avoid zombie????
-            waitpid(pid_unwanted_child, &status, 0);
+            // // wait for the monitor process to avoid zombie????
+            // waitpid(pid_unwanted_child, &status, 0);
 
             // TODO: close the pipefd[0] and remove the handler and maybe free
             // the handler (do we still need the map???)
@@ -206,10 +215,11 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             close(pipefd[1]);
 
             char** argv_null = NULL;
-            if (!execve(_script_path.c_str(), argv_null, environ)) {
-                // _free_env(environment, 0);
-                exit(FAILURE);
-            }
+            // if (!execve(_script_path.c_str(), argv_null, environ)) {
+            execve("/workspace/cgi-bin/hello_world.sh", argv_null, environ);
+            perror(strerror(errno));
+            sleep(100);
+            exit(FAILURE);
         }
         else {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

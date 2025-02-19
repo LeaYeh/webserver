@@ -18,6 +18,7 @@ GetHandler::GetHandler() {}
 
 GetHandler::~GetHandler() {}
 
+// client_fd
 webshell::Response GetHandler::handle(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
@@ -30,6 +31,14 @@ webshell::Response GetHandler::handle(int fd,
         }
         if (!request.config().redirect.empty()) {
             return (_handle_redirect(request.config().redirect));
+        }
+        if (_is_cgi) {
+            // the cgi output is handled by the CgiHandler, so nothing could be
+            // responded here
+            // TODO: refactor the Reson
+            _cgi_executor.cgi_exec(request, fd);
+            _update_status(state, COMPELETED, true);
+            return (webshell::Response());
         }
         content = _process(fd, state, request);
         _post_process(request, _target_path, content);
@@ -56,6 +65,7 @@ void GetHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
     }
+    _is_cgi = true;
 }
 
 std::string GetHandler::_process(int fd,

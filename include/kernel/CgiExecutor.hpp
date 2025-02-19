@@ -5,6 +5,7 @@
 #include <cstring>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "Response.hpp"
 
 namespace webkernel
 {
@@ -12,6 +13,7 @@ class CgiExecutor
 {
 public:
     void cgi_exec(webshell::Request& request, int client_fd);
+    // webshell::Response cgi_exec(webshell::Request& request, int client_fd);
 
 public:
     CgiExecutor();

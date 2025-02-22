@@ -2,8 +2,10 @@
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
+#include "Reactor.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
+#include "Reactor.hpp"
 #include "utils.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -42,22 +44,29 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
                                            + std::string(strerror(errno)));
         }
     }
-    else if (events & EPOLLOUT || events & EPOLLHUP) {
+    // else if (events & EPOLLOUT || events & EPOLLHUP) {
+    else if (events & EPOLLHUP) {
+        LOG(weblog::CRITICAL, "I only want to see this once!!!!!!!");
         LOG(weblog::CRITICAL,
             "Waiting for child: " + utils::to_string(_pid)
                 + " with events: " + explain_epoll_event(events));
         int status;
         int ret = waitpid(_pid, &status, WNOHANG);
 
-        if (ret == -1) {
-            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "waitpid() failed: "
-                                           + std::string(strerror(errno)));
-        }
-        else if (ret == 0) {
+        if (ret == 0) {
             LOG(weblog::CRITICAL, "Child still running");
             // child is still running
             return;
+        }
+        Reactor::instance()->remove_handler(fd);
+        if (ret == -1) {
+            webkernel::ConnectionHandler::instance()->prepare_error(_client_fd, 
+                utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                       "waitpid() failed: "
+                                           + std::string(strerror(errno))));
+            // Reactor::instance()->remove_handler(fd);
+            // return;
+            // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
         }
         else {
             LOG(weblog::CRITICAL,
@@ -70,13 +79,18 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             }
             else {
                 LOG(weblog::CRITICAL, "Child exited abnormally");
-                throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                           "Child exited abnormally");
+                webkernel::ConnectionHandler::instance()->prepare_error(_client_fd, 
+                utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                       "Child exited abnormally."));
+                // webkernel::ConnectionHandler::instance()->prepare_error(
+                //     _client_fd, _buffer);
+                // throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                //                            "Child exited abnormally");
             }
         }
-        delete this;
     }
     else {
+
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Unknown event on fd: "
                                        + utils::to_string(fd));

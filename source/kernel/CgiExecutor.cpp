@@ -165,7 +165,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         // parent
         if (pid > 0) {
             handler = new CgiHandler(client_fd, pid);
-            Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN | EPOLLOUT);
+            Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN);
+            // Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN | EPOLLOUT);
             close(pipefd[1]);
 
             // the monitor process
@@ -197,9 +198,10 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             argv[0] = strdup("loop.sh");
             argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
-            execve("/workspace/cgi-bin/loop.sh", argv, environ);
+            execve("./cgi-bin/loop.sh", argv, environ);
+            // abort();
             perror(strerror(errno));
-            sleep(100);
+            // sleep(100);
             exit(FAILURE);
         }
         else {

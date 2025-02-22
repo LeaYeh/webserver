@@ -105,8 +105,8 @@ std::string Response::serialize() const
     if (_headers.find("transfer-encoding") == _headers.end()) {
         response += "\r\n";
     }
-    LOG(weblog::WARNING,
-        "serialize response: \n" + utils::replaceCRLF(response));
+    // LOG(weblog::WARNING,
+    //     "serialize response: \n" + utils::replaceCRLF(response));
 
     return (response);
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "CgiExecutor.hpp"
 #include "ChunkedCodec.hpp"
 #include "Request.hpp"
 #include "RequestConfig.hpp"
@@ -24,11 +25,13 @@ public:
     virtual ~ARequestHandler();
 
 protected:
+    bool _is_cgi;
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
     TemplateEngine _template_engine;
     std::string _target_path;
     EventProcessingState _state;
+    CgiExecutor _cgi_executor;
 
 protected:
     bool _check_path_format(const std::string& path) const;

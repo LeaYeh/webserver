@@ -7,7 +7,7 @@
 namespace webshell
 {
 
-Response::Response() : _status_code(OK), _headers(), _body() {}
+Response::Response() : _status_code(UNDEFINED), _headers(), _body() {}
 
 Response::Response(const Response& other) :
     _status_code(other._status_code),

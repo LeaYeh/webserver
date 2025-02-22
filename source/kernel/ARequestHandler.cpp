@@ -10,16 +10,17 @@
 namespace webkernel
 {
 
-ARequestHandler::ARequestHandler() {}
+ARequestHandler::ARequestHandler() : _is_cgi(false) {}
 
 ARequestHandler::ARequestHandler(const ARequestHandler& other) :
-    _response_headers(other._response_headers)
+    _is_cgi(other._is_cgi), _response_headers(other._response_headers)
 {
 }
 
 ARequestHandler& ARequestHandler::operator=(const ARequestHandler& other)
 {
     if (this != &other) {
+        _is_cgi = other._is_cgi;
         _response_headers = other._response_headers;
     }
     return (*this);

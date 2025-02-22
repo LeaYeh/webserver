@@ -16,7 +16,7 @@ webshell::Response DeleteHandler::handle(int fd,
                                          EventProcessingState& state,
                                          webshell::Request& request)
 {
-    if (state == INITIAL) {
+    if (state == READY_TO_PROCESS) {
         _pre_process(request);
         _update_status(state, PROCESSING, true);
     }
@@ -32,6 +32,22 @@ webshell::Response DeleteHandler::handle(int fd,
     }
     return webshell::ResponseBuilder::ok(
         webshell::NO_CONTENT, _response_headers, "", false);
+}
+
+void DeleteHandler::_handle_session(webshell::Request& request)
+{
+    (void)request;
+}
+
+webshell::Response DeleteHandler::_handle_request(int fd,
+                                                  EventProcessingState& state,
+                                                  webshell::Request& request)
+{
+    (void)fd;
+    (void)state;
+    (void)request;
+    throw utils::HttpException(webshell::FORBIDDEN,
+                               "Forbidden default request");
 }
 
 void DeleteHandler::_pre_process(const webshell::Request& request)

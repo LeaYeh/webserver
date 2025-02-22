@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         signal(SIGINT, handle_terminate_signal);
         weblog::Logger* logger = weblog::Logger::instance();
         logger->set_level(weblog::DEBUG);
-        // weblog::logger->set_file_mode("webserver.log");
+        // logger->set_file_mode("webserver.log");
 
         config->print_config();
         webkernel::Kernel kernel;

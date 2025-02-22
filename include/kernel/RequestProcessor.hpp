@@ -36,6 +36,8 @@ private:
     std::map<int /* fd */, utils::Timer> _timer_pool;
 
 private:
+    void _process_request(int fd, webshell::Request& request);
+    bool _need_session_data(const webshell::Request& request) const;
     void _handle_virtual_host(int fd);
     void _setup_timer(int fd, const webconfig::RequestConfig& config);
     void _handle_keep_alive(int fd);

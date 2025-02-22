@@ -277,12 +277,14 @@ enum EventProcessingState
 {
     INITIAL = 0b00000000,               // 0x00
     WAITING_SESSION = 0b00000001,       // 0x01
-    PROCESSING = 0b00000010,            // 0x02
-    HANDLE_OTHERS_CHUNKED = 0b00000100, // 0x04
-    HANDLE_FIRST_CHUNKED = 0b00001000,  // 0x08
-    HANDLE_CHUNKED = 0b00010000,        // 0x10
-    COMPELETED = 0b00100000,            // 0x20
-    ERROR = 0b01000000,                 // 0x40
-    UNKNOWN = 0b10000000                // 0x80
+    READY_TO_PROCESS = 0b00000010,      // 0x02
+    PROCESSING = 0b00000100,            // 0x04
+    HANDLE_OTHERS_CHUNKED = 0b00001000, // 0x08
+    HANDLE_FIRST_CHUNKED = 0b00010000,  // 0x10
+    HANDLE_CHUNKED = 0b00100000,        // 0x20
+    COMPELETED = 0b01000000,            // 0x40
+    ERROR = 0b10000000,                 // 0x80
+    UNKNOWN = 0b100000000               // 0x100
 };
+
 } // namespace webkernel

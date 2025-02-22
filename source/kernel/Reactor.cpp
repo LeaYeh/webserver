@@ -66,6 +66,7 @@ void Reactor::run(void)
 {
     LOG(weblog::DEBUG, "Reactor::run()");
     struct epoll_event events[MAX_EVENTS];
+    memset(events, 0, sizeof(events));
 
     while (true) {
         _check_interrupt();

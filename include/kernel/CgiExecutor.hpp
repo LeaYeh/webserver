@@ -20,7 +20,6 @@ public:
     ~CgiExecutor();
 
 private:
-    std::map<int /* exec_pid */, IHandler*> _cgi_handler_map;
     std::string _script_path;
 
 private:

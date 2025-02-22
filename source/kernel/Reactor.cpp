@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <exception>
 #include <unistd.h>
+#include <vector>
 
 namespace webkernel
 {
@@ -129,8 +130,20 @@ void Reactor::remove_handler(int fd)
                                      + std::string(strerror(errno)));
         }
         close(it->first);
+        // delete it->second;
         _handlers.erase(it);
     }
+}
+
+std::vector<int> Reactor::get_active_fds(void) const
+{
+    std::vector<int> fds;
+    for (std::map<int, IHandler*>::const_iterator it = _handlers.begin();
+         it != _handlers.end();
+         it++) {
+        fds.push_back(it->first);
+    }
+    return fds;
 }
 
 void Reactor::_check_interrupt(void) const
@@ -171,11 +184,23 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
             LOG(weblog::DEBUG,
                 "Handling event on fd: " + utils::to_string(fd)
                     + " with events: " + explain_epoll_event(events[i].events));
+            for (std::map<int, IHandler*>::iterator it = _handlers.begin();
+                 it != _handlers.end();
+                 it++) {
+                LOG(weblog::WARNING,
+                    "activated fd: " + utils::to_string(it->first));
+            }
+            LOG(weblog::WARNING,
+                "using fd: " + utils::to_string(fd)
+                    + " on handler: " + utils::to_string(_handlers[fd]));
             _handlers[fd]->handle_event(fd, events[i].events);
         }
         catch (utils::HttpException& e) {
             LOG(weblog::ERROR, e.what());
             ConnectionHandler::instance()->prepare_error(fd, e);
+        }
+        catch (std::exception& e) {
+            LOG(weblog::ERROR, e.what());
         }
     }
 }

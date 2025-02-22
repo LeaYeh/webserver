@@ -1,5 +1,6 @@
 #include "Response.hpp"
 #include "Logger.hpp"
+#include "debugUtils.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
@@ -104,6 +105,8 @@ std::string Response::serialize() const
     if (_headers.find("transfer-encoding") == _headers.end()) {
         response += "\r\n";
     }
+    LOG(weblog::WARNING,
+        "serialize response: \n" + utils::replaceCRLF(response));
 
     return (response);
 }

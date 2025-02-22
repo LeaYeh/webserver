@@ -194,10 +194,10 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             close(pipefd[1]);
 
             char* argv[2];
-            argv[0] = strdup("hello_world.sh");
+            argv[0] = strdup("loop.sh");
             argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
-            execve("/workspace/cgi-bin/hello_world.sh", argv, environ);
+            execve("/workspace/cgi-bin/loop.sh", argv, environ);
             perror(strerror(errno));
             sleep(100);
             exit(FAILURE);

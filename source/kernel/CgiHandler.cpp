@@ -42,8 +42,10 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
                                            + std::string(strerror(errno)));
         }
     }
-    else if (events & EPOLLOUT) {
-        LOG(weblog::CRITICAL, "Waiting for child: " + utils::to_string(_pid));
+    else if (events & EPOLLOUT || events & EPOLLHUP) {
+        LOG(weblog::CRITICAL,
+            "Waiting for child: " + utils::to_string(_pid)
+                + " with events: " + explain_epoll_event(events));
         int status;
         int ret = waitpid(_pid, &status, WNOHANG);
 
@@ -58,14 +60,13 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             return;
         }
         else {
-            LOG(weblog::CRITICAL, "Child exited with status: "
-                                       + utils::to_string(status));
+            LOG(weblog::CRITICAL,
+                "Child exited with status: " + utils::to_string(status));
             // child has exited
             if (WIFEXITED(status)) {
                 LOG(weblog::CRITICAL, "Child exited normally");
                 webkernel::ConnectionHandler::instance()->prepare_write(
                     _client_fd, _buffer);
-                webkernel::Reactor::instance()->remove_handler(fd);
             }
             else {
                 LOG(weblog::CRITICAL, "Child exited abnormally");
@@ -73,6 +74,7 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
                                            "Child exited abnormally");
             }
         }
+        delete this;
     }
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

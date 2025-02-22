@@ -41,6 +41,7 @@ clean:
 
 fclean: clean
 	@rm -f $(PROJECT)
+	@rm -f $(BUILD_DIR)/CMakeCache.txt
 	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean

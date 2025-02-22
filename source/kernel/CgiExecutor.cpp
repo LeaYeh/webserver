@@ -18,10 +18,12 @@ extern char** environ;
 namespace webkernel
 {
 
-CgiExecutor::CgiExecutor() {}
+CgiExecutor::CgiExecutor() : _handler(NULL) {}
 
 CgiExecutor::~CgiExecutor()
 {
+    if (_handler)
+        delete _handler;
 }
 
 std::string CgiExecutor::_replace_route(std::string route_path,
@@ -152,7 +154,7 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
     (void)request;
     LOG(weblog::CRITICAL, "Handling CGI request...");
     int pipefd[2];
-    IHandler* handler = NULL;
+    // _handler = NULL;
 
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -163,8 +165,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 
         // parent
         if (pid > 0) {
-            handler = new CgiHandler(client_fd, pid);
-            Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN);
+            _handler = new CgiHandler(client_fd, pid);
+            Reactor::instance()->register_handler(pipefd[0], _handler, EPOLLIN);
             // Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN | EPOLLOUT);
             close(pipefd[1]);
 

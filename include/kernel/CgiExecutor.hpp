@@ -34,6 +34,8 @@ private:
                                    const std::string& cgi_extension);
     char** _get_env(webshell::Request& request);
     void _free_env(char** env, size_t size);
+
+    IHandler* _handler;
 };
 
 } // namespace webkernel

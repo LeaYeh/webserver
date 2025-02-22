@@ -22,7 +22,6 @@ CgiExecutor::CgiExecutor() {}
 
 CgiExecutor::~CgiExecutor()
 {
-    LOG(weblog::DEBUG, "CgiExecutor destroyed");
 }
 
 std::string CgiExecutor::_replace_route(std::string route_path,
@@ -181,7 +180,9 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                 close(pipefd[0]);
                 sleep(3);
                 kill(pid, SIGKILL);
-                exit(SUCCESS);
+                int hehe = 9;
+                throw hehe;
+                // exit(SUCCESS);
             }
         }
         // child of the exec process
@@ -194,15 +195,19 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             }
             close(pipefd[1]);
 
-            char* argv[2];
-            argv[0] = strdup("loop.sh");
-            argv[1] = NULL;
+            // char* argv[2];
+            // argv[0] = strdup("loop.sh");
+            // argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
-            execve("./cgi-bin/loop.sh", argv, environ);
+
+            //we catch this in the main so all destructors are called before
+            throw "./cgi-bin/loop.sh";
+            
+            // execve("./cgi-bin/loop.sh", argv, environ);
             // abort();
-            perror(strerror(errno));
-            // sleep(100);
-            exit(FAILURE);
+            // perror(strerror(errno));
+            // // sleep(100);
+            // exit(FAILURE);
         }
         else {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

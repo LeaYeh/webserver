@@ -1,5 +1,6 @@
 #include "CgiExecutor.hpp"
 #include "CgiHandler.hpp"
+#include "ExecuteWithUnwind.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Reactor.hpp"
@@ -195,13 +196,13 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             }
             close(pipefd[1]);
 
-            // char* argv[2];
-            // argv[0] = strdup("loop.sh");
-            // argv[1] = NULL;
+            char* argv[2];
+            argv[0] = strdup("loop.sh");
+            argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
 
             //we catch this in the main so all destructors are called before
-            throw "./cgi-bin/loop.sh";
+            throw ExecuteWithUnwind("./cgi-bin/loop.sh", argv, environ);
             
             // execve("./cgi-bin/loop.sh", argv, environ);
             // abort();

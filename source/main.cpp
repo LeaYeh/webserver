@@ -6,11 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2025/02/22 21:20:16 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/02/23 20:22:52 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
+#include "ExecuteWithUnwind.hpp"
 #include "Kernel.hpp"
 #include "Logger.hpp"
 #include "defines.hpp"
@@ -64,15 +65,16 @@ int main(int argc, char** argv)
     //     config->destroy();
     //     weblog::Logger::destroy();
     // }
-    catch (const char *lol)
+    catch (ExecuteWithUnwind& e)
     {
-        char* argv[2];
-        argv[0] = strdup("loop.sh");
-        argv[1] = NULL;
+        // char* argv[2];
+        // argv[0] = strdup("loop.sh");
+        // argv[1] = NULL;
         config->destroy();
         weblog::Logger::destroy();
-        execve(lol, argv, environ);
-        return (-1);
+        e.execute();
+        // execve(lol, argv, environ);
+        return (FAILURE);
     }
     catch (int i)
     {

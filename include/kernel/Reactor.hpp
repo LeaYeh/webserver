@@ -7,6 +7,7 @@
 #include <map>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <vector>
 
 extern volatile sig_atomic_t stop_flag;
 
@@ -27,6 +28,7 @@ public:
     void remove_handler(int fd);
     void
     modify_handler(int fd, uint32_t events_to_add, uint32_t events_to_remove);
+    std::vector<int /* fd */> get_active_fds(void) const;
 
     class InterruptException : public std::exception
     {

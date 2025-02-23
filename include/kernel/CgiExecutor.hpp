@@ -5,7 +5,6 @@
 #include <cstring>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "Response.hpp"
 
 namespace webkernel
 {
@@ -20,7 +19,6 @@ public:
     ~CgiExecutor();
 
 private:
-    std::map<int /* exec_pid */, IHandler*> _cgi_handler_map;
     std::string _script_path;
 
 private:
@@ -35,6 +33,8 @@ private:
                                    const std::string& cgi_extension);
     char** _get_env(webshell::Request& request);
     void _free_env(char** env, size_t size);
+
+    IHandler* _handler;
 };
 
 } // namespace webkernel

@@ -4,10 +4,10 @@
 
 #pragma once
 
-namespace webkernel
+namespace webshell
 {
 
-enum UploadRecordState
+enum UploadRecordState2
 {
     UPLOAD_ERROR = -1,
     UPLOAD_INIT = 0,
@@ -15,7 +15,7 @@ enum UploadRecordState
     UPLOAD_COMPLETE,
 };
 
-class UploadRecord
+class UploadRecord2
 {
 public:
     std::ofstream file_stream;
@@ -27,34 +27,31 @@ public:
     float upload_progress() const;
     time_t upload_time() const;
     time_t start_time() const;
-    std::string target_filename() const;
-    bool already_exist() const;
+    std::string temp_filename() const;
 
     void update(bool is_last_chunk = false);
     bool success() const;
     std::string serialize() const;
 
 public:
-    UploadRecord();
-    UploadRecord(const std::string& target_filename, size_t total_size);
-    ~UploadRecord();
+    UploadRecord2();
+    UploadRecord2(size_t total_size);
+    ~UploadRecord2();
 
 private:
     size_t _total_size;
     size_t _uploaded_size;
     time_t _start_time;
-    std::string _target_filename;
     std::string _temp_filename;
-    UploadRecordState _state;
-    bool _already_exist;
+    UploadRecordState2 _state;
 
 private:
-    std::string _generate_temp_file_path(std::string folder);
+    std::string _generate_temp_file_path();
     void _open_file_stream(const std::string& file_path);
 
 private:
-    UploadRecord(const UploadRecord& other);
-    UploadRecord& operator=(UploadRecord other);
+    UploadRecord2(const UploadRecord2& other);
+    UploadRecord2& operator=(UploadRecord2 other);
 };
 
 } // namespace webkernel

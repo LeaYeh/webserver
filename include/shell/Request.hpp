@@ -5,6 +5,7 @@
 #include "Uri.hpp"
 #include "defines.hpp"
 #include <cstddef>
+#include "UploadRecord2.hpp"
 #include <map>
 #include <string>
 
@@ -30,6 +31,8 @@ public:
     bool has_cookie(const std::string& name) const;
     bool has_cookies() const;
     bool read_chunked_body(std::vector<char>& chunked_body);
+
+    std::string read_chunked_body();
 
     void set_method(RequestMethod method);
     void set_uri(Uri uri);
@@ -62,10 +65,12 @@ private:
     std::map<std::string, std::string> _cookies;
     std::string* _read_buffer;
     webconfig::RequestConfig _config;
+    UploadRecord2 _uploader;
 
 private:
     bool _proceed_content_len(std::vector<char>& chunked_body);
     bool _proceed_chunked(std::vector<char>& chunked_body);
+    void _write_chunked_file(const std::vector<char>& content);
 
     void _check_hexdigit(unsigned char c);
     void _check_size_crlf(unsigned char c);

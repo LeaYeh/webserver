@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/18 16:31:15 by lyeh             ###   ########.fr       */
+/*   Updated: 2025/02/23 20:22:52 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
+#include "ExecuteWithUnwind.hpp"
 #include "Kernel.hpp"
 #include "Logger.hpp"
 #include "defines.hpp"
@@ -19,6 +20,7 @@
 #include <iostream>
 
 volatile sig_atomic_t stop_flag = 0;
+extern char **environ; 
 
 void handle_terminate_signal(int signum)
 {
@@ -53,6 +55,33 @@ int main(int argc, char** argv)
         webkernel::Kernel kernel;
 
         kernel.run();
+    }
+    // catch (const std::exception& e) {
+    //     // ExecuteWithUnwind: unwind whole webserv then execute the external process
+    //     // ReturnWithUnwind: unwind whole webserv then return on main
+    //     if (execute_cgi) {}
+    //     else if (i) {}
+        
+    //     config->destroy();
+    //     weblog::Logger::destroy();
+    // }
+    catch (ExecuteWithUnwind& e)
+    {
+        // char* argv[2];
+        // argv[0] = strdup("loop.sh");
+        // argv[1] = NULL;
+        config->destroy();
+        weblog::Logger::destroy();
+        e.execute();
+        // execve(lol, argv, environ);
+        return (FAILURE);
+    }
+    catch (int i)
+    {
+        (void)i;
+        config->destroy();
+        weblog::Logger::destroy();
+        return 0;
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

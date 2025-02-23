@@ -1,8 +1,10 @@
 #include "CgiExecutor.hpp"
 #include "CgiHandler.hpp"
+#include "ExecuteWithUnwind.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Reactor.hpp"
+#include "ReturnWithUnwind.hpp"
 #include "defines.hpp"
 #include <cerrno>
 #include <cstdio>
@@ -18,16 +20,12 @@ extern char** environ;
 namespace webkernel
 {
 
-CgiExecutor::CgiExecutor() {}
+CgiExecutor::CgiExecutor() : _handler(NULL) {}
 
 CgiExecutor::~CgiExecutor()
 {
-    LOG(weblog::DEBUG, "CgiExecutor destroyed");
-    for (std::map<int, IHandler*>::iterator it = _cgi_handler_map.begin();
-         it != _cgi_handler_map.end();
-         it++) {
-        delete it->second;
-    }
+    if (_handler)
+        delete _handler;
 }
 
 std::string CgiExecutor::_replace_route(std::string route_path,
@@ -155,78 +153,69 @@ char** CgiExecutor::_get_env(webshell::Request& request)
 
 void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 {
+    (void)request;
     LOG(weblog::CRITICAL, "Handling CGI request...");
     int pipefd[2];
-    IHandler* handler = NULL;
 
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Failed to create pipe");
     }
-    LOG(weblog::CRITICAL, "pipefd[0]: " + utils::to_string(pipefd[0]));
-    LOG(weblog::CRITICAL, "pipefd[1]: " + utils::to_string(pipefd[1]));
     try {
-        handler = new CgiHandler(request, client_fd);
-        Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN);
         pid_t pid = fork();
 
         // parent
         if (pid > 0) {
-            _cgi_handler_map[pid] = handler;
+            _handler = new CgiHandler(client_fd, pid);
+            Reactor::instance()->register_handler(pipefd[0], _handler, EPOLLIN);
             close(pipefd[1]);
 
             // the monitor process
             pid_t pid_unwanted_child = fork();
 
             if (pid_unwanted_child == -1) {
+                close(pipefd[0]);
+                kill(pid, SIGKILL);
+                // return ; //TODO: why does this not work?
                 throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                           "Failed to fork");
+                                           "Failed to fork monitor process");
             }
             if (pid_unwanted_child == 0) {
                 close(pipefd[0]);
                 sleep(3);
                 kill(pid, SIGKILL);
-                exit(SUCCESS);
+                throw ReturnWithUnwind(SUCCESS);
             }
-            // sleep(100);
-            // wait for the child to avoid zombie
-            // int status;
-
-            // wait for the child to avoid zombie
-            // waitpid(pid, &status, 0);
-
-            // // wait for the monitor process to avoid zombie????
-            // waitpid(pid_unwanted_child, &status, 0);
-
-            // TODO: close the pipefd[0] and remove the handler and maybe free
-            // the handler (do we still need the map???)
-            // Reactor::instance()->remove_handler(pipefd[0]);
-            // close(pipefd[0]);
-            // TODO: throw exception if the child process any failed by status
         }
         // child of the exec process
         else if (pid == 0) {
-            // TODO: close all the file descriptors maybe by loop????
             close(pipefd[0]);
             if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
                 close(pipefd[1]);
-                exit(FAILURE);
+                throw ReturnWithUnwind(FAILURE);
             }
             close(pipefd[1]);
 
-            char** argv_null = NULL;
+            char* argv[2];
+            argv[0] = strdup("loop.sh");
+            argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
-            execve("/workspace/cgi-bin/hello_world.sh", argv_null, environ);
-            perror(strerror(errno));
-            sleep(100);
-            exit(FAILURE);
+
+            //we catch this in the main so all destructors are called before
+            throw ExecuteWithUnwind("./cgi-bin/loop.sh", argv, environ);
+            
+            // execve("./cgi-bin/loop.sh", argv, environ);
+            // abort();
+            // perror(strerror(errno));
+            // // sleep(100);
+            // exit(FAILURE);
         }
         else {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                        "Failed to fork");
         }
     }
-    catch (std::exception& e) {
+    catch (utils::HttpException& e) {
         Reactor::instance()->remove_handler(pipefd[0]);
         close(pipefd[0]);
         close(pipefd[1]);

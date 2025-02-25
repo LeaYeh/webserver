@@ -10,7 +10,8 @@
 #include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
-#include <cstddef>
+#include <fstream>
+#include <new>
 #include <string>
 #include <unistd.h>
 
@@ -19,18 +20,7 @@ namespace webkernel
 
 PostHandler::PostHandler() {}
 
-PostHandler::~PostHandler()
-{
-    for (std::map<int, UploadRecord*>::iterator it =
-             _upload_record_pool.begin();
-         it != _upload_record_pool.end();
-         it++) {
-        if (it->second) {
-            delete it->second;
-        }
-    }
-    _upload_record_pool.clear();
-}
+PostHandler::~PostHandler() {}
 
 webshell::Response PostHandler::handle(int fd,
                                        EventProcessingState& state,
@@ -46,31 +36,42 @@ webshell::Response PostHandler::handle(int fd,
     catch (utils::HttpException& e) {
         _handle_exception(e, e.status_code(), webshell::TEXT_PLAIN);
     }
-    catch (std::exception& e) {
+    catch (std::bad_alloc& e) {
         _handle_exception(e);
     }
     if (state & COMPELETED) {
-        return _handle_completed(fd, request);
+        return _handle_completed(request);
     }
     _update_status(state, HANDLE_CHUNKED);
     return webshell::Response();
 }
 
 webshell::Response
-PostHandler::_handle_completed(int fd, const webshell::Request& request)
+PostHandler::_handle_completed(const webshell::Request& request)
 {
-    _post_process(request,
-                  _upload_record_pool[fd]->target_filename(),
-                  _upload_record_pool[fd]->serialize());
-    webshell::StatusCode status_code = _upload_record_pool[fd]->already_exist()
-                                           ? webshell::OK
-                                           : webshell::CREATED;
-    webshell::Response response =
-        webshell::ResponseBuilder::ok(status_code,
-                                      _response_headers,
-                                      _upload_record_pool[fd]->serialize(),
-                                      false);
-    _upload_record_pool.erase(fd);
+    std::string message;
+    webshell::StatusCode status_code;
+
+    if (_already_exist(_upload_file_path)) {
+        // TODO: Add append content will be more make sense for the POST method
+        if (std::remove(_upload_file_path.c_str()) == -1) {
+            throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                       "Failed to remove existing file");
+        }
+        message = "File already exists, append the content";
+        status_code = webshell::OK;
+    }
+    else {
+        message = "Upload completed";
+        status_code = webshell::CREATED;
+    }
+    if (std::rename(_temp_file_path.c_str(), _upload_file_path.c_str()) == -1) {
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Failed to rename temp file");
+    }
+    _post_process(request, _upload_file_path, message);
+    webshell::Response response = webshell::ResponseBuilder::ok(
+        status_code, _response_headers, message, false);
     return (response);
 }
 
@@ -80,25 +81,14 @@ void PostHandler::_pre_process(const webshell::Request& request)
     const webconfig::RequestConfig& config = request.config();
 
     _target_path = config.root + config.upload_path;
+    _upload_file_path = _generate_safe_file_path(request);
 }
 
 std::string PostHandler::_process(int fd,
                                   EventProcessingState& state,
                                   webshell::Request& request)
 {
-    // TODO: Refactor this logic into request analyzer @leske42
-    // if (request.has_header("expect")) {
-    //     unsigned int content_length =
-    //         utils::stoi(request.get_header("content-length"));
-    //     if (content_length > request.config().client_max_body_size) {
-    //         throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE,
-    //                                    "Data size exceeds
-    //                                    client_max_body_size",
-    //                                    webshell::TEXT_PLAIN);
-    //     }
-    //     throw utils::HttpException(
-    //         webshell::CONTINUE, "Continue", webshell::TEXT_PLAIN);
-    // }
+    (void)fd;
     weblog::Logger::log(weblog::DEBUG,
                         "PostHandler: handle the request with target path: "
                             + _target_path);
@@ -108,18 +98,14 @@ std::string PostHandler::_process(int fd,
                                    "No write permission on file: "
                                        + _target_path);
     }
-    _init_upload_record(fd, request);
 
-    std::vector<char> content;
-    bool is_eof = request.read_chunked_body(content);
-
-    _write_chunked_file(fd, content);
-    _upload_record_pool[fd]->update(is_eof);
-    if (is_eof && _upload_record_pool[fd]->success()) {
-        _update_status(state, COMPELETED, true);
-        return (_upload_record_pool[fd]->serialize());
+    std::string temp_file_path = request.read_chunked_body();
+    if (temp_file_path.empty()) {
+        _update_status(state, HANDLE_CHUNKED);
+        return ("");
     }
-    _update_status(state, HANDLE_CHUNKED);
+    _temp_file_path = temp_file_path;
+    _update_status(state, COMPELETED, true);
     return ("");
 }
 
@@ -216,33 +202,9 @@ PostHandler::_generate_safe_file_path(const webshell::Request& request)
     return (safe_file_path);
 }
 
-void PostHandler::_write_chunked_file(int fd, const std::vector<char>& content)
+bool PostHandler::_already_exist(const std::string& file_path)
 {
-    if (_upload_record_pool.find(fd) == _upload_record_pool.end()) {
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream not found");
-    }
-    std::ofstream& file_stream = _upload_record_pool[fd]->file_stream;
-    size_t remaining = content.size();
-    size_t offset = 0;
-
-    if (!file_stream.is_open()) {
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream is not open");
-    }
-    while (remaining > 0) {
-        size_t write_size =
-            std::min(remaining, (size_t)webkernel::CHUNKED_SIZE);
-        file_stream.write(content.data() + offset, write_size);
-        if (!file_stream.good()) {
-            throw utils::HttpException(
-                webshell::INTERNAL_SERVER_ERROR,
-                "Write file failed: " + utils::to_string(std::strerror(errno)));
-        }
-        offset += write_size;
-        remaining -= write_size;
-    }
-    file_stream.flush();
+    return (access(file_path.c_str(), F_OK) != -1);
 }
 
 void PostHandler::_check_upload_permission(const webshell::Request& request)
@@ -250,16 +212,6 @@ void PostHandler::_check_upload_permission(const webshell::Request& request)
     if (!request.config().enable_upload) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Upload is not allowed");
-    }
-}
-
-void PostHandler::_init_upload_record(int fd, const webshell::Request& request)
-{
-    if (_upload_record_pool.find(fd) == _upload_record_pool.end()) {
-        std::string tmp = request.get_header("content-length");
-        unsigned int content_length = utils::stoi(tmp.empty() ? "0" : tmp);
-        _upload_record_pool[fd] =
-            new UploadRecord(_generate_safe_file_path(request), content_length);
     }
 }
 

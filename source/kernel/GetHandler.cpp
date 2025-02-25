@@ -8,6 +8,8 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <dirent.h>
+#include <exception>
+#include <new>
 #include <string>
 #include <sys/types.h>
 
@@ -46,7 +48,7 @@ webshell::Response GetHandler::handle(int fd,
     catch (utils::HttpException& e) {
         _handle_exception(e, e.status_code(), webshell::TEXT_HTML);
     }
-    catch (std::exception& e) {
+    catch (std::bad_alloc& e) {
         _handle_exception(e);
     }
     return (webshell::ResponseBuilder::ok(webshell::OK,

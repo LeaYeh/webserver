@@ -7,6 +7,7 @@
 #include "defines.hpp"
 #include "utils.hpp"
 #include <cstdio>
+#include <new>
 #include <unistd.h>
 
 namespace webkernel
@@ -27,7 +28,7 @@ webshell::Response DeleteHandler::handle(int fd,
     catch (utils::HttpException& e) {
         _handle_exception(e, e.status_code());
     }
-    catch (std::exception& e) {
+    catch (std::bad_alloc& e) {
         _handle_exception(e);
     }
     return webshell::ResponseBuilder::ok(

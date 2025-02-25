@@ -42,11 +42,11 @@ UploadRecord2::~UploadRecord2()
     LOG(weblog::WARNING,
         "UploadRecord2: destructor: " + _temp_filename
             + " address: " + utils::to_string((size_t)this));
-    if (access(_temp_filename.c_str(), F_OK) == 0
-        && std::remove(_temp_filename.c_str()) == -1) {
-        throw std::runtime_error("UploadRecord2: failed to remove temp file "
-                                 + _temp_filename);
-    }
+    // if (access(_temp_filename.c_str(), F_OK) == 0
+    //     && std::remove(_temp_filename.c_str()) == -1) {
+    //     throw std::runtime_error("UploadRecord2: failed to remove temp file "
+    //                              + _temp_filename);
+    // }
 }
 
 void UploadRecord2::update(bool is_last_chunk)
@@ -134,7 +134,7 @@ std::string UploadRecord2::serialize() const
 
 std::string UploadRecord2::_generate_temp_file_path()
 {
-    std::string folder = "/tmp/";
+    std::string folder = "./tmp/";
     std::string temp_file_path = folder + webkernel::uuid();
 
     return (temp_file_path);

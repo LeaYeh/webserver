@@ -115,10 +115,10 @@ void PostHandler::_post_process(const webshell::Request& request,
 {
     // TODO: Add upload redirect
     (void)request;
-
     _response_headers.clear();
+    _response_headers["Connection"] = "close";
     _response_headers["Content-Type"] =
-        webshell::content_type_to_string(webshell::APPLICATION_JSON);
+        webshell::content_type_to_string(webshell::TEXT_PLAIN);
     _response_headers["Content-Length"] = utils::to_string(content.size());
     _response_headers["Location"] = target_path;
 }

@@ -134,7 +134,7 @@ std::string UploadRecord2::serialize() const
 
 std::string UploadRecord2::_generate_temp_file_path()
 {
-    std::string folder = "/tmp";
+    std::string folder = "/tmp/";
     std::string temp_file_path = folder + webkernel::uuid();
 
     return (temp_file_path);
@@ -145,7 +145,7 @@ void UploadRecord2::_open_file_stream(const std::string& file_path)
     file_stream.open(file_path.c_str(),
                      std::ios::out | std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open()) {
-        throw std::runtime_error("UploadRecord2: failed to open file stream");
+        throw std::runtime_error("UploadRecord2: failed to open file stream named " + file_path);
     }
 }
 

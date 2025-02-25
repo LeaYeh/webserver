@@ -237,7 +237,7 @@ void ConnectionHandler::_handle_write(int fd)
 
     const EventProcessingState& process_state = _processor.state(fd);
     std::cerr << "state: " << explain_event_processing_state(process_state) << std::endl;
-    sleep(1000);
+    // sleep(1000);
 
     if (process_state & ERROR) {
     // if (_error_buffer.find(fd) != _error_buffer.end()) {

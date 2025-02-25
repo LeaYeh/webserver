@@ -209,17 +209,16 @@ std::string Request::read_chunked_body()
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());
     std::vector<char> chunked_body;
-    bool status;
+    bool is_eof;
 
     if (!chunked) {
-        status = _proceed_content_len(chunked_body);
+        is_eof = _proceed_content_len(chunked_body);
     }
     else {
-        status = _proceed_chunked(chunked_body);
+        is_eof = _proceed_chunked(chunked_body);
     }
     _write_chunked_file(chunked_body);
-    //put chunked_body to file here
-    if (status)
+    if (is_eof)
     {
         return _uploader.temp_filename();
     }

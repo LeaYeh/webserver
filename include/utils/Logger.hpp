@@ -59,10 +59,11 @@ private:
 
 } // namespace weblog
 
-#define LOG(level, message)                                                 \
-    do {                                                                    \
-        weblog::Logger::instance()->log(                                    \
-            level,                                                          \
-            std::string("\t[") + __FILE__ + ":" + utils::to_string(__LINE__) \
-                + "] " + utils::to_string(message));                        \
+#define LOG(level, message)                                                    \
+    do {                                                                       \
+        weblog::Logger::instance()->log(                                       \
+            level,                                                             \
+            std::string("\t[" + utils::to_string(getpid()) + "][") + __FILE__ + ":" \
+                + utils::to_string(__LINE__) + "] "                            \
+                + utils::to_string(message));                                  \
     } while (0)

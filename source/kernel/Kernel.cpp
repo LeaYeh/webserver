@@ -18,7 +18,7 @@
 namespace webkernel
 {
 
-Kernel::Kernel()
+Kernel::Kernel() : _acceptor(NULL), _session_manager(NULL)
 {
     webconfig::Config* config = webconfig::Config::instance();
 
@@ -62,6 +62,7 @@ Kernel& Kernel::operator=(const Kernel& other)
     LOG(weblog::DEBUG, "Kernel::operator=(const Kernel& other)");
     if (this != &other) {
         _acceptor = other._acceptor;
+        _session_manager = other._session_manager;
     }
     return (*this);
 }
@@ -72,6 +73,10 @@ Kernel::~Kernel()
     Reactor::destroy();
     if (_acceptor) {
         delete _acceptor;
+    }
+    if (_session_manager)
+    {
+        delete _session_manager;
     }
 }
 

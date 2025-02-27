@@ -14,6 +14,7 @@
 #include <sys/epoll.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <iostream>
 
 namespace webkernel
 {
@@ -227,6 +228,7 @@ void ConnectionHandler::_process_read_data(int fd,
     }
 }
 
+
 void ConnectionHandler::_handle_write(int fd)
 {
     LOG(weblog::DEBUG,
@@ -236,6 +238,7 @@ void ConnectionHandler::_handle_write(int fd)
     const EventProcessingState& process_state = _processor.state(fd);
 
     if (process_state & ERROR) {
+    // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);
     }
     else if (process_state & COMPELETED) {
@@ -299,6 +302,8 @@ void ConnectionHandler::_send_error(int fd)
     else {
         LOG(weblog::DEBUG,
             "Error buffer found for fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG,
+            "Error content: \n" + utils::replaceCRLF(_error_buffer[fd]));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
         _error_buffer.erase(it);

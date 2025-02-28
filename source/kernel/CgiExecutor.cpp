@@ -1,8 +1,10 @@
 #include "CgiExecutor.hpp"
 #include "CgiHandler.hpp"
+#include "ExecuteWithUnwind.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Reactor.hpp"
+#include "ReturnWithUnwind.hpp"
 #include "defines.hpp"
 #include <cerrno>
 #include <cstdio>
@@ -154,7 +156,6 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
     (void)request;
     LOG(weblog::CRITICAL, "Handling CGI request...");
     int pipefd[2];
-    // _handler = NULL;
 
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -167,7 +168,6 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         if (pid > 0) {
             _handler = new CgiHandler(client_fd, pid);
             Reactor::instance()->register_handler(pipefd[0], _handler, EPOLLIN);
-            // Reactor::instance()->register_handler(pipefd[0], handler, EPOLLIN | EPOLLOUT);
             close(pipefd[1]);
 
             // the monitor process
@@ -175,35 +175,34 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 
             if (pid_unwanted_child == -1) {
                 close(pipefd[0]);
+                kill(pid, SIGKILL);
+                // return ; //TODO: why does this not work?
                 throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                           "Failed to fork");
+                                           "Failed to fork monitor process");
             }
             if (pid_unwanted_child == 0) {
                 close(pipefd[0]);
                 sleep(3);
                 kill(pid, SIGKILL);
-                int hehe = 9;
-                throw hehe;
-                // exit(SUCCESS);
+                throw ReturnWithUnwind(SUCCESS);
             }
         }
         // child of the exec process
         else if (pid == 0) {
-            // TODO: close all the file descriptors maybe by loop????
             close(pipefd[0]);
             if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
                 close(pipefd[1]);
-                exit(FAILURE);
+                throw ReturnWithUnwind(FAILURE);
             }
             close(pipefd[1]);
 
-            // char* argv[2];
-            // argv[0] = strdup("loop.sh");
-            // argv[1] = NULL;
+            char* argv[2];
+            argv[0] = strdup("loop.sh");
+            argv[1] = NULL;
             // if (!execve(_script_path.c_str(), argv_null, environ)) {
 
             //we catch this in the main so all destructors are called before
-            throw "./cgi-bin/loop.sh";
+            throw ExecuteWithUnwind("./cgi-bin/loop.sh", argv, environ);
             
             // execve("./cgi-bin/loop.sh", argv, environ);
             // abort();
@@ -216,7 +215,7 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                                        "Failed to fork");
         }
     }
-    catch (std::exception& e) {
+    catch (utils::HttpException& e) {
         Reactor::instance()->remove_handler(pipefd[0]);
         close(pipefd[0]);
         close(pipefd[1]);

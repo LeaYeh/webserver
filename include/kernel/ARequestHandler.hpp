@@ -25,7 +25,6 @@ public:
     virtual ~ARequestHandler();
 
 protected:
-    bool _is_cgi;
     std::map<std::string, std::string> _response_headers;
     ChunkedCodec _chunked_codec;
     TemplateEngine _template_engine;
@@ -55,7 +54,7 @@ protected:
     void _update_status(EventProcessingState& state,
                         EventProcessingState flags,
                         bool overwrite = false) const;
-
+    bool _is_cgi_request(const webshell::Request& request);
     virtual std::string _process(int fd,
                                  EventProcessingState& state,
                                  webshell::Request& request) = 0;

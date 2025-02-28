@@ -23,7 +23,25 @@ struct SessionMessage
     size_t data_length;
     char data[4096];
 
-    SessionMessage() { std::memset(this, 0, sizeof(SessionMessage)); }
+    SessionMessage() : type(SESSION_ERROR), data_length(0)
+    {
+        std::memset(session_id, 0, sizeof(session_id));
+        std::memset(data, 0, sizeof(data));
+    }
+
+    void set_data(const std::string& data)
+    {
+        data_length = data.length();
+        std::strncpy(this->data, data.c_str(), sizeof(this->data));
+    }
+    void set_id(const std::string& id)
+    {
+        std::strncpy(session_id, id.c_str(), sizeof(session_id));
+    }
+
+    std::string get_data() const { return (std::string(data, data_length)); }
+
+    std::string get_id() const { return (std::string(session_id)); }
 };
 
 struct SessionData

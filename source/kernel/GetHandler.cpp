@@ -1,5 +1,6 @@
 #include "GetHandler.hpp"
 #include "ARequestHandler.hpp"
+#include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "ResponseBuilder.hpp"
@@ -23,9 +24,29 @@ webshell::Response GetHandler::handle(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
+    _handle_session(request);
+    return (_handle_request(fd, state, request));
+}
+
+void GetHandler::_handle_session(webshell::Request& request)
+{
+    std::string session_id = request.get_cookie("session_id");
+
+    if (session_id.empty()) {
+        return;
+    }
+    _response_headers["Set-Cookie"] = _format_session_cookie(
+        session_id,
+        ConnectionHandler::instance()->get_session_data(session_id));
+}
+
+webshell::Response GetHandler::_handle_request(int fd,
+                                               EventProcessingState& state,
+                                               webshell::Request& request)
+{
     std::string content;
     try {
-        if (state == INITIAL) {
+        if (state == READY_TO_PROCESS) {
             _pre_process(request);
             _update_status(state, PROCESSING, true);
         }

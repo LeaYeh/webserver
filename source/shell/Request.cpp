@@ -205,6 +205,27 @@ bool Request::empty_buffer() const
     return ((*_read_buffer).empty());
 }
 
+std::string Request::read_chunked_body()
+{
+    static bool chunked = (_headers.find("content-length") == _headers.end());
+    std::vector<char> chunked_body;
+    bool is_eof;
+
+    if (!chunked) {
+        is_eof = _proceed_content_len(chunked_body);
+    }
+    else {
+        is_eof = _proceed_chunked(chunked_body);
+    }
+    _write_chunked_file(chunked_body);
+    if (is_eof)
+    {
+        return _uploader.temp_filename();
+    }
+    else
+        return "";
+}
+
 bool Request::read_chunked_body(std::vector<char>& chunked_body)
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());
@@ -215,6 +236,31 @@ bool Request::read_chunked_body(std::vector<char>& chunked_body)
     else {
         return (_proceed_chunked(chunked_body));
     }
+}
+
+void Request::_write_chunked_file(const std::vector<char>& content)
+{
+    std::ofstream& file_stream = _uploader.file_stream;
+    size_t remaining = content.size();
+    size_t offset = 0;
+
+    if (!file_stream.is_open()) {
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "File stream is not open");
+    }
+    while (remaining > 0) {
+        size_t write_size =
+            std::min(remaining, (size_t)webkernel::CHUNKED_SIZE);
+        file_stream.write(content.data() + offset, write_size);
+        if (!file_stream.good()) {
+            throw utils::HttpException(
+                webshell::INTERNAL_SERVER_ERROR,
+                "Write file failed: " + utils::to_string(std::strerror(errno)));
+        }
+        offset += write_size;
+        remaining -= write_size;
+    }
+    file_stream.flush();
 }
 
 /*

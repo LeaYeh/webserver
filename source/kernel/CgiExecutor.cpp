@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <exception>
 #include <new>
 #include <sys/epoll.h>
 #include <unistd.h>

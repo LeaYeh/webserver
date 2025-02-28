@@ -19,7 +19,8 @@ public:
     ~PostHandler();
 
 private:
-    std::map<int /* fd */, UploadRecord*> _upload_record_pool;
+    std::string _upload_file_path;
+    std::string _temp_file_path;
 
 private:
     void _pre_process(const webshell::Request& request);
@@ -33,11 +34,9 @@ private:
     std::string _determine_content_type(const webshell::Request& request);
     std::string _generate_safe_file_path(const webshell::Request& request);
 
-    webshell::Response _handle_completed(int fd,
-                                         const webshell::Request& request);
-    void _write_chunked_file(int fd, const std::vector<char>& content);
+    webshell::Response _handle_completed(const webshell::Request& request);
+    bool _already_exist(const std::string& file_path);
     void _check_upload_permission(const webshell::Request& request);
-    void _init_upload_record(int fd, const webshell::Request& request);
 
 private:
     PostHandler(const PostHandler& other);

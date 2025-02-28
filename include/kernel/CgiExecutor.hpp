@@ -5,7 +5,6 @@
 #include <cstring>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "Response.hpp"
 
 namespace webkernel
 {

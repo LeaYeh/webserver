@@ -8,6 +8,8 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <dirent.h>
+#include <exception>
+#include <new>
 #include <string>
 #include <sys/types.h>
 
@@ -32,10 +34,10 @@ webshell::Response GetHandler::handle(int fd,
         if (!request.config().redirect.empty()) {
             return (_handle_redirect(request.config().redirect));
         }
-        if (_is_cgi) {
+        if (_is_cgi_request(request)) {
             // the cgi output is handled by the CgiHandler, so nothing could be
             // responded here
-            // TODO: refactor the Reson
+            // TODO: refactor the Response
             _cgi_executor.cgi_exec(request, fd);
             _update_status(state, COMPELETED, true);
             return (webshell::Response());
@@ -46,7 +48,7 @@ webshell::Response GetHandler::handle(int fd,
     catch (utils::HttpException& e) {
         _handle_exception(e, e.status_code(), webshell::TEXT_HTML);
     }
-    catch (std::exception& e) {
+    catch (std::bad_alloc& e) {
         _handle_exception(e);
     }
     return (webshell::ResponseBuilder::ok(webshell::OK,
@@ -65,7 +67,6 @@ void GetHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
     }
-    _is_cgi = true;
 }
 
 std::string GetHandler::_process(int fd,

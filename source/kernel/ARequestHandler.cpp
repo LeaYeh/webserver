@@ -10,17 +10,16 @@
 namespace webkernel
 {
 
-ARequestHandler::ARequestHandler() : _is_cgi(false) {}
+ARequestHandler::ARequestHandler() {}
 
 ARequestHandler::ARequestHandler(const ARequestHandler& other) :
-    _is_cgi(other._is_cgi), _response_headers(other._response_headers)
+    _response_headers(other._response_headers)
 {
 }
 
 ARequestHandler& ARequestHandler::operator=(const ARequestHandler& other)
 {
     if (this != &other) {
-        _is_cgi = other._is_cgi;
         _response_headers = other._response_headers;
     }
     return (*this);
@@ -212,6 +211,11 @@ void ARequestHandler::_update_status(EventProcessingState& state,
     LOG(weblog::DEBUG,
                         "ARequestHandler: update status to "
                             + explain_event_processing_state(state));
+}
+
+bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
+{
+    return (!request.config().cgi_path.empty());
 }
 
 void ARequestHandler::_pre_process(const webshell::Request& request)

@@ -6,11 +6,17 @@
 #include "Reactor.hpp"
 #include "ReturnWithUnwind.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
+#include "utils.hpp"
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
+#include <iostream>
 #include <new>
+#include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
 
@@ -77,12 +83,29 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             }
             close(pipefd[1]);
 
+            if (request.method() == webshell::POST)
+            {
+                int fd = open(request.uploader().temp_filename().c_str(), O_RDONLY);
+                if (fd == -1)
+                    throw ReturnWithUnwind(FAILURE);
+                if (dup2(fd, STDIN_FILENO) == -1)
+                {
+                    close(fd);
+                    throw ReturnWithUnwind(FAILURE);
+                }
+                close(fd);
+            }
+
             char* argv[2];
             // TODO: Replace the forbidden function strdup
             argv[0] = strdup(_script_name.c_str());
             argv[1] = NULL;
 
             char **env = _convert_to_str_array(_get_env(request));
+
+            // for (int i = 0; env[i] != NULL; i++)
+            //     std::cout << env[i] << std::endl;
+
             if (env == NULL)
                 throw ReturnWithUnwind(FAILURE);
             //we catch this in the main so all destructors are called before
@@ -227,6 +250,16 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     envp.push_back("PATH_TRANSLATED=" + request.uri().path);
     envp.push_back("REMOTE_HOST=" + request.uri().host);
     envp.push_back("PATH_INFO=" + _path_info);
+
+    LOG(weblog::CRITICAL, "Got request method: " + utils::to_string(request.method()));
+    if (request.method() == webshell::POST) {
+        size_t file_size = get_file_size(request.uploader().temp_filename());
+        LOG(weblog::CRITICAL, "file" + request.uploader().temp_filename() + ", file_size: " + utils::to_string(file_size));
+        envp.push_back("CONTENT_LENGTH=" + utils::to_string(file_size));
+    }
+    else {
+        envp.push_back("CONTENT_LENGTH=0");
+    }
 
     return envp;
 }

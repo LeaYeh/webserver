@@ -33,6 +33,7 @@ public:
     bool read_chunked_body(std::vector<char>& chunked_body);
 
     std::string read_chunked_body();
+    const UploadRecord2& uploader() const;
 
     void set_method(RequestMethod method);
     void set_uri(Uri uri);

@@ -31,6 +31,12 @@ webshell::Response PostHandler::handle(int fd,
             _pre_process(request);
         }
         _update_status(state, PROCESSING);
+        if (_is_cgi_request(request))
+        {
+            _cgi_executor.cgi_exec(request, fd);
+            _update_status(state, COMPELETED, true);
+            return (webshell::Response());
+        }
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {

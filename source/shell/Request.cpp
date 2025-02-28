@@ -226,6 +226,11 @@ std::string Request::read_chunked_body()
         return "";
 }
 
+const UploadRecord2& Request::uploader() const
+{
+    return (_uploader);
+}
+
 bool Request::read_chunked_body(std::vector<char>& chunked_body)
 {
     static bool chunked = (_headers.find("content-length") == _headers.end());

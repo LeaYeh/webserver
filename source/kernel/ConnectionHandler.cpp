@@ -245,9 +245,13 @@ void ConnectionHandler::_handle_write(int fd)
     {
         process_state = COMPELETED;
         _processor.set_state(fd, COMPELETED);
+        // set the state to COMPELETED and force the process trap into COMPELETED
+        // how to remove file?!?!?!?!
+        _send_normal(fd);
         _processor.process(fd);
+        // here the fd be removed
     }
-    if (process_state & ERROR) {
+    else if (process_state & ERROR) {
     // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);
     }

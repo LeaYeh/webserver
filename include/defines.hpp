@@ -167,6 +167,7 @@ enum RequestHeaderState
     FIELD_END_CRLF,
     CHECK_OBS_FOLD,
     HEADER_END_CRLF,
+    QUOTED,
     END_HEADERS
 };
 

@@ -6,12 +6,13 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:53:50 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/02 00:12:00 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HeaderAnalyzer.hpp"
 #include "HttpException.hpp"
+#include "defines.hpp"
 #include <stdexcept>
 
 namespace webshell
@@ -22,6 +23,7 @@ HeaderAnalyzer::HeaderAnalyzer() /* : _connection_type(KEEP_ALIVE)*/
     _state = START_HEADER;
     _key = "";
     _val = "";
+    _escape = false;
 }
 
 HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other) :
@@ -31,7 +33,8 @@ HeaderAnalyzer::HeaderAnalyzer(const HeaderAnalyzer& other) :
     _map(other._map),
     _cookie_map(other._cookie_map),
     _key(other._key),
-    _val(other._val)
+    _val(other._val),
+    _escape(other._escape)
 {
 }
 
@@ -43,6 +46,7 @@ HeaderAnalyzer& HeaderAnalyzer::operator=(const HeaderAnalyzer& other)
         _cookie_map = other._cookie_map;
         _key = other._key;
         _val = other._val;
+        _escape = other._escape;
     }
     return (*this);
 }
@@ -55,6 +59,7 @@ void HeaderAnalyzer::reset()
     _key.clear();
     _val.clear();
     _map.clear();
+    _escape = false;
 }
 
 void HeaderAnalyzer::feed(unsigned char c)
@@ -84,9 +89,13 @@ void HeaderAnalyzer::feed(unsigned char c)
     case HEADER_END_CRLF:
         _header_end_crlf(c);
         break;
+    case QUOTED:
+        _quoted(c);
+        break;
     default:
         throw std::runtime_error("Header analyzing went wrong");
     }
+    _escape = (c == '\\' && !_escape);
 }
 
 void HeaderAnalyzer::set_method(RequestMethod method)
@@ -124,7 +133,9 @@ void HeaderAnalyzer::_field_name(unsigned char c)
 
 void HeaderAnalyzer::_leading_ws(unsigned char c)
 {
-    if (_is_ows(c)) {
+    if (c == '\"')
+        _state = QUOTED;
+    else if (_is_ows(c)) {
         return;
     }
     else if (_is_vchar(c)) {
@@ -139,7 +150,9 @@ void HeaderAnalyzer::_leading_ws(unsigned char c)
 
 void HeaderAnalyzer::_field_val(unsigned char c)
 {
-    if (_is_vchar(c)) {
+    if (c == '\"')
+        _state = QUOTED;
+    else if (_is_vchar(c)) {
         _val.push_back(_lowcase(c));
     }
     else if (_is_ows(c)) {
@@ -157,8 +170,10 @@ void HeaderAnalyzer::_field_val(unsigned char c)
 
 void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
 {
-    if (_is_vchar(c)) {
-        _val.push_back(' '); // TODO: should i separate like this or not at all?
+    if (c == '\"')
+        _state = QUOTED;
+    else if (_is_vchar(c)) {
+        _val.push_back(' '); // should i separate like this or not at all?
         _val.push_back(_lowcase(c));
         _state = FIELD_VALUE;
     }
@@ -171,6 +186,24 @@ void HeaderAnalyzer::_middle_or_end_ws(unsigned char c)
     else {
         throw utils::HttpException(webshell::BAD_REQUEST,
                                    "header midws state error");
+    }
+}
+
+void HeaderAnalyzer::_quoted(unsigned char c)
+{
+    if (c == '\\' && !_escape)
+        return ;
+    if (c == '\"' && !_escape)
+        _state = MIDDLE_OR_END_WS;
+    else if (_is_vchar(c) || _is_ows(c)) {
+        _val.push_back(_lowcase(c));
+    }
+    else if (c == '\r') {
+        _state = FIELD_END_CRLF;
+    }
+    else {
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                   "invalid character in quoted string");
     }
 }
 

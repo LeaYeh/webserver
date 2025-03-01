@@ -1,6 +1,5 @@
 #include "CgiExecutor.hpp"
 #include "CgiHandler.hpp"
-#include "ExecuteWithUnwind.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Reactor.hpp"
@@ -14,7 +13,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
-#include <iostream>
 #include <new>
 #include <string>
 #include <sys/epoll.h>

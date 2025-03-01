@@ -6,19 +6,19 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:34:55 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/01 21:20:34 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestLineAnalyzer.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
-#include "utils.hpp"
+#include <stdexcept>
 
 namespace webshell
 {
 
-RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR) {}
+RequestLineAnalyzer::RequestLineAnalyzer() : _state(PRE_CR), _pos(0) {}
 
 RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other) :
     AParser(other),
@@ -26,7 +26,8 @@ RequestLineAnalyzer::RequestLineAnalyzer(const RequestLineAnalyzer& other) :
     _uri_analyzer(other._uri_analyzer),
     _method(other._method),
     _uri(other._uri),
-    _version(other._version)
+    _version(other._version),
+    _pos(other._pos)
 {
 }
 
@@ -39,6 +40,7 @@ RequestLineAnalyzer::operator=(const RequestLineAnalyzer& other)
         _method = other._method;
         _uri = other._uri;
         _version = other._version;
+        _pos = other._pos;
     }
     return (*this);
 }
@@ -168,32 +170,30 @@ bool RequestLineAnalyzer::_collect_uri(unsigned char c)
 
 bool RequestLineAnalyzer::_analyze_version(unsigned char c)
 {
-    static int pos = 0; //TODO: change this
-
-    pos++;
-    if (c == 'H' && pos == 1) {
+    _pos++;
+    if (c == 'H' && _pos == 1) {
         return (false);
     }
-    else if (c == 'T' && (pos == 2 || pos == 3)) {
+    else if (c == 'T' && (_pos == 2 || _pos == 3)) {
         return (false);
     }
-    else if (c == 'P' && pos == 4) {
+    else if (c == 'P' && _pos == 4) {
         return (false);
     }
-    else if (c == '/' && pos == 5) {
+    else if (c == '/' && _pos == 5) {
         return (false);
     }
-    else if (isdigit(c) && (pos == 6 || pos == 8)) {
+    else if (isdigit(c) && (_pos == 6 || _pos == 8)) {
         return (false);
     }
-    else if (c == '.' && pos == 7) {
+    else if (c == '.' && _pos == 7) {
         return (false);
     }
-    else if (c == '\r' && pos == 9) {
+    else if (c == '\r' && _pos == 9) {
         return (false);
     }
-    else if (c == '\n' && pos == 10) {
-        return (pos = 0, true);
+    else if (c == '\n' && _pos == 10) {
+        return (_pos = 0, true);
     }
     else {
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -213,6 +213,7 @@ void RequestLineAnalyzer::reset(void)
     _method = "";
     _uri = "";
     _version = "";
+    _pos = 0;
 }
 
 } // namespace webshell

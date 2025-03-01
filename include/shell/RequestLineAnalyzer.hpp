@@ -33,6 +33,8 @@ private:
     std::string _uri;
     std::string _version;
 
+    int _pos;
+
 private:
     void _validate_start(unsigned char c);
     void _check_lf(unsigned char c);

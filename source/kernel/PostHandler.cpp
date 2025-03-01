@@ -39,9 +39,8 @@ webshell::Response PostHandler::handle(int fd,
             }
             else {
                 _cgi_executor.cgi_exec(request, fd);
-                _update_status(state, COMPELETED, true);
+                _update_status(state, WAITING_CGI, true);
             }
-            // _temp_file_path = temp_file_path;
             return (webshell::Response());
         }
         _process(fd, state, request);

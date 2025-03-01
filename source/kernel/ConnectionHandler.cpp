@@ -70,6 +70,7 @@ void ConnectionHandler::close_connection(int fd,
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
     Reactor::instance()->remove_handler(fd);
+    _processor.remove_state(fd);
     _processor.remove_analyzer(fd);
     _read_buffer.erase(fd);
     _write_buffer.erase(fd);
@@ -235,10 +236,17 @@ void ConnectionHandler::_handle_write(int fd)
         "Write event on fd: " + utils::to_string(fd) + " with state: "
             + explain_event_processing_state(_processor.state(fd)));
 
-    const EventProcessingState& process_state = _processor.state(fd);
+    EventProcessingState process_state = _processor.state(fd);
     std::cerr << "state: " << explain_event_processing_state(process_state) << std::endl;
     // sleep(1000);
 
+    // we assume the cgi response will respond in once, so when _handle_write be triggerd mean cgi finished
+    if (process_state == WAITING_CGI)
+    {
+        process_state = COMPELETED;
+        _processor.set_state(fd, COMPELETED);
+        _processor.process(fd);
+    }
     if (process_state & ERROR) {
     // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);

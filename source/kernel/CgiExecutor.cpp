@@ -251,10 +251,10 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     envp.push_back("REMOTE_HOST=" + request.uri().host);
     envp.push_back("PATH_INFO=" + _path_info);
 
-    LOG(weblog::CRITICAL, "Got request method: " + utils::to_string(request.method()));
+    // LOG(weblog::CRITICAL, "Got request method: " + utils::to_string(request.method()));
     if (request.method() == webshell::POST) {
         size_t file_size = get_file_size(request.uploader().temp_filename());
-        LOG(weblog::CRITICAL, "file" + request.uploader().temp_filename() + ", file_size: " + utils::to_string(file_size));
+        // LOG(weblog::CRITICAL, "file" + request.uploader().temp_filename() + ", file_size: " + utils::to_string(file_size));
         envp.push_back("CONTENT_LENGTH=" + utils::to_string(file_size));
     }
     else {

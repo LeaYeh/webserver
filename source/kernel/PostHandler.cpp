@@ -33,8 +33,15 @@ webshell::Response PostHandler::handle(int fd,
         _update_status(state, PROCESSING);
         if (_is_cgi_request(request))
         {
-            _cgi_executor.cgi_exec(request, fd);
-            _update_status(state, COMPELETED, true);
+            std::string temp_file_path = request.read_chunked_body();
+            if (temp_file_path.empty()) {
+                _update_status(state, HANDLE_CHUNKED);
+            }
+            else {
+                _cgi_executor.cgi_exec(request, fd);
+                _update_status(state, COMPELETED, true);
+            }
+            // _temp_file_path = temp_file_path;
             return (webshell::Response());
         }
         _process(fd, state, request);

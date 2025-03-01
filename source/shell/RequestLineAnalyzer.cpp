@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/01 21:20:34 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/02 00:23:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,7 @@ void RequestLineAnalyzer::_check_lf(unsigned char c)
 
 void RequestLineAnalyzer::_analyze_method(unsigned char c)
 {
-    if (c == ' ') {
+    if (_is_ows(c)) {
         _state = URI;
     }
     else if (!_is_tchar(c)) {
@@ -158,10 +158,13 @@ void RequestLineAnalyzer::_analyze_method(unsigned char c)
 
 bool RequestLineAnalyzer::_collect_uri(unsigned char c)
 {
-    if (c == ' ') {
+    if (_is_ows(c)) {
         _state = VERSION;
         return (true);
     }
+    else if (c == '\r' || c == '\n')
+        throw utils::HttpException(webshell::BAD_REQUEST,
+                                   "request-line incomplete");
     else {
         _uri.push_back(c);
         return (false);

@@ -97,6 +97,7 @@ void RequestProcessor::process(int fd)
         }
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());
+            // std::remove(request.uploader().temp_filename().c_str());
             _end_request(fd);
         }
     }
@@ -104,6 +105,7 @@ void RequestProcessor::process(int fd)
     else {
         _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
+            std::remove(request.uploader().temp_filename().c_str());
             _end_request(fd);
         }
     }

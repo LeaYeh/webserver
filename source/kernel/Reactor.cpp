@@ -202,6 +202,7 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
         }
         catch (std::exception& e) {
             LOG(weblog::ERROR, e.what());
+            throw;
         }
     }
 }

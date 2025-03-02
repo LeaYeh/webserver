@@ -168,7 +168,7 @@ bool RequestLineAnalyzer::_collect_uri(unsigned char c)
 
 bool RequestLineAnalyzer::_analyze_version(unsigned char c)
 {
-    static int pos = 0;
+    static int pos = 0; //TODO: change this
 
     pos++;
     if (c == 'H' && pos == 1) {

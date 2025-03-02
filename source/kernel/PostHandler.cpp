@@ -10,7 +10,6 @@
 #include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
-#include <fstream>
 #include <new>
 #include <string>
 #include <unistd.h>
@@ -31,6 +30,18 @@ webshell::Response PostHandler::handle(int fd,
             _pre_process(request);
         }
         _update_status(state, PROCESSING);
+        if (_is_cgi_request(request))
+        {
+            std::string temp_file_path = request.read_chunked_body();
+            if (temp_file_path.empty()) {
+                _update_status(state, HANDLE_CHUNKED);
+            }
+            else {
+                _cgi_executor.cgi_exec(request, fd);
+                _update_status(state, WAITING_CGI, true);
+            }
+            return (webshell::Response());
+        }
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {

@@ -1,4 +1,5 @@
 #include "defines.hpp"
+#include <cstddef>
 #include <stdint.h>
 #include <string>
 #include <sys/epoll.h>
@@ -9,6 +10,7 @@ namespace webkernel
 
 std::string explain_epoll_event(uint32_t events);
 std::string get_object_size(const std::string& path);
+size_t get_file_size(const std::string& path);
 std::string get_object_mtime(const std::string& path);
 std::string format_size(uint64_t size);
 std::string format_time(time_t time);

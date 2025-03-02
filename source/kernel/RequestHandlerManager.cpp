@@ -1,10 +1,11 @@
 #include "RequestHandlerManager.hpp"
-#include "ConnectionHandler.hpp"
+#include "Logger.hpp"
 #include "DeleteHandler.hpp"
 #include "GetHandler.hpp"
 #include "HttpException.hpp"
 #include "PostHandler.hpp"
 #include "defines.hpp"
+#include "utils.hpp"
 
 namespace webkernel
 {
@@ -37,6 +38,7 @@ RequestHandlerManager::handle_request(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
+    LOG(weblog::CRITICAL, "Try to handle request method: " + utils::to_string(request.method()));
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
         _handlers.find(request.method());
     if (it != _handlers.end()) {

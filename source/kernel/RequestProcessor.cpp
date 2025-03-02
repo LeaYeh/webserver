@@ -9,7 +9,6 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <iostream>
 #include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -97,6 +96,8 @@ void RequestProcessor::process(int fd)
         }
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());
+            LOG(weblog::CRITICAL, "Removing the temp file: request.uploader().temp_filename()");
+            std::remove(request.uploader().temp_filename().c_str());
             _end_request(fd);
         }
     }
@@ -104,6 +105,7 @@ void RequestProcessor::process(int fd)
     else {
         _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
+            std::remove(request.uploader().temp_filename().c_str());
             _end_request(fd);
         }
     }
@@ -130,6 +132,11 @@ void RequestProcessor::set_state(int fd, EventProcessingState state)
 void RequestProcessor::reset_state(int fd)
 {
     _state[fd] = INITIAL;
+}
+
+void RequestProcessor::remove_state(int fd)
+{
+    _state.erase(fd);
 }
 
 void RequestProcessor::_handle_keep_alive(int fd)

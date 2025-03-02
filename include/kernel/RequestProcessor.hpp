@@ -22,6 +22,7 @@ public:
     EventProcessingState state(int fd) const;
     void set_state(int fd, EventProcessingState state);
     void reset_state(int fd);
+    void remove_state(int fd);
 
 public:
     RequestProcessor(ConnectionHandler* handler);

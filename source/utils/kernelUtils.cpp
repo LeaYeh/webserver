@@ -50,6 +50,16 @@ std::string get_object_size(const std::string& path)
     return (format_size(file_stat.st_size));
 }
 
+size_t get_file_size(const std::string& path)
+{
+    struct stat file_stat;
+
+    if (stat(path.c_str(), &file_stat) == -1) {
+        return (-1);
+    }
+    return (file_stat.st_size);
+}
+
 std::string get_object_mtime(const std::string& path)
 {
     struct stat file_stat;

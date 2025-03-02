@@ -16,6 +16,7 @@ public:
     std::string route(void) const;
     std::vector<webshell::RequestMethod> limit_except(void) const;
     std::string root(void) const;
+    std::string alias(void) const;
     std::string index(void) const;
     std::string redirect(void) const;
     bool autoindex(void) const;

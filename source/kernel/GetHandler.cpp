@@ -190,18 +190,18 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
 
     LOG(weblog::DEBUG, "Handle autoindex: " + request_path);
 
-    if ((dir = opendir(target_path.c_str())) != NULL) {
+    if ((dir = opendir(_target_path.c_str())) != NULL) {
         std::string object_path;
         while ((ent = readdir(dir)) != NULL) {
             object_path = utils::join(request_path, std::string(ent->d_name));
             list_items +=
                 "<tr><td><a href=\"" + object_path + "\">"
                 + std::string(ent->d_name) + "</a></td><td>"
-                + get_object_type(target_path + std::string(ent->d_name))
+                + get_object_type(_target_path + std::string(ent->d_name))
                 + "</td><td>"
-                + get_object_size(target_path + std::string(ent->d_name))
+                + get_object_size(_target_path + std::string(ent->d_name))
                 + "</td><td>"
-                + get_object_mtime(target_path + std::string(ent->d_name))
+                + get_object_mtime(_target_path + std::string(ent->d_name))
                 + "</td></tr>";
         }
         closedir(dir);
@@ -209,7 +209,7 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Open directory failed for autoindex: "
-                                       + target_path);
+                                       + _target_path);
     }
     try {
         _template_engine.load_template(config.autoindex_page);

@@ -32,6 +32,7 @@ webshell::Response GetHandler::handle(int fd,
             _update_status(state, PROCESSING, true);
         }
         if (!request.config().redirect.empty()) {
+            _update_status(state, COMPELETED, true);
             return (_handle_redirect(request.config().redirect));
         }
         if (_is_cgi_request(request)) {
@@ -67,6 +68,7 @@ void GetHandler::_pre_process(const webshell::Request& request)
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden out of root");
     }
+    LOG(weblog::DEBUG, "GetHandler: target path: " + _target_path);
 }
 
 std::string GetHandler::_process(int fd,
@@ -89,7 +91,8 @@ std::string GetHandler::_process(int fd,
         _handle_autoindex(state, request.uri().path, config, content);
     }
     else {
-        if (_get_respones_encoding(request) & webkernel::CHUNKED) {
+        if (_get_respones_encoding(request, _target_path)
+            & webkernel::CHUNKED) {
             _handle_chunked(fd, state, _target_path, content);
         }
         else {
@@ -110,9 +113,8 @@ void GetHandler::_post_process(const webshell::Request& request,
     else {
         _response_headers["content-type"] = _get_mime_type(target_path);
     }
-    if (!utils::is_directory(target_path)
-        && (_get_respones_encoding(request) & webkernel::CHUNKED)) {
-        int encoding = _get_respones_encoding(request);
+    int encoding = _get_respones_encoding(request, _target_path);
+    if (!utils::is_directory(target_path) && (encoding & webkernel::CHUNKED)) {
         _response_headers["transfer-encoding"] = _get_encoding_string(encoding);
     }
     else {

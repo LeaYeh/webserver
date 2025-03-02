@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirect Demo - New Page</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header id="header"></header>
+
+    <section class="hero">
+        <h1>New Page</h1>
+        <div class="hero-content">
+            <p> This is a new page that has replaced the old page. </p>
+            <p> You have been redirected to this page. </p>
+        </div>
+    </section>
+
+    <footer id="footer"></footer>
+    <script>
+        async function loadComponents() {
+            const headerContent = await fetch('/header.html').then(res => res.text());
+            document.getElementById('header').innerHTML = headerContent;
+
+            const footerContent = await fetch('/footer.html').then(res => res.text());
+            document.getElementById('footer').innerHTML = footerContent;
+        }
+        loadComponents().catch(err => console.error(err));
+    </script>
+</body>
+</html>

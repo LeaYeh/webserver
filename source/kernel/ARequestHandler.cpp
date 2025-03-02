@@ -66,7 +66,8 @@ bool ARequestHandler::_is_out_of_max_file_size(
     struct stat file_stat;
 
     if (stat(file_path.c_str(), &file_stat) == -1 || file_stat.st_size < 0) {
-        throw std::runtime_error("ARequestHandler: failed to get file stat");
+        throw std::runtime_error("ARequestHandler: failed to get file stat: "
+                                 + file_path);
     }
     if ((size_t)file_stat.st_size > config.client_max_body_size) {
         return (true);
@@ -150,13 +151,14 @@ std::string ARequestHandler::_get_encoding_string(int encoding) const
 }
 
 int ARequestHandler::_get_respones_encoding(
-    const webshell::Request& request) const
+    const webshell::Request& request,
+    const std::string resource_path) const
 {
     int encoding = webkernel::IDENTITY;
     const webconfig::RequestConfig& config = request.config();
 
     if (request.method() == webshell::GET
-        && _is_out_of_max_file_size(config, config.root + request.uri().path)) {
+        && _is_out_of_max_file_size(config, resource_path)) {
         encoding |= webkernel::CHUNKED;
     }
     if (request.has_header("transfer-encoding")) {
@@ -175,18 +177,24 @@ std::string
 ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
                                     const std::string& request_path) const
 {
-    std::string full_path;
+    std::string full_path = request_path;
 
-    // the root might be includeed in the path
-    full_path = request_path;
     if (!utils::start_with(request_path, config.root)) {
         full_path = config.root + request_path;
     }
-    // Check if the path is a directory or a file
     if (utils::is_directory(full_path)) {
         full_path = utils::join(full_path, config.index);
     }
-    return (full_path);
+    else {
+        size_t pos = full_path.find_last_of('/');
+        std::string last_segment =
+            (pos != std::string::npos) ? full_path.substr(pos + 1) : full_path;
+        if (last_segment.find('.') == std::string::npos
+            && !config.index.empty()) {
+            full_path = utils::join(config.root, config.index);
+        }
+    }
+    return full_path;
 }
 
 void ARequestHandler::_handle_exception(
@@ -209,8 +217,8 @@ void ARequestHandler::_update_status(EventProcessingState& state,
         state = static_cast<EventProcessingState>(state | flags);
     }
     LOG(weblog::DEBUG,
-                        "ARequestHandler: update status to "
-                            + explain_event_processing_state(state));
+        "ARequestHandler: update status to "
+            + explain_event_processing_state(state));
 }
 
 bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
@@ -234,7 +242,6 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
     //     weblog::Logger::log(weblog::DEBUG,
     //                         "Create new session id: " + session_id);
     // }
-
 }
 
 } // namespace webkernel

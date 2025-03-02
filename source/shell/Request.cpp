@@ -121,8 +121,7 @@ const std::string& Request::get_header(const std::string& name) const
 
 const std::string& Request::get_cookie(const std::string& name) const
 {
-    std::map<std::string, std::string>::const_iterator it =
-        _cookies.find(name);
+    std::map<std::string, std::string>::const_iterator it = _cookies.find(name);
 
     if (it == _cookies.end()) {
         return (utils::EMPTY_STRING);
@@ -218,12 +217,12 @@ std::string Request::read_chunked_body()
         is_eof = _proceed_chunked(chunked_body);
     }
     _write_chunked_file(chunked_body);
-    if (is_eof)
-    {
+    if (is_eof) {
         return _uploader.temp_filename();
     }
-    else
+    else {
         return "";
+    }
 }
 
 const UploadRecord2& Request::uploader() const
@@ -388,12 +387,12 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
     if (location_config == NULL) {
         throw utils::HttpException(webshell::NOT_FOUND,
                                    "No matching location block found: "
-                                       + _uri.path,
-                                   webshell::TEXT_PLAIN);
+                                       + _uri.path);
     }
 
     _config = webconfig::RequestConfig();
 
+    // _config.client_max_body_size = 10;
     _config.client_max_body_size = http_config.client_max_body_size();
     _config.default_type = http_config.default_type();
     _config.autoindex_page = http_config.autoindex_page();

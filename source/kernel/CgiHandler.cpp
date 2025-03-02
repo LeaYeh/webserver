@@ -25,7 +25,7 @@ CgiHandler::~CgiHandler() {}
 
 void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
 {
-    LOG(weblog::CRITICAL,
+    LOG(weblog::DEBUG,
         "CgiHandler::handle_event() on fd: " + utils::to_string(fd)
             + " with events: " + explain_epoll_event(events));
 
@@ -33,12 +33,14 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
         char buffer[CHUNKED_SIZE];
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(fd, buffer, CHUNKED_SIZE);
+        // TODO: need to check the read return value for 0 and -1
 
         std::cout << "bytes_read: " << bytes_read << std::endl;
         if (bytes_read > 0) {
             _buffer.append(buffer, bytes_read);
         }
         else {
+            // TODO: need to remove the 'errno' before submit
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                        "read() failed: "
                                            + std::string(strerror(errno)));
@@ -46,21 +48,22 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
     }
     // else if (events & EPOLLOUT || events & EPOLLHUP) {
     else if (events & EPOLLHUP) {
-        LOG(weblog::CRITICAL, "I only want to see this once!!!!!!!");
-        LOG(weblog::CRITICAL,
+        LOG(weblog::DEBUG, "I only want to see this once!!!!!!!");
+        LOG(weblog::DEBUG,
             "Waiting for child: " + utils::to_string(_pid)
                 + " with events: " + explain_epoll_event(events));
         int status;
         int ret = waitpid(_pid, &status, WNOHANG);
 
         if (ret == 0) {
-            LOG(weblog::CRITICAL, "Child still running");
+            LOG(weblog::DEBUG, "Child still running");
             // child is still running
             return;
         }
         Reactor::instance()->remove_handler(fd);
         if (ret == -1) {
-            webkernel::ConnectionHandler::instance()->prepare_error(_client_fd, 
+            // TODO: need to remove the 'errno' before submit
+            webkernel::ConnectionHandler::instance()->prepare_error(_client_fd,
                 utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                        "waitpid() failed: "
                                            + std::string(strerror(errno))));
@@ -69,17 +72,17 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
         }
         else {
-            LOG(weblog::CRITICAL,
+            LOG(weblog::DEBUG,
                 "Child exited with status: " + utils::to_string(status));
             // child has exited
             if (WIFEXITED(status)) {
-                LOG(weblog::CRITICAL, "Child exited normally");
+                LOG(weblog::DEBUG, "Child exited normally");
                 webkernel::ConnectionHandler::instance()->prepare_write(
                     _client_fd, _buffer);
             }
             else {
-                LOG(weblog::CRITICAL, "Child exited abnormally");
-                webkernel::ConnectionHandler::instance()->prepare_error(_client_fd, 
+                LOG(weblog::DEBUG, "Child exited abnormally");
+                webkernel::ConnectionHandler::instance()->prepare_error(_client_fd,
                 utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                        "Child exited abnormally."));
                 // webkernel::ConnectionHandler::instance()->prepare_error(

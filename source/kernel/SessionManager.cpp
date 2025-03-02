@@ -214,6 +214,7 @@ void SessionManager::_send_resp(int fd,
         throw std::runtime_error("Failed to send session response: "
                                  + utils::to_string(strerror(errno)));
     }
+    // TODO: need to check the send return value for 0 and -1
 }
 
 void SessionManager::_send_error(int fd, const std::string& msg)

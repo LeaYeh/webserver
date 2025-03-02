@@ -30,7 +30,6 @@ struct RequestConfig
     std::string cgi_extension;
     std::string cgi_path;
     bool enable_upload;
-    std::string upload_path;
 };
 
 } // namespace webconfig

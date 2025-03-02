@@ -4,6 +4,7 @@
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
+#include <unistd.h>
 
 namespace webconfig
 {
@@ -11,14 +12,14 @@ namespace webconfig
 ConfigLocationBlock::ConfigLocationBlock() :
     AConfigParser(LOCATION),
     _route("/"),
-    _root("./www/html"),
+    _root(""),
+    _alias(""),
     _index(""),
     _redirect(""),
-    _autoindex(true),
+    _autoindex(false),
     _cgi_extension(""),
     _cgi_path(""),
-    _enable_upload(false),
-    _upload_path("")
+    _enable_upload(false)
 {
     _limit_except.push_back(webshell::GET);
     _valid_directives.insert("route");
@@ -31,7 +32,6 @@ ConfigLocationBlock::ConfigLocationBlock() :
     _valid_directives.insert("cgi_extension");
     _valid_directives.insert("cgi_path");
     _valid_directives.insert("enable_upload");
-    _valid_directives.insert("upload_path");
     _valid_directives.insert("redirect");
 }
 
@@ -40,13 +40,13 @@ ConfigLocationBlock::ConfigLocationBlock(const ConfigLocationBlock& other) :
     _route(other._route),
     _limit_except(other._limit_except),
     _root(other._root),
+    _alias(other._alias),
     _index(other._index),
     _redirect(other._redirect),
     _autoindex(other._autoindex),
     _cgi_extension(other._cgi_extension),
     _cgi_path(other._cgi_path),
-    _enable_upload(other._enable_upload),
-    _upload_path(other._upload_path)
+    _enable_upload(other._enable_upload)
 {
 }
 
@@ -65,7 +65,6 @@ ConfigLocationBlock::operator=(const ConfigLocationBlock& other)
         _cgi_extension = other._cgi_extension;
         _cgi_path = other._cgi_path;
         _enable_upload = other._enable_upload;
-        _upload_path = other._upload_path;
     }
     return (*this);
 }
@@ -131,11 +130,6 @@ bool ConfigLocationBlock::enable_upload(void) const
     return (_enable_upload);
 }
 
-std::string ConfigLocationBlock::upload_path(void) const
-{
-    return (_upload_path);
-}
-
 std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
 {
     std::string line;
@@ -149,11 +143,11 @@ std::string ConfigLocationBlock::parse(std::ifstream& file_stream)
                                      + line);
         }
         if (_is_scope_symbol(line)) {
+            _valid();
             return (line);
         }
         _parse_config_directive(line);
     }
-
     return ("");
 }
 
@@ -166,12 +160,13 @@ void ConfigLocationBlock::print_config(void) const
             "\t\t" + webshell::request_method_to_string(_limit_except[i]));
     }
     LOG(weblog::DEBUG, "\troot: " + _root);
+    LOG(weblog::DEBUG, "\talias: " + _alias);
+    LOG(weblog::DEBUG, "\tredirect: " + _redirect);
     LOG(weblog::DEBUG, "\tindex: " + _index);
     LOG(weblog::DEBUG, "\tautoindex: " + utils::to_string(_autoindex));
     LOG(weblog::DEBUG, "\tcgi_extension: " + _cgi_extension);
     LOG(weblog::DEBUG, "\tcgi_path: " + _cgi_path);
     LOG(weblog::DEBUG, "\tenable_upload: " + utils::to_string(_enable_upload));
-    LOG(weblog::DEBUG, "\tupload_path: " + _upload_path);
 }
 
 void ConfigLocationBlock::_parse_config_directive(const std::string& line)
@@ -186,6 +181,10 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
     }
     else if (directive == "root") {
         _root = extract_directive_value(line, directive);
+    }
+    else if (directive == "alias") {
+        _alias = extract_directive_value(line, directive);
+        LOG(weblog::CRITICAL, "Alias: " + _alias);
     }
     else if (directive == "index") {
         _index = extract_directive_value(line, directive);
@@ -204,9 +203,6 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
     }
     else if (directive == "enable_upload") {
         _enable_upload = _parse_enable_upload(line, directive);
-    }
-    else if (directive == "upload_path") {
-        _upload_path = extract_directive_value(line, directive);
     }
     else {
         throw std::runtime_error("Invalid directive in location block: "
@@ -256,6 +252,23 @@ bool ConfigLocationBlock::_parse_enable_upload(const std::string& line,
     }
 
     throw std::runtime_error("Invalid value for enable_upload: " + value);
+}
+
+void ConfigLocationBlock::_valid(void) const
+{
+    LOG(weblog::DEBUG, "Validating location block...");
+    if (_route.empty()) {
+        throw std::runtime_error(
+            "route directive is missing in location block");
+    }
+    if (_cgi_path.empty() && (_root.empty() && _alias.empty())) {
+        throw std::runtime_error(
+            "root or alias directive is missing in location block");
+    }
+    if (!_root.empty() && !_alias.empty()) {
+        throw std::runtime_error(
+            "root and alias directives cannot be used together in location block");
+    }
 }
 
 } // namespace webconfig

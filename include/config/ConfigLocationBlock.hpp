@@ -23,7 +23,6 @@ public:
     std::string cgi_extension(void) const;
     std::string cgi_path(void) const;
     bool enable_upload(void) const;
-    std::string upload_path(void) const;
 
     std::string parse(std::ifstream& file_stream);
     void print_config(void) const;
@@ -46,7 +45,6 @@ private:
     std::string _cgi_extension;
     std::string _cgi_path;
     bool _enable_upload;
-    std::string _upload_path;
 
 private:
     void _parse_config_directive(const std::string& line);
@@ -56,6 +54,7 @@ private:
                           const std::string& directive);
     bool _parse_enable_upload(const std::string& line,
                               const std::string& directive);
+    void _valid(void) const;
 };
 
 } // namespace webconfig

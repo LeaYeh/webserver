@@ -410,7 +410,6 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
     _config.cgi_extension = location_config->cgi_extension();
     _config.cgi_path = location_config->cgi_path();
     _config.enable_upload = location_config->enable_upload();
-    _config.upload_path = location_config->upload_path();
 }
 
 void Request::_check_hexdigit(unsigned char c)

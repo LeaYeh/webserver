@@ -95,6 +95,7 @@ void ConfigHttpBlock::_parse_config_directive(const std::string& line)
 {
     std::string directive = _get_directive_name(line);
 
+    // TODO: Bug: for the value without K, M, G, etc. will get empty string
     if (directive == "client_max_body_size") {
         _client_max_body_size = _parse_client_max_body_size(line);
     }

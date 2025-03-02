@@ -127,7 +127,7 @@ int stoi(const std::string& str)
 
     iss >> result;
     if (iss.fail()) {
-        throw std::invalid_argument("stoi: invalid argument");
+        throw std::invalid_argument("stoi: invalid argument: " + str);
     }
     return (result);
 }

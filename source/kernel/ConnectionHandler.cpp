@@ -118,6 +118,7 @@ bool ConnectionHandler::get_session_data(const std::string& sid,
     msg.data_length = 0;
     int bytes = send(_session_fd, &msg, sizeof(msg), 0);
 
+    // TODO: need to check the send return value for 0 and -1
     if (bytes != sizeof(msg)) {
         LOG(weblog::ERROR,
             "Send session message failed: " + utils::to_string(bytes));
@@ -126,6 +127,7 @@ bool ConnectionHandler::get_session_data(const std::string& sid,
     SessionMessage resp;
 
     bytes = recv(_session_fd, &resp, sizeof(resp), 0);
+    // TODO: need to check the recv return value for 0 and -1
     if (bytes != sizeof(resp)) {
         LOG(weblog::ERROR,
             "Receive session message failed: " + utils::to_string(bytes));
@@ -320,6 +322,7 @@ void ConnectionHandler::_send_error(int fd)
             "Error content: \n" + utils::replaceCRLF(_error_buffer[fd]));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
+        // TODO: need to check the send return value for 0 and -1
         _error_buffer.erase(it);
         if (bytes_sent < 0) {
             close_connection(fd,

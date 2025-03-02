@@ -34,12 +34,12 @@ CgiExecutor::~CgiExecutor()
 void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 {
     (void)request;
-    LOG(weblog::CRITICAL, "Handling CGI request...");
+    LOG(weblog::DEBUG, "Handling CGI request...");
     int pipefd[2];
 
     _setup_path_meta(request.config().route,
-        request.uri().path, 
-        request.config().cgi_path, 
+        request.uri().path,
+        request.config().cgi_path,
         request.config().cgi_extension);
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -156,7 +156,7 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
 {
     size_t pos = path.find(route);
     if (pos == std::string::npos) {
-        
+
         throw std::runtime_error("A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     pos += route.length();
@@ -172,7 +172,7 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
     _script_name = path.substr(pos + 1, pos_end_of_script_name - (pos + 1));
     // _script_path = path.substr(0, pos_end_of_script_name);
     _script_path = utils::join(cgi_path, _script_name);
-    
+
     if (_script_name.length() < cgi_extension.size()
         || _script_name.substr(_script_name.length() - cgi_extension.size()) != cgi_extension) {
         throw utils::HttpException(
@@ -197,7 +197,7 @@ void CgiExecutor::_free_array(char** arr, size_t size)
 char** CgiExecutor::_convert_to_str_array(std::vector<std::string> vec)
 {
     char **arr;
-    
+
     try {
         arr = new char*[vec.size() + 1];
     }
@@ -249,10 +249,8 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     envp.push_back("REMOTE_HOST=" + request.uri().host);
     envp.push_back("PATH_INFO=" + _path_info);
 
-    // LOG(weblog::CRITICAL, "Got request method: " + utils::to_string(request.method()));
     if (request.method() == webshell::POST) {
         size_t file_size = get_file_size(request.uploader().temp_filename());
-        // LOG(weblog::CRITICAL, "file" + request.uploader().temp_filename() + ", file_size: " + utils::to_string(file_size));
         envp.push_back("CONTENT_LENGTH=" + utils::to_string(file_size));
     }
     else {

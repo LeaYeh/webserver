@@ -38,7 +38,7 @@ RequestHandlerManager::handle_request(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
-    LOG(weblog::CRITICAL, "Try to handle request method: " + utils::to_string(request.method()));
+    LOG(weblog::DEBUG, "Try to handle request method: " + utils::to_string(request.method()));
     std::map<webshell::RequestMethod, ARequestHandler*>::iterator it =
         _handlers.find(request.method());
     if (it != _handlers.end()) {

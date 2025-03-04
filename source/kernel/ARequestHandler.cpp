@@ -190,22 +190,16 @@ std::string
 ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
                                     const std::string& request_path) const
 {
-    std::string full_path = request_path;
+    std::string base_dir = config.root;
+    std::string resource_path = request_path.substr(config.route.size());
+    std::string full_path;
 
-    if (!utils::start_with(request_path, config.root)) {
-        full_path = config.root + request_path;
+    if (!config.alias.empty()) {
+        base_dir = config.alias;
     }
-    if (utils::is_directory(full_path)) {
+    full_path = utils::join(base_dir, resource_path);
+    if (utils::is_directory(full_path) && !config.autoindex) {
         full_path = utils::join(full_path, config.index);
-    }
-    else {
-        size_t pos = full_path.find_last_of('/');
-        std::string last_segment =
-            (pos != std::string::npos) ? full_path.substr(pos + 1) : full_path;
-        if (last_segment.find('.') == std::string::npos
-            && !config.index.empty()) {
-            full_path = utils::join(config.root, config.index);
-        }
     }
     return full_path;
 }

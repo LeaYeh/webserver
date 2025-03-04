@@ -53,10 +53,23 @@ bool ARequestHandler::_check_path_format(const std::string& path) const
 bool ARequestHandler::_check_path_permission(const std::string& path,
                                              const int type) const
 {
-    if (access(path.c_str(), type) == -1) {
-        return (false);
+    const std::string base_dir = utils::basefolder(path);
+    const bool is_dir = utils::is_directory(base_dir);
+
+    // if the path is a file
+    if (!is_dir) {
+        // if the file exist, check the permission of the file
+        if (access(path.c_str(), F_OK) == 0) {
+            return (access(path.c_str(), type) == 0);
+        }
+        // if the file does not exist, check the permission of the parent
+        // directory
+        else {
+            return (access(base_dir.c_str(), type));
     }
-    return (true);
+    }
+    // if the path is a directory, check the permission of the directory
+    return (access(base_dir.c_str(), type) == 0);
 }
 
 bool ARequestHandler::_is_out_of_max_file_size(

@@ -53,6 +53,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         if (_analyzer_pool[fd].is_complete()) {
             _handle_virtual_host(fd);
             _setup_timer(fd, _analyzer_pool[fd].request().config());
+            _connection_status_pool[fd] = false;
             buffer.erase(0, i + 1);
             process(fd);
             return (true);
@@ -96,7 +97,8 @@ void RequestProcessor::process(int fd)
         }
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());
-            LOG(weblog::DEBUG, "Removing the temp file: request.uploader().temp_filename()");
+            LOG(weblog::DEBUG,
+                "Removing the temp file: request.uploader().temp_filename()");
             std::remove(request.uploader().temp_filename().c_str());
             _end_request(fd);
         }
@@ -139,21 +141,26 @@ void RequestProcessor::remove_state(int fd)
     _state.erase(fd);
 }
 
+bool RequestProcessor::need_to_close(int fd)
+{
+    return (_connection_status_pool[fd]);
+}
+
 void RequestProcessor::_handle_keep_alive(int fd)
 {
     const webshell::Request& request = _analyzer_pool[fd].request();
 
     if (!request.has_header("connection")
         || request.get_header("connection") == "close") {
-        _handler->close_connection(fd, weblog::INFO, "Connection: close");
+        LOG(weblog::INFO, "Connection: close on fd: " + utils::to_string(fd));
+        _connection_status_pool[fd] = true;
         _timer_pool.erase(fd);
     }
     else if (_timer_pool[fd].timeout()) {
-        _handler->close_connection(
-            fd,
-            weblog::INFO,
+        LOG(weblog::INFO,
             "Keep-alive timeout: " + utils::to_string(_timer_pool[fd].elapsed())
                 + " seconds, close the connection");
+        _connection_status_pool[fd] = true;
         _timer_pool.erase(fd);
     }
     else {

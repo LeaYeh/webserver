@@ -11,10 +11,10 @@
 #include "kernelUtils.hpp"
 #include "session_types.hpp"
 #include "utils.hpp"
+#include <iostream>
 #include <sys/epoll.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <iostream>
 
 namespace webkernel
 {
@@ -56,6 +56,9 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
     }
     else if (events & EPOLLOUT) {
         _handle_write(fd);
+        if (_processor.need_to_close(fd)) {
+            close_connection(fd, weblog::INFO, "Connection closed by server");
+        }
     }
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -231,7 +234,6 @@ void ConnectionHandler::_process_read_data(int fd,
     }
 }
 
-
 void ConnectionHandler::_handle_write(int fd)
 {
     LOG(weblog::DEBUG,
@@ -239,22 +241,23 @@ void ConnectionHandler::_handle_write(int fd)
             + explain_event_processing_state(_processor.state(fd)));
 
     EventProcessingState process_state = _processor.state(fd);
-    std::cerr << "state: " << explain_event_processing_state(process_state) << std::endl;
+    std::cerr << "state: " << explain_event_processing_state(process_state)
+              << std::endl;
     // sleep(1000);
 
-    // we assume the cgi response will respond in once, so when _handle_write be triggerd mean cgi finished
-    if (process_state == WAITING_CGI)
-    {
+    // we assume the cgi response will respond in once, so when _handle_write be
+    // triggerd mean cgi finished
+    if (process_state == WAITING_CGI) {
         process_state = COMPELETED;
         _processor.set_state(fd, COMPELETED);
-        // set the state to COMPELETED and force the process trap into COMPELETED
-        // how to remove file?!?!?!?!
+        // set the state to COMPELETED and force the process trap into
+        // COMPELETED how to remove file?!?!?!?!
         _send_normal(fd);
         _processor.process(fd);
         // here the fd be removed
     }
     else if (process_state & ERROR) {
-    // if (_error_buffer.find(fd) != _error_buffer.end()) {
+        // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);
     }
     else if (process_state & COMPELETED) {

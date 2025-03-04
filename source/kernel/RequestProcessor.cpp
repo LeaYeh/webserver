@@ -48,6 +48,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         _analyzer_pool[fd] = webshell::RequestAnalyzer(&buffer);
         reset_state(fd);
     }
+    LOG(weblog::CRITICAL, "buffer: " + buffer);
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
         if (_analyzer_pool[fd].is_complete()) {
@@ -77,11 +78,18 @@ void RequestProcessor::_setup_timer(int fd,
 // to be processed in chunks
 void RequestProcessor::process(int fd)
 {
-    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
     EventProcessingState& state = _state[fd];
     webshell::Request& request = _analyzer_pool[fd].request();
-    webshell::Response response = manager->handle_request(fd, state, request);
 
+    if (state == CONSUME_BODY) {
+        if (!_need_consume_body(request)) {
+            set_state(fd, COMPELETED);
+        }
+        return;
+    }
+
+    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
+    webshell::Response response = manager->handle_request(fd, state, request);
     LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
 
     if (request.method() == webshell::POST) {
@@ -108,6 +116,10 @@ void RequestProcessor::process(int fd)
         _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
             std::remove(request.uploader().temp_filename().c_str());
+            if (_need_consume_body(request)) {
+                set_state(fd, CONSUME_BODY);
+                return;
+            }
             _end_request(fd);
         }
     }
@@ -174,6 +186,20 @@ void RequestProcessor::_end_request(int fd)
 {
     _handle_keep_alive(fd);
     _analyzer_pool.erase(fd);
+}
+
+bool RequestProcessor::_need_consume_body(webshell::Request& request)
+{
+    if (request.has_header("content-length")
+        || request.has_header("transfer-encoding")) {
+        std::string temp_file_path = request.read_chunked_body();
+
+        if (temp_file_path.empty()) {
+            return (true);
+        }
+        std::remove(temp_file_path.c_str());
+    }
+    return (false);
 }
 
 void RequestProcessor::_handle_virtual_host(int fd)

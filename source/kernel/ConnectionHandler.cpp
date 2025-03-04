@@ -260,6 +260,9 @@ void ConnectionHandler::_handle_write(int fd)
         // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);
     }
+    else if (process_state & CONSUME_BODY) {
+        _processor.process(fd);
+    }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
         Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);

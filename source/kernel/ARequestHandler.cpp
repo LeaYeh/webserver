@@ -66,7 +66,7 @@ bool ARequestHandler::_check_path_permission(const std::string& path,
         // directory
         else {
             return (access(base_dir.c_str(), type));
-    }
+        }
     }
     // if the path is a directory, check the permission of the directory
     return (access(base_dir.c_str(), type) == 0);
@@ -235,12 +235,19 @@ bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
 
 void ARequestHandler::_pre_process(const webshell::Request& request)
 {
+    const webconfig::RequestConfig& config = request.config();
+
     if (!_check_path_format(request.uri().path)) {
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
     }
     if (!_check_method_limit(request.method(), request.config().limit_except)) {
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
+    }
+    _target_path = _get_resource_path(config, request.uri().path);
+    if (_target_path.find(config.root) == std::string::npos) {
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Forbidden out of root");
     }
     // std::string session_id = request.get_cookie("session_id");
 

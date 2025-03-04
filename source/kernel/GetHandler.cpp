@@ -61,13 +61,6 @@ webshell::Response GetHandler::handle(int fd,
 void GetHandler::_pre_process(const webshell::Request& request)
 {
     ARequestHandler::_pre_process(request);
-    const webconfig::RequestConfig& config = request.config();
-
-    _target_path = _get_resource_path(config, request.uri().path);
-    if (_target_path.find(config.root) == std::string::npos) {
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden out of root");
-    }
     LOG(weblog::DEBUG, "GetHandler: target path: " + _target_path);
 }
 

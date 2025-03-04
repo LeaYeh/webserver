@@ -38,6 +38,7 @@ private:
     std::vector<std::string> _get_env(webshell::Request& request);
     char** _convert_to_str_array(std::vector<std::string> vec);
     void _free_array(char** arr, size_t size);
+    void _close_all_fds(std::vector<int> vec);
 
     IHandler* _handler;
 };

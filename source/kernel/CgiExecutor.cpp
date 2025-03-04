@@ -17,6 +17,7 @@
 #include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <vector>
 
 extern char** environ;
 
@@ -108,6 +109,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                 throw ReturnWithUnwind(FAILURE);
             //we catch this in the main so all destructors are called before
             //close all fds here in a loop
+            std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
+            _close_all_fds(fd_vec);
             execve(_script_path.c_str(), argv, env);
             throw ReturnWithUnwind(FAILURE);
             // throw ExecuteWithUnwind(strdup(_script_path.c_str()), argv, env);
@@ -122,6 +125,16 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         close(pipefd[0]);
         close(pipefd[1]);
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what());
+    }
+}
+
+void CgiExecutor::_close_all_fds(std::vector<int> vec)
+{
+    std::vector<int>::iterator iter = vec.begin();
+    while (iter != vec.end())
+    {
+        close(*iter);
+        iter++;
     }
 }
 

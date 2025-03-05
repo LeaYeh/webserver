@@ -120,6 +120,11 @@ void Reactor::modify_handler(int fd,
     }
 }
 
+void Reactor::destroy_tree()
+{
+    close(_epoll_fd);
+}
+
 void Reactor::remove_handler(int fd)
 {
     std::map<int, IHandler*>::iterator it = _handlers.find(fd);

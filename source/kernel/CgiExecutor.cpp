@@ -111,6 +111,7 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             //close all fds here in a loop
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
+            Reactor::instance()->destroy_tree();
             execve(_script_path.c_str(), argv, env);
             throw ReturnWithUnwind(FAILURE);
             // throw ExecuteWithUnwind(strdup(_script_path.c_str()), argv, env);

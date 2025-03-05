@@ -403,13 +403,13 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
     _config.route = location_config->route();
     _config.limit_except = location_config->limit_except();
     _config.root = location_config->root();
+    _config.alias = location_config->alias();
     _config.index = location_config->index();
     _config.redirect = location_config->redirect();
     _config.autoindex = location_config->autoindex();
     _config.cgi_extension = location_config->cgi_extension();
     _config.cgi_path = location_config->cgi_path();
     _config.enable_upload = location_config->enable_upload();
-    _config.upload_path = location_config->upload_path();
 }
 
 void Request::_check_hexdigit(unsigned char c)

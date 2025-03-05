@@ -1,6 +1,7 @@
 #include "DeleteHandler.hpp"
 #include "ARequestHandler.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
@@ -38,9 +39,7 @@ webshell::Response DeleteHandler::handle(int fd,
 void DeleteHandler::_pre_process(const webshell::Request& request)
 {
     ARequestHandler::_pre_process(request);
-    const webconfig::RequestConfig& config = request.config();
-
-    _target_path = config.root + request.uri().path;
+    LOG(weblog::DEBUG, "DeleteHandler: target path: " + _target_path);
 }
 
 std::string DeleteHandler::_process(int fd,

@@ -53,10 +53,23 @@ bool ARequestHandler::_check_path_format(const std::string& path) const
 bool ARequestHandler::_check_path_permission(const std::string& path,
                                              const int type) const
 {
-    if (access(path.c_str(), type) == -1) {
-        return (false);
+    const std::string base_dir = utils::basefolder(path);
+    const bool is_dir = utils::is_directory(base_dir);
+
+    // if the path is a file
+    if (!is_dir) {
+        // if the file exist, check the permission of the file
+        if (access(path.c_str(), F_OK) == 0) {
+            return (access(path.c_str(), type) == 0);
+        }
+        // if the file does not exist, check the permission of the parent
+        // directory
+        else {
+            return (access(base_dir.c_str(), type));
+        }
     }
-    return (true);
+    // if the path is a directory, check the permission of the directory
+    return (access(base_dir.c_str(), type) == 0);
 }
 
 bool ARequestHandler::_is_out_of_max_file_size(
@@ -66,7 +79,8 @@ bool ARequestHandler::_is_out_of_max_file_size(
     struct stat file_stat;
 
     if (stat(file_path.c_str(), &file_stat) == -1 || file_stat.st_size < 0) {
-        throw std::runtime_error("ARequestHandler: failed to get file stat");
+        throw std::runtime_error("ARequestHandler: failed to get file stat: "
+                                 + file_path);
     }
     if ((size_t)file_stat.st_size > config.client_max_body_size) {
         return (true);
@@ -150,13 +164,14 @@ std::string ARequestHandler::_get_encoding_string(int encoding) const
 }
 
 int ARequestHandler::_get_respones_encoding(
-    const webshell::Request& request) const
+    const webshell::Request& request,
+    const std::string resource_path) const
 {
     int encoding = webkernel::IDENTITY;
     const webconfig::RequestConfig& config = request.config();
 
     if (request.method() == webshell::GET
-        && _is_out_of_max_file_size(config, config.root + request.uri().path)) {
+        && _is_out_of_max_file_size(config, resource_path)) {
         encoding |= webkernel::CHUNKED;
     }
     if (request.has_header("transfer-encoding")) {
@@ -175,18 +190,18 @@ std::string
 ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
                                     const std::string& request_path) const
 {
+    std::string base_dir = config.root;
+    std::string resource_path = request_path.substr(config.route.size());
     std::string full_path;
 
-    // the root might be includeed in the path
-    full_path = request_path;
-    if (!utils::start_with(request_path, config.root)) {
-        full_path = config.root + request_path;
+    if (!config.alias.empty()) {
+        base_dir = config.alias;
     }
-    // Check if the path is a directory or a file
-    if (utils::is_directory(full_path)) {
+    full_path = utils::join(base_dir, resource_path);
+    if (utils::is_directory(full_path) && !config.autoindex) {
         full_path = utils::join(full_path, config.index);
     }
-    return (full_path);
+    return full_path;
 }
 
 void ARequestHandler::_handle_exception(
@@ -209,8 +224,8 @@ void ARequestHandler::_update_status(EventProcessingState& state,
         state = static_cast<EventProcessingState>(state | flags);
     }
     LOG(weblog::DEBUG,
-                        "ARequestHandler: update status to "
-                            + explain_event_processing_state(state));
+        "ARequestHandler: update status to "
+            + explain_event_processing_state(state));
 }
 
 bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
@@ -220,12 +235,19 @@ bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
 
 void ARequestHandler::_pre_process(const webshell::Request& request)
 {
+    const webconfig::RequestConfig& config = request.config();
+
     if (!_check_path_format(request.uri().path)) {
         throw utils::HttpException(webshell::BAD_REQUEST, "Bad request");
     }
     if (!_check_method_limit(request.method(), request.config().limit_except)) {
         throw utils::HttpException(webshell::METHOD_NOT_ALLOWED,
                                    "Method not allowed");
+    }
+    _target_path = _get_resource_path(config, request.uri().path);
+    if (_target_path.find(config.root) == std::string::npos) {
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "Forbidden out of root");
     }
     // std::string session_id = request.get_cookie("session_id");
 
@@ -234,7 +256,6 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
     //     weblog::Logger::log(weblog::DEBUG,
     //                         "Create new session id: " + session_id);
     // }
-
 }
 
 } // namespace webkernel

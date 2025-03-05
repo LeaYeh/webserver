@@ -23,13 +23,13 @@ struct RequestConfig
     std::string route;
     std::vector<webshell::RequestMethod> limit_except;
     std::string root;
+    std::string alias;
     std::string index;
     std::string redirect;
     bool autoindex;
     std::string cgi_extension;
     std::string cgi_path;
     bool enable_upload;
-    std::string upload_path;
 };
 
 } // namespace webconfig

@@ -32,6 +32,7 @@ webshell::Response GetHandler::handle(int fd,
             _update_status(state, PROCESSING, true);
         }
         if (!request.config().redirect.empty()) {
+            _update_status(state, COMPELETED, true);
             return (_handle_redirect(request.config().redirect));
         }
         if (_is_cgi_request(request)) {
@@ -60,13 +61,7 @@ webshell::Response GetHandler::handle(int fd,
 void GetHandler::_pre_process(const webshell::Request& request)
 {
     ARequestHandler::_pre_process(request);
-    const webconfig::RequestConfig& config = request.config();
-
-    _target_path = _get_resource_path(config, request.uri().path);
-    if (_target_path.find(config.root) == std::string::npos) {
-        throw utils::HttpException(webshell::FORBIDDEN,
-                                   "Forbidden out of root");
-    }
+    LOG(weblog::DEBUG, "GetHandler: target path: " + _target_path);
 }
 
 std::string GetHandler::_process(int fd,
@@ -89,7 +84,8 @@ std::string GetHandler::_process(int fd,
         _handle_autoindex(state, request.uri().path, config, content);
     }
     else {
-        if (_get_respones_encoding(request) & webkernel::CHUNKED) {
+        if (_get_respones_encoding(request, _target_path)
+            & webkernel::CHUNKED) {
             _handle_chunked(fd, state, _target_path, content);
         }
         else {
@@ -110,9 +106,8 @@ void GetHandler::_post_process(const webshell::Request& request,
     else {
         _response_headers["content-type"] = _get_mime_type(target_path);
     }
-    if (!utils::is_directory(target_path)
-        && (_get_respones_encoding(request) & webkernel::CHUNKED)) {
-        int encoding = _get_respones_encoding(request);
+    int encoding = _get_respones_encoding(request, _target_path);
+    if (!utils::is_directory(target_path) && (encoding & webkernel::CHUNKED)) {
         _response_headers["transfer-encoding"] = _get_encoding_string(encoding);
     }
     else {
@@ -187,22 +182,21 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     DIR* dir;
     struct dirent* ent;
     std::string list_items;
-    std::string target_path = _get_resource_path(config, request_path);
 
     LOG(weblog::DEBUG, "Handle autoindex: " + request_path);
 
-    if ((dir = opendir(target_path.c_str())) != NULL) {
+    if ((dir = opendir(_target_path.c_str())) != NULL) {
         std::string object_path;
         while ((ent = readdir(dir)) != NULL) {
             object_path = utils::join(request_path, std::string(ent->d_name));
             list_items +=
                 "<tr><td><a href=\"" + object_path + "\">"
                 + std::string(ent->d_name) + "</a></td><td>"
-                + get_object_type(target_path + std::string(ent->d_name))
+                + get_object_type(_target_path + std::string(ent->d_name))
                 + "</td><td>"
-                + get_object_size(target_path + std::string(ent->d_name))
+                + get_object_size(_target_path + std::string(ent->d_name))
                 + "</td><td>"
-                + get_object_mtime(target_path + std::string(ent->d_name))
+                + get_object_mtime(_target_path + std::string(ent->d_name))
                 + "</td></tr>";
         }
         closedir(dir);
@@ -210,7 +204,7 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Open directory failed for autoindex: "
-                                       + target_path);
+                                       + _target_path);
     }
     try {
         _template_engine.load_template(config.autoindex_page);

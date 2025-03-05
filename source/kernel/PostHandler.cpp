@@ -30,8 +30,7 @@ webshell::Response PostHandler::handle(int fd,
             _pre_process(request);
         }
         _update_status(state, PROCESSING);
-        if (_is_cgi_request(request))
-        {
+        if (_is_cgi_request(request)) {
             std::string temp_file_path = request.read_chunked_body();
             if (temp_file_path.empty()) {
                 _update_status(state, HANDLE_CHUNKED);
@@ -69,7 +68,7 @@ PostHandler::_handle_completed(const webshell::Request& request)
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                        "Failed to remove existing file");
         }
-        message = "File already exists, append the content";
+        message = "File already exists, replace the content";
         status_code = webshell::OK;
     }
     else {
@@ -89,9 +88,7 @@ PostHandler::_handle_completed(const webshell::Request& request)
 void PostHandler::_pre_process(const webshell::Request& request)
 {
     ARequestHandler::_pre_process(request);
-    const webconfig::RequestConfig& config = request.config();
 
-    _target_path = config.root + config.upload_path;
     _upload_file_path = _generate_safe_file_path(request);
 }
 
@@ -100,10 +97,10 @@ std::string PostHandler::_process(int fd,
                                   webshell::Request& request)
 {
     (void)fd;
-    weblog::Logger::log(weblog::DEBUG,
-                        "PostHandler: handle the request with target path: "
-                            + _target_path);
+    LOG(weblog::DEBUG,
+        "PostHandler: handle the request with target path: " + _target_path);
     _check_upload_permission(request);
+    // TODO: need to handle upload file to file which is not exist
     if (!_check_path_permission(_target_path, W_OK)) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "No write permission on file: "

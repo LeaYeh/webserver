@@ -324,8 +324,6 @@ void ConnectionHandler::_send_error(int fd)
     else {
         LOG(weblog::DEBUG,
             "Error buffer found for fd: " + utils::to_string(fd));
-        LOG(weblog::DEBUG,
-            "Error content: \n" + utils::replaceCRLF(_error_buffer[fd]));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
         // TODO: need to check the send return value for 0 and -1

@@ -41,7 +41,8 @@ protected:
                                   const std::string file_path) const;
     virtual bool _check_path_permission(const std::string& path,
                                         const int type) const;
-    int _get_respones_encoding(const webshell::Request& request) const;
+    int _get_respones_encoding(const webshell::Request& request,
+                               const std::string resource_path) const;
     std::string _get_encoding_string(int encoding) const;
     std::string _get_resource_path(const webconfig::RequestConfig& config,
                                    const std::string& path) const;

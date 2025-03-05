@@ -1,5 +1,6 @@
 #pragma once
 #include "Reactor.hpp"
+#include "Request.hpp"
 #include "RequestAnalyzer.hpp"
 #include "RequestConfig.hpp"
 #include "Timer.hpp"
@@ -43,6 +44,7 @@ private:
     void _setup_timer(int fd, const webconfig::RequestConfig& config);
     void _handle_keep_alive(int fd);
     void _end_request(int fd);
+    bool _need_consume_body(webshell::Request& request);
 
 private:
     RequestProcessor();

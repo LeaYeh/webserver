@@ -283,7 +283,8 @@ enum EventProcessingState
     HANDLE_FIRST_CHUNKED = 0b00010000,  // 16
     HANDLE_CHUNKED = 0b00100000,        // 32
     COMPELETED = 0b01000000,            // 64
-    ERROR = 0b10000000,                 // 128
-    UNKNOWN = 0b100000000               // 256
+    CONSUME_BODY = 0b10000000,          // 128
+    ERROR = 0b100000000,                // 256
+    UNKNOWN = 0b1000000000              // 512
 };
 } // namespace webkernel

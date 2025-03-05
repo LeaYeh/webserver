@@ -194,7 +194,10 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
     std::string resource_path = request_path.substr(config.route.size());
     std::string full_path;
 
-    if (!config.alias.empty()) {
+    if (!config.cgi_path.empty()) {
+        base_dir = config.cgi_path;
+    }
+    else if (!config.alias.empty()) {
         base_dir = config.alias;
     }
     full_path = utils::join(base_dir, resource_path);

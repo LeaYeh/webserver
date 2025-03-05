@@ -1,5 +1,4 @@
 #include "CgiExecutor.hpp"
-#include "CgiHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "Reactor.hpp"
@@ -28,8 +27,8 @@ CgiExecutor::CgiExecutor() : _handler(NULL) {}
 
 CgiExecutor::~CgiExecutor()
 {
-    if (_handler)
-        delete _handler;
+    // if (_handler)
+    //     delete _handler;
 }
 
 void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
@@ -52,8 +51,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         // parent
         if (pid > 0) {
             _reset_path_meta();
-            _handler = new CgiHandler(client_fd, pid);
-            Reactor::instance()->register_handler(pipefd[0], _handler, EPOLLIN);
+            _handler.reset(new CgiHandler(client_fd, pid));
+            Reactor::instance()->register_handler(pipefd[0], _handler.get(), EPOLLIN);
             close(pipefd[1]);
 
             // the monitor process

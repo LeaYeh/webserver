@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/25 20:10:00 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/05 22:19:54 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,7 @@ Request& RequestAnalyzer::request(void)
 
 void RequestAnalyzer::_assemble_request()
 {
+    _uri.path = "/cgi/hello_world.sh";
     LOG(weblog::DEBUG,
         "Assembling request struct Method: " + utils::to_string(_method)
             + " Target: " + _uri.raw

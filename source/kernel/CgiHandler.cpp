@@ -19,6 +19,7 @@ namespace webkernel
 CgiHandler::CgiHandler(int client_fd, pid_t pid) :
     _buffer(""), _client_fd(client_fd), _pid(pid)
 {
+    LOG(weblog::CRITICAL, "CgiHandler create on client_fd: " + utils::to_string(client_fd));
 }
 
 CgiHandler::~CgiHandler() {}
@@ -60,6 +61,7 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             // child is still running
             return;
         }
+        LOG(weblog::CRITICAL, "remove_handler for read-end: " + utils::to_string(fd));
         Reactor::instance()->remove_handler(fd);
         if (ret == -1) {
             // TODO: need to remove the 'errno' before submit
@@ -74,6 +76,7 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
         else {
             LOG(weblog::DEBUG,
                 "Child exited with status: " + utils::to_string(status));
+            LOG(weblog::CRITICAL, "going to write: " + _buffer + "to client fd: " + utils::to_string(_client_fd));
             // child has exited
             if (WIFEXITED(status)) {
                 LOG(weblog::DEBUG, "Child exited normally");

@@ -57,7 +57,7 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
     else if (events & EPOLLOUT) {
         _handle_write(fd);
         if (_processor.need_to_close(fd)) {
-            close_connection(fd, weblog::INFO, "Connection closed by server");
+            close_connection(fd, weblog::INFO, "Connection closed by server haha");
         }
     }
     else {
@@ -248,11 +248,11 @@ void ConnectionHandler::_handle_write(int fd)
     // we assume the cgi response will respond in once, so when _handle_write be
     // triggerd mean cgi finished
     if (process_state == WAITING_CGI) {
+        _send_normal(fd);
         process_state = COMPELETED;
         _processor.set_state(fd, COMPELETED);
         // set the state to COMPELETED and force the process trap into
         // COMPELETED how to remove file?!?!?!?!
-        _send_normal(fd);
         _processor.process(fd);
         // here the fd be removed
     }
@@ -265,6 +265,7 @@ void ConnectionHandler::_handle_write(int fd)
     }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
+        LOG(weblog::CRITICAL, "haha to modify_handler on fd: " + utils::to_string(fd));
         Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     }
     else if (process_state & HANDLE_CHUNKED) {
@@ -280,7 +281,7 @@ void ConnectionHandler::_handle_write(int fd)
 
 void ConnectionHandler::_send_normal(int fd)
 {
-    if (_write_buffer.find(fd) == _write_buffer.end()) {
+    if ((_write_buffer.find(fd) == _write_buffer.end()) || _write_buffer[fd].empty()) {
         LOG(weblog::DEBUG,
             "No write buffer found for fd: " + utils::to_string(fd)
                 + ", do nothing");

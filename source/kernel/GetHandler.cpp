@@ -25,6 +25,8 @@ webshell::Response GetHandler::handle(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
+    if (state == COMPELETED)
+        return (webshell::Response());
     std::string content;
     try {
         if (state == INITIAL) {
@@ -39,8 +41,9 @@ webshell::Response GetHandler::handle(int fd,
             // the cgi output is handled by the CgiHandler, so nothing could be
             // responded here
             // TODO: refactor the Response
+            
             _cgi_executor.cgi_exec(request, fd);
-            _update_status(state, COMPELETED, true);
+            _update_status(state, WAITING_CGI, true);
             return (webshell::Response());
         }
         content = _process(fd, state, request);

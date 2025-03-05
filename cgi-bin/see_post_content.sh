@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ -z "$CONTENT_LENGTH" ]; then
     post_content=""
 else

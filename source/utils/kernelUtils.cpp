@@ -135,7 +135,10 @@ std::string explain_event_processing_state(EventProcessingState state)
     if (state & HANDLE_OTHERS_CHUNKED) {
         explanation += "HANDLE_OTHERS_CHUNKED ";
     }
-
+    if (state & UNKNOWN)
+        explanation += "UNKNOWN ";
+    if (state & WAITING_CGI)
+        explanation += "WAITING_CGI ";
     return (explanation);
 }
 

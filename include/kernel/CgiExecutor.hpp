@@ -1,8 +1,9 @@
-#include "IHandler.hpp"
+#include "CgiHandler.hpp"
 #include "Request.hpp"
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -22,6 +23,7 @@ private:
     std::string _script_path;
     std::string _script_name;
     std::string _path_info;
+    std::auto_ptr<CgiHandler> _handler;
 
 private:
     CgiExecutor(const CgiExecutor& other);
@@ -39,8 +41,6 @@ private:
     char** _convert_to_str_array(std::vector<std::string> vec);
     void _free_array(char** arr, size_t size);
     void _close_all_fds(std::vector<int> vec);
-
-    IHandler* _handler;
 };
 
 } // namespace webkernel

@@ -30,7 +30,8 @@ Config::Config(const std::string& filename) : _current_block_level(GLOBAL)
     if (!_file_stream.is_open() || !_file_stream.good()) {
         throw std::runtime_error("Failed to open file: " + _filename);
     }
-    _parse();
+    _parse(); //TODO: this constructor throws sometimes
+    _file_stream.close();
 }
 
 std::string Config::filename(void) const

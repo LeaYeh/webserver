@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:54 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:49:23 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/02 00:01:01 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ private:
     std::map<std::string, std::string> _cookie_map;
     std::string _key;
     std::string _val;
+    bool _escape;
 
 private:
     void _start_header(unsigned char c);
@@ -53,6 +54,8 @@ private:
     void _field_end_crlf(unsigned char c);
     void _check_obs_fold(unsigned char c);
     void _header_end_crlf(unsigned char c);
+    void _quoted(unsigned char c);
+
 };
 
 } // namespace webshell

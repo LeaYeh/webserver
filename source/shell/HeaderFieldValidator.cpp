@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:50:20 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/01 21:36:36 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,7 +369,6 @@ void HeaderFieldValidator::_feed_hostname(unsigned char c)
     case URI_HOST_REGNAME:
         _uri_host_regname(c);
         break;
-    // TODO: can (should) we do IPV6 as well?
     case URI_PORT:
         _uri_port(c);
         break;

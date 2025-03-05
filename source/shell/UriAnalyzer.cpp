@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:49:33 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/01 21:39:05 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -351,9 +351,7 @@ void UriAnalyzer::_uri_host_ipv4(unsigned char c)
         if (!_ipv_digit) {
             goto except;
         }
-        else {
-            _ipv_digit = false;
-        }
+        _ipv_digit = false;
         _ipv_dot++;
         _host.push_back(c);
     }

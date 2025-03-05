@@ -29,6 +29,7 @@ public:
     void
     modify_handler(int fd, uint32_t events_to_add, uint32_t events_to_remove);
     std::vector<int /* fd */> get_active_fds(void) const;
+    void destroy_tree();
 
     class InterruptException : public std::exception
     {

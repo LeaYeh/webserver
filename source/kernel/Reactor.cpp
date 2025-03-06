@@ -96,6 +96,12 @@ void Reactor::modify_handler(int fd,
                              uint32_t events_to_add,
                              uint32_t events_to_remove)
 {
+    if (!handler_exists(fd))
+    {
+        LOG(weblog::CRITICAL, "Try to modify non-exist handler on fd: " + utils::to_string(fd));
+        // close(fd);
+        return;
+    }
     struct epoll_event ev = {.events = 0, .data = {0}};
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
@@ -125,20 +131,27 @@ void Reactor::destroy_tree()
     close(_epoll_fd);
 }
 
+bool Reactor::handler_exists(int fd) const {
+    std::map<int, IHandler*>::const_iterator it = _handlers.find(fd);
+    return (it != _handlers.end());
+}
+
 void Reactor::remove_handler(int fd)
 {
-    std::map<int, IHandler*>::iterator it = _handlers.find(fd);
-    if (it != _handlers.end()) {
-        LOG(weblog::DEBUG, "Removed handler with fd: " + utils::to_string(fd));
-        if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1) {
-            throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on "
-                                     + utils::to_string(fd) + ": "
-                                     + std::string(strerror(errno)));
-        }
-        close(it->first);
-        // delete it->second;
-        _handlers.erase(it);
+    if (!handler_exists(fd))
+    {
+        LOG(weblog::CRITICAL, "Try to remove non-exist handle on fd: " + utils::to_string(fd));
+        return;
     }
+    LOG(weblog::DEBUG, "Removed handler with fd: " + utils::to_string(fd));
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1) {
+        throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on "
+                                    + utils::to_string(fd) + ": "
+                                    + std::string(strerror(errno)));
+    }
+    close(fd);
+    // delete it->second;
+    _handlers.erase(fd);
 }
 
 std::vector<int> Reactor::get_active_fds(void) const
@@ -182,9 +195,10 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
     for (int i = 0; i < nfds; i++) {
         int fd = events[i].data.fd;
 
-        if (_handlers.find(fd) == _handlers.end()) {
-            throw std::runtime_error("Handler not found for fd: "
-                                     + utils::to_string(fd));
+        if (!handler_exists(fd))
+        {
+            LOG(weblog::CRITICAL, "Try to process non-exist handler.");
+            continue;
         }
         try {
             LOG(weblog::DEBUG,

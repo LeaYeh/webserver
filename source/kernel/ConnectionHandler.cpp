@@ -89,6 +89,7 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
         close_connection(fd, weblog::ERROR, "Write buffer allocation failed");
     }
 
+    // TODO: Check why who call the prepare_write even though the fd is not exist any more.
     _write_buffer[fd].append(buffer);
     Reactor::instance()->modify_handler(fd, EPOLLOUT, 0);
 }

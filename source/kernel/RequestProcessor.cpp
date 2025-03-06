@@ -48,7 +48,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         _analyzer_pool[fd] = webshell::RequestAnalyzer(&buffer);
         reset_state(fd);
     }
-    LOG(weblog::CRITICAL, "buffer: " + buffer);
+    LOG(weblog::WARNING, "buffer: " + buffer);
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
         if (_analyzer_pool[fd].is_complete()) {

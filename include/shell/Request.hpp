@@ -5,7 +5,6 @@
 #include "Uri.hpp"
 #include "defines.hpp"
 #include <cstddef>
-#include "UploadRecord2.hpp"
 #include <map>
 #include <string>
 
@@ -33,7 +32,6 @@ public:
     bool read_chunked_body(std::vector<char>& chunked_body);
 
     std::string read_chunked_body();
-    const UploadRecord2& uploader() const;
 
     void set_method(RequestMethod method);
     void set_uri(Uri uri);
@@ -43,6 +41,7 @@ public:
     void set_reference(std::string* read_buffer);
     void setup_config(webconfig::ConfigServerBlock* server_config);
     void set_cookies(std::map<std::string, std::string> cookies);
+    const std::string& temp_file_path() const;
 
 public:
     Request();
@@ -66,7 +65,7 @@ private:
     std::map<std::string, std::string> _cookies;
     std::string* _read_buffer;
     webconfig::RequestConfig _config;
-    UploadRecord2 _uploader;
+    std::string _temp_file_path;
 
 private:
     bool _proceed_content_len(std::vector<char>& chunked_body);
@@ -77,6 +76,7 @@ private:
     void _check_size_crlf(unsigned char c);
     void _check_body(unsigned char c);
     void _check_body_crlf(unsigned char c);
+    std::string _generate_temp_file_path();
 };
 
 } // namespace webshell

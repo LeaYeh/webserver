@@ -83,7 +83,7 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 
             if (request.method() == webshell::POST)
             {
-                int fd = open(request.uploader().temp_filename().c_str(), O_RDONLY);
+                int fd = open(request.temp_file_path().c_str(), O_RDONLY);
                 if (fd == -1)
                     throw ReturnWithUnwind(FAILURE);
                 if (dup2(fd, STDIN_FILENO) == -1)
@@ -263,7 +263,7 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     envp.push_back("PATH_INFO=" + _path_info);
 
     if (request.method() == webshell::POST) {
-        size_t file_size = get_file_size(request.uploader().temp_filename());
+        size_t file_size = get_file_size(request.temp_file_path());
         envp.push_back("CONTENT_LENGTH=" + utils::to_string(file_size));
     }
     else {

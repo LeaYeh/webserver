@@ -106,8 +106,7 @@ void RequestProcessor::process(int fd)
         if (state & COMPELETED) {
             _handler->prepare_write(fd, response.serialize());
             LOG(weblog::DEBUG,
-                "Removing the temp file: request.uploader().temp_filename()");
-            std::remove(request.uploader().temp_filename().c_str());
+                "Removing the temp file: request.temp_file_path()");
             _end_request(fd);
         }
     }
@@ -115,7 +114,6 @@ void RequestProcessor::process(int fd)
     else {
         _handler->prepare_write(fd, response.serialize());
         if (state & COMPELETED) {
-            std::remove(request.uploader().temp_filename().c_str());
             if (_need_consume_body(request)) {
                 set_state(fd, CONSUME_BODY);
                 return;

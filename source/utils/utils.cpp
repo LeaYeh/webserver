@@ -138,7 +138,14 @@ size_t convert_to_size(const std::string& str)
     std::string size_str = str.substr(0, pos + 1);
     size_t size = stoi(size_str);
 
-    if (str[pos] == 'k' || str[pos] == 'K') {
+    if (pos > 3) {
+        throw std::invalid_argument("convert_to_size: invalid argument: "
+                                    + str);
+    }
+    if (str[pos] == 'b' || str[pos] == 'B') {
+        size *= 1;
+    }
+    else if (str[pos] == 'k' || str[pos] == 'K') {
         size *= 1024;
     }
     else if (str[pos] == 'm' || str[pos] == 'M') {
@@ -146,6 +153,10 @@ size_t convert_to_size(const std::string& str)
     }
     else if (str[pos] == 'g' || str[pos] == 'G') {
         size *= 1024 * 1024 * 1024;
+    }
+    else {
+        throw std::invalid_argument("convert_to_size: invalid argument: "
+                                    + str);
     }
     return (size);
 }

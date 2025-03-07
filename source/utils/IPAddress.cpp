@@ -1,6 +1,7 @@
 #include "IPAddress.hpp"
 #include "utils.hpp"
 #include <arpa/inet.h>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -10,14 +11,14 @@ namespace utils
 
 bool IPAddress::is_ipv4(const std::string& ip)
 {
-    std::string::size_type pos = 0;
-    int count = 0;
-    int num = 0;
+    size_t count = 0;
+    size_t pos = 0;
+    size_t num = 0;
     bool segment_start = true;
 
     while (pos < ip.size()) {
         if (std::isdigit(ip[pos])) {
-            if (segment_start && ip[pos] == '0' && pos + 1 < ip.size()
+            if (segment_start && ip[pos] == '0' && (pos + 1) < ip.length()
                 && std::isdigit(ip[pos + 1])) {
                 return (false);
             }
@@ -25,7 +26,7 @@ bool IPAddress::is_ipv4(const std::string& ip)
             num = num * 10 + (ip[pos] - '0');
         }
         else if (ip[pos] == '.') {
-            if (num > 255) {
+            if (num > 255 || pos > (count * 3 + 3)) {
                 return (false);
             }
             num = 0;

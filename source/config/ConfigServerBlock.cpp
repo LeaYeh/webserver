@@ -3,6 +3,7 @@
 #include "configUtils.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
+#include "IPAddress.hpp"
 #include <string>
 
 namespace webconfig
@@ -150,7 +151,17 @@ ConfigServerBlock::_parse_listen(const std::string& line,
 
     size_t pos = value.find(":");
     if (pos == std::string::npos) {
-        return std::make_pair(value, std::string("80"));
+        throw std::invalid_argument("Listen directive has invalid value: "
+                                    + value);
+    }
+    std::string ip = value.substr(0, pos);
+    std::string port = value.substr(pos + 1);
+    if (!utils::IPAddress::is_valid_ip(ip)) {
+        throw std::invalid_argument("Listen directive has invalid IP: " + ip);
+    }
+    if (!utils::IPAddress::is_valid_port(port)) {
+        throw std::invalid_argument("Listen directive has invalid port: "
+                                    + port);
     }
     return (std::make_pair(value.substr(0, pos), value.substr(pos + 1)));
 }

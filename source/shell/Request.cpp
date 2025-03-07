@@ -4,6 +4,8 @@
 #include "ConfigLocationBlock.hpp"
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
+#include "kernelUtils.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
@@ -31,6 +33,7 @@ Request::Request() :
     _cookies(),
     _read_buffer()
 {
+    _temp_file_path = _generate_temp_file_path();
 }
 
 Request::Request(std::string* buffer) :
@@ -44,6 +47,7 @@ Request::Request(std::string* buffer) :
     _cookies(),
     _read_buffer(buffer)
 {
+    _temp_file_path = _generate_temp_file_path();
 }
 
 Request::Request(const Request& other) :
@@ -56,7 +60,8 @@ Request::Request(const Request& other) :
     _headers(other._headers),
     _cookies(other._cookies),
     _read_buffer(other._read_buffer),
-    _config(other._config)
+    _config(other._config),
+    _temp_file_path(other._temp_file_path)
 {
 }
 
@@ -73,6 +78,7 @@ Request& Request::operator=(const Request& other)
         _cookies = other._cookies;
         _read_buffer = other._read_buffer;
         _config = other._config;
+        _temp_file_path = other._temp_file_path;
     }
     return (*this);
 }
@@ -174,6 +180,11 @@ void Request::set_cookies(std::map<std::string, std::string> cookies)
     _cookies = cookies;
 }
 
+const std::string& Request::temp_file_path() const
+{
+    return (_temp_file_path);
+}
+
 void Request::set_headers(std::map<std::string, std::string> headers)
 {
     _headers = headers;
@@ -218,16 +229,11 @@ std::string Request::read_chunked_body()
     }
     _write_chunked_file(chunked_body);
     if (is_eof) {
-        return _uploader.temp_filename();
+        return _temp_file_path;
     }
     else {
         return "";
     }
-}
-
-const UploadRecord2& Request::uploader() const
-{
-    return (_uploader);
 }
 
 bool Request::read_chunked_body(std::vector<char>& chunked_body)
@@ -244,13 +250,16 @@ bool Request::read_chunked_body(std::vector<char>& chunked_body)
 
 void Request::_write_chunked_file(const std::vector<char>& content)
 {
-    std::ofstream& file_stream = _uploader.file_stream;
+    std::ofstream file_stream;
     size_t remaining = content.size();
     size_t offset = 0;
 
+    LOG(weblog::DEBUG, "Write chunked file: " + _temp_file_path);
+    file_stream.open(_temp_file_path.c_str(),
+                     std::ios::out | std::ios::binary | std::ios::trunc);
     if (!file_stream.is_open()) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "File stream is not open");
+                                   "haha File stream is not open");
     }
     while (remaining > 0) {
         size_t write_size =
@@ -477,6 +486,14 @@ void Request::_check_body_crlf(unsigned char c)
                                    "Chunk should end with CRLF",
                                    webshell::TEXT_PLAIN);
     }
+}
+
+std::string Request::_generate_temp_file_path()
+{
+    std::string folder = "./tmp/";
+    std::string temp_file_path = folder + webkernel::uuid();
+
+    return (temp_file_path);
 }
 
 } // namespace webshell

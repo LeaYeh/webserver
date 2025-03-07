@@ -119,8 +119,17 @@ size_t ConfigHttpBlock::_parse_client_max_body_size(const std::string& line)
 {
     std::string directive = _get_directive_name(line);
     std::string value = extract_directive_value(line, directive);
+    size_t size;
 
-    return (utils::convert_to_size(value));
+    try {
+        size = utils::convert_to_size(value);
+    }
+    catch (const std::exception& e) {
+        throw std::invalid_argument("client_max_body_size: invalid argument: "
+                                    + value);
+    }
+
+    return (size);
 }
 
 webshell::ContentType

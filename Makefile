@@ -1,4 +1,5 @@
 PROJECT					= webserv
+ROOT_DIR				= .
 BUILD_DIR				= build
 NAME					= ./$(BUILD_DIR)/$(PROJECT)
 CMAKE_ARGS				= -DCMAKE_CXX_COMPILER=c++
@@ -14,7 +15,7 @@ cmake_build:
 	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && $(CMAKE) ..
 
-$(NAME): cmake_build
+$(NAME): cmake_build .init-tmp-dir
 	@if [ ! -f $(PROJECT) ] || [ -n "$$(find CMakeLists.txt source include -newer $(PROJECT) -print -quit 2>/dev/null)" ]; then \
 		$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS); \
 		echo ""; \
@@ -24,6 +25,10 @@ $(NAME): cmake_build
 	else \
 		echo ${STY_YEL}"No changes detected. Nothing to do."${STY_RES}; \
 	fi
+
+.init-tmp-dir:
+	echo "Creating tmp directory..."
+	@mkdir -p $(ROOT_DIR)/tmp
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8
@@ -42,6 +47,8 @@ clean:
 fclean: clean
 	@rm -f $(PROJECT)
 	@rm -f $(BUILD_DIR)/CMakeCache.txt
+	@echo $(STY_BLU)"[INFO] Clean the tmp folder"$(STY_RES)
+	@rm -rf $(ROOT_DIR)/tmp
 	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean

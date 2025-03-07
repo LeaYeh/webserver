@@ -44,9 +44,11 @@ webshell::Response PostHandler::handle(int fd,
         _process(fd, state, request);
     }
     catch (utils::HttpException& e) {
+        std::remove(_temp_file_path.c_str());
         _handle_exception(e, e.status_code(), webshell::TEXT_PLAIN);
     }
     catch (std::bad_alloc& e) {
+        std::remove(_temp_file_path.c_str());
         _handle_exception(e);
     }
     if (state & COMPELETED) {

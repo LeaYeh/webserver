@@ -74,7 +74,6 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             if (pid_unwanted_child == -1) {
                 close(pipefd[0]);
                 kill(pid, SIGKILL);
-                // return ; //TODO: why does this not work?
                 throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                            "Failed to fork monitor process");
             }

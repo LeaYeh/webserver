@@ -103,7 +103,6 @@ std::string PostHandler::_process(int fd,
     LOG(weblog::DEBUG,
         "PostHandler: handle the request with target path: " + _target_path);
     _check_upload_permission(request);
-    // TODO: need to handle upload file to file which is not exist
     if (!_check_path_permission(_target_path, W_OK)) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "No write permission on file: "

@@ -192,6 +192,16 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
             webshell::FORBIDDEN,
             "Script-Name does not have the correct extension.");
     }
+
+    if (access(_script_path.c_str(), F_OK) == -1)
+        throw utils::HttpException(
+            webshell::NOT_FOUND,
+            "Requested CGI script not found");
+    if (access(_script_path.c_str(), X_OK) == -1)
+        throw utils::HttpException(
+            webshell::FORBIDDEN,
+            "CGI script can not be executed");
+
     LOG(weblog::DEBUG, "_script_path: " + _script_path);
     LOG(weblog::DEBUG, "_script_name: " + _script_name);
     LOG(weblog::DEBUG, "_path_info: " + _path_info);

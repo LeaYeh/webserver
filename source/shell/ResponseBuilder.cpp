@@ -1,4 +1,5 @@
 #include "ResponseBuilder.hpp"
+#include "Config.hpp"
 #include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
@@ -74,12 +75,18 @@ std::string ResponseBuilder::_render_error_page(StatusCode status_code,
 {
     static webkernel::TemplateEngine template_engine;
 
-    // TODO: Replace the error page path with config
-    template_engine.load_template("./www/html/error_page.html");
-    template_engine.set_variable("STATUS_CODE", utils::to_string(status_code));
-    template_engine.set_variable("ERROR_REASON", message);
+    try {
+        template_engine.load_template(
+            webconfig::Config::instance()->http_block().error_page());
+        template_engine.set_variable("STATUS_CODE",
+                                     utils::to_string(status_code));
+        template_engine.set_variable("ERROR_REASON", message);
 
-    return (template_engine.render());
+        return (template_engine.render());
+    }
+    catch (const std::exception& e) {
+        return (error(INTERNAL_SERVER_ERROR, e.what(), TEXT_PLAIN).body());
+    }
 }
 
 std::string ResponseBuilder::_render_json(StatusCode status_code,

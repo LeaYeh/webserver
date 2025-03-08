@@ -92,6 +92,11 @@ std::string ConfigHttpBlock::autoindex_page(void) const
     return (_autoindex_page);
 }
 
+std::string ConfigHttpBlock::error_page(void) const
+{
+    return (_error_page);
+}
+
 void ConfigHttpBlock::_parse_config_directive(const std::string& line)
 {
     std::string directive = _get_directive_name(line);

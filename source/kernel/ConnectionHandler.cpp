@@ -1,4 +1,5 @@
 #include "ConnectionHandler.hpp"
+#include "CgiExecutor.hpp"
 #include "Config.hpp"
 #include "ConfigGlobalBlock.hpp"
 #include "HttpException.hpp"
@@ -72,6 +73,10 @@ void ConnectionHandler::close_connection(int fd,
                                          std::string message)
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
+    if (CgiExecutor::instance()->handler_exists(fd)) {
+        LOG(weblog::CRITICAL, "Remove cgi handler on fd: " + utils::to_string(fd));
+        CgiExecutor::instance()->remove_handler(fd);
+    }
     Reactor::instance()->remove_handler(fd);
     _processor.remove_state(fd);
     _processor.remove_analyzer(fd);
@@ -89,7 +94,8 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
         close_connection(fd, weblog::ERROR, "Write buffer allocation failed");
     }
 
-    // TODO: Check why who call the prepare_write even though the fd is not exist any more.
+    // TODO: Check why who call the prepare_write even though the fd is not
+    // exist any more.
     _write_buffer[fd].append(buffer);
     Reactor::instance()->modify_handler(fd, EPOLLOUT, 0);
 }
@@ -250,6 +256,7 @@ void ConnectionHandler::_handle_write(int fd)
     // triggerd mean cgi finished
     if (process_state == WAITING_CGI) {
         process_state = COMPELETED;
+
         _processor.set_state(fd, COMPELETED);
         // set the state to COMPELETED and force the process trap into
         // COMPELETED how to remove file?!?!?!?!

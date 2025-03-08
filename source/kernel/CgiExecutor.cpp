@@ -34,7 +34,7 @@ CgiExecutor::~CgiExecutor()
 {
     std::map<int, CgiHandler*>::iterator iter = _handler_map.begin();
     while (iter != _handler_map.end()) {
-        Reactor::instance()->remove_handler(iter->first);
+        // Reactor::instance()->remove_handler(iter->first);
         delete iter->second;
         iter++;
     }
@@ -143,10 +143,26 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
 
 void CgiExecutor::remove_handler(int fd)
 {
-    if (_handler_map.find(fd) != _handler_map.end()) {
-        Reactor::instance()->remove_handler(fd);
+    if (handler_exists(fd)) {
+        // TODO: check if the handler need to be removed from the reactor, the
+        // fd is the pipefd[0]
+        // Reactor::instance()->remove_handler(fd);
         delete _handler_map[fd];
         _handler_map.erase(fd);
+    }
+}
+
+bool CgiExecutor::handler_exists(int fd) const
+{
+    return (_handler_map.find(fd) != _handler_map.end());
+}
+
+void CgiExecutor::_clean_handlers()
+{
+    std::map<int, CgiHandler*>::iterator iter = _handler_map.begin();
+    while (iter != _handler_map.end()) {
+        remove_handler(iter->first);
+        iter++;
     }
 }
 

@@ -17,6 +17,7 @@ public:
     static CgiExecutor* create_instance();
     void cgi_exec(webshell::Request& request, int client_fd);
     void remove_handler(int fd);
+    bool handler_exists(int fd) const;
 
 public:
     ~CgiExecutor();
@@ -37,6 +38,7 @@ private:
     char** _convert_to_str_array(std::vector<std::string> vec);
     void _free_array(char** arr, size_t size);
     void _close_all_fds(std::vector<int> vec);
+    void _clean_handlers();
 
 private:
     CgiExecutor();

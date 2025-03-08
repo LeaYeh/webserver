@@ -1,5 +1,6 @@
+#pragma once
 #include "IHandler.hpp"
-#include "Request.hpp"
+#include <string>
 #include <cctype>
 #include <sys/epoll.h>
 

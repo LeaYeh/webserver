@@ -30,7 +30,6 @@ protected:
     TemplateEngine _template_engine;
     std::string _target_path;
     EventProcessingState _state;
-    CgiExecutor _cgi_executor;
 
 protected:
     bool _check_path_format(const std::string& path) const;

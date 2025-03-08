@@ -27,6 +27,7 @@ private:
     std::string _script_name;
     std::string _path_info;
     std::map<int /* client_fd */, CgiHandler*> _handler_map;
+    std::map<int /* client_fd */, int /* pipe_fd */> _pipe_map;
 
 private:
     void _reset_path_meta(void);

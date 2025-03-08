@@ -78,6 +78,8 @@ void ConnectionHandler::close_connection(int fd,
             "Remove cgi handler on fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }
+    // TODO: maybe this is the reason why we failed the cgi siege test
+    // TODO: Need to remove the handler from the reactor in different way
     Reactor::instance()->remove_handler(fd);
     _processor.remove_state(fd);
     _processor.remove_analyzer(fd);

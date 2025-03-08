@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/01 21:36:36 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/08 22:31:16 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,6 +143,13 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     }
 }
 
+/*
+Any Content-Length field value greater than or equal to zero is
+valid.  Since there is no predefined limit to the length of a
+payload, a recipient MUST anticipate potentially large decimal
+numerals and prevent parsing errors due to integer conversion
+overflows (RFC 7230).
+*/
 void HeaderFieldValidator::_validate_content_length(std::string& val)
 {
     size_t idx = 0;
@@ -154,6 +161,10 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
         }
         idx++;
     }
+    if (val.length() > 9)
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Can not process content length above 999999999",
+                                   webshell::TEXT_PLAIN);
 }
 
 void HeaderFieldValidator::_validate_cookie(std::string& val)

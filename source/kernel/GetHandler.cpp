@@ -71,6 +71,11 @@ std::string GetHandler::_process(int fd,
     std::string content;
     const webconfig::RequestConfig& config = request.config();
 
+    if (access(_target_path.c_str(), F_OK) == -1) {
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "Resource not found: "
+                                       + _target_path);
+    }
     if (access(_target_path.c_str(), R_OK) == -1) {
         throw utils::HttpException(webshell::FORBIDDEN,
                                    "Forbidden no read permission on file: "

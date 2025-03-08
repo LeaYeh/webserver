@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:35:36 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:48:12 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/09 00:34:30 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@ private:
     void _validate_host(std::string& val);
     void _feed_hostname(unsigned char c);
     void _uri_host_regname(unsigned char c);
+    void _uri_host_ipv6(unsigned char c);
+    void _uri_after_ipv6(unsigned char c);
     void _uri_port(unsigned char c);
 
     void _validate_content_length(std::string& val);

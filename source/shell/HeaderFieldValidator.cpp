@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/08 22:31:16 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/09 00:38:26 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ namespace webshell
 
 HeaderFieldValidator::HeaderFieldValidator()
 {
-    _host_state = URI_HOST_REGNAME;
+    _host_state = URI_HOST_TRIAL;
     _cookie_state = CO_OWS_START;
 }
 HeaderFieldValidator::~HeaderFieldValidator() {}
@@ -367,18 +367,28 @@ void HeaderFieldValidator::_validate_host(std::string& val)
 {
     int idx = 0;
     int size = val.size();
+    if (size > 0 && val[0] == '[')
+        _host_state = URI_HOST_IPV6;
+    else
+        _host_state = URI_HOST_IPV4_OR_REGNAME;
     while (idx < size) {
         _feed_hostname(val[idx]);
         idx++;
     }
-    _host_state = URI_HOST_REGNAME;
+    _host_state = URI_HOST_TRIAL;
 }
 
 void HeaderFieldValidator::_feed_hostname(unsigned char c)
 {
     switch (_host_state) {
-    case URI_HOST_REGNAME:
+    case URI_HOST_IPV4_OR_REGNAME:
         _uri_host_regname(c);
+        break;
+    case URI_HOST_IPV6:
+        _uri_host_ipv6(c);
+        break;
+    case URI_AFTER_IPV6:
+        _uri_after_ipv6(c);
         break;
     case URI_PORT:
         _uri_port(c);
@@ -388,6 +398,29 @@ void HeaderFieldValidator::_feed_hostname(unsigned char c)
             webshell::BAD_REQUEST,
             "Host header field value incorrect (switch case)");
     }
+}
+
+void HeaderFieldValidator::_uri_host_ipv6(unsigned char c)
+{
+    if (c == ']') {
+        _host_state = URI_AFTER_IPV6;
+    }
+    else if (_is_unreserved(c) || c == ':' || _is_sub_delim(c)) {
+        return ;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Invalid character at IPv6 Host header field");
+}
+
+void HeaderFieldValidator::_uri_after_ipv6(unsigned char c)
+{
+    if (c == ':') {
+        _host_state = URI_PORT;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "HeaderFieldValidator failed at post-IPv6 limbo");
 }
 
 void HeaderFieldValidator::_uri_host_regname(unsigned char c)

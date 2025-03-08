@@ -1,37 +1,34 @@
+#pragma once
 #include "CgiHandler.hpp"
 #include "Request.hpp"
+#include "Singleton.hpp"
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
-#include <memory>
+#include <map>
 #include <sys/wait.h>
 #include <unistd.h>
 
 namespace webkernel
 {
-class CgiExecutor
+class CgiExecutor : public templates::Singleton<CgiExecutor>
 {
 public:
+    static CgiExecutor* create_instance();
     void cgi_exec(webshell::Request& request, int client_fd);
-    // webshell::Response cgi_exec(webshell::Request& request, int client_fd);
+    void remove_handler(int fd);
+    bool handler_exists(int fd) const;
 
 public:
-    CgiExecutor();
     ~CgiExecutor();
 
 private:
     std::string _script_path;
     std::string _script_name;
     std::string _path_info;
-    std::auto_ptr<CgiHandler> _handler;
+    std::map<int /* client_fd */, CgiHandler*> _handler_map;
 
 private:
-    CgiExecutor(const CgiExecutor& other);
-    CgiExecutor& operator=(const CgiExecutor& other);
-
-    // std::string _replace_route(std::string route_path,
-    //                            const std::string& s1,
-    //                            const std::string& s2);
     void _reset_path_meta(void);
     void _setup_path_meta(const std::string& route,
                           const std::string& path,
@@ -41,6 +38,12 @@ private:
     char** _convert_to_str_array(std::vector<std::string> vec);
     void _free_array(char** arr, size_t size);
     void _close_all_fds(std::vector<int> vec);
+    void _clean_handlers();
+
+private:
+    CgiExecutor();
+    CgiExecutor(const CgiExecutor& other);
+    CgiExecutor& operator=(const CgiExecutor& other);
 };
 
 } // namespace webkernel

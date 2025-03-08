@@ -23,12 +23,21 @@ extern char** environ;
 namespace webkernel
 {
 
-CgiExecutor::CgiExecutor() : _handler(NULL) {}
+CgiExecutor::CgiExecutor() {}
+
+CgiExecutor* CgiExecutor::create_instance()
+{
+    return (new CgiExecutor());
+}
 
 CgiExecutor::~CgiExecutor()
 {
-    // if (_handler)
-    //     delete _handler;
+    std::map<int, CgiHandler*>::iterator iter = _handler_map.begin();
+    while (iter != _handler_map.end()) {
+        // Reactor::instance()->remove_handler(iter->first);
+        delete iter->second;
+        iter++;
+    }
 }
 
 void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
@@ -38,9 +47,9 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
     int pipefd[2];
 
     _setup_path_meta(request.config().route,
-        request.uri().path,
-        request.config().cgi_path,
-        request.config().cgi_extension);
+                     request.uri().path,
+                     request.config().cgi_path,
+                     request.config().cgi_extension);
     if (pipe(pipefd) == -1) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Failed to create pipe");
@@ -51,8 +60,12 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         // parent
         if (pid > 0) {
             _reset_path_meta();
-            _handler.reset(new CgiHandler(client_fd, pid));
-            Reactor::instance()->register_handler(pipefd[0], _handler.get(), EPOLLIN);
+            _handler_map[client_fd] = new CgiHandler(client_fd, pid);
+            Reactor::instance()->register_handler(
+                pipefd[0], _handler_map[client_fd], EPOLLIN);
+            // _handler.reset(new CgiHandler(client_fd, pid));
+            // Reactor::instance()->register_handler(
+            //     pipefd[0], _handler.get(), EPOLLIN);
             close(pipefd[1]);
 
             // the monitor process
@@ -81,13 +94,12 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             }
             close(pipefd[1]);
 
-            if (request.method() == webshell::POST)
-            {
+            if (request.method() == webshell::POST) {
                 int fd = open(request.temp_file_path().c_str(), O_RDONLY);
-                if (fd == -1)
+                if (fd == -1) {
                     throw ReturnWithUnwind(FAILURE);
-                if (dup2(fd, STDIN_FILENO) == -1)
-                {
+                }
+                if (dup2(fd, STDIN_FILENO) == -1) {
                     close(fd);
                     throw ReturnWithUnwind(FAILURE);
                 }
@@ -99,15 +111,16 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             argv[0] = strdup(_script_name.c_str());
             argv[1] = NULL;
 
-            char **env = _convert_to_str_array(_get_env(request));
+            char** env = _convert_to_str_array(_get_env(request));
 
             // for (int i = 0; env[i] != NULL; i++)
             //     std::cout << env[i] << std::endl;
 
-            if (env == NULL)
+            if (env == NULL) {
                 throw ReturnWithUnwind(FAILURE);
-            //we catch this in the main so all destructors are called before
-            //close all fds here in a loop
+            }
+            // we catch this in the main so all destructors are called before
+            // close all fds here in a loop
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
             Reactor::instance()->destroy_tree();
@@ -128,11 +141,35 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
     }
 }
 
+void CgiExecutor::remove_handler(int fd)
+{
+    if (handler_exists(fd)) {
+        // TODO: check if the handler need to be removed from the reactor, the
+        // fd is the pipefd[0]
+        // Reactor::instance()->remove_handler(fd);
+        delete _handler_map[fd];
+        _handler_map.erase(fd);
+    }
+}
+
+bool CgiExecutor::handler_exists(int fd) const
+{
+    return (_handler_map.find(fd) != _handler_map.end());
+}
+
+void CgiExecutor::_clean_handlers()
+{
+    std::map<int, CgiHandler*>::iterator iter = _handler_map.begin();
+    while (iter != _handler_map.end()) {
+        remove_handler(iter->first);
+        iter++;
+    }
+}
+
 void CgiExecutor::_close_all_fds(std::vector<int> vec)
 {
     std::vector<int>::iterator iter = vec.begin();
-    while (iter != vec.end())
-    {
+    while (iter != vec.end()) {
         close(*iter);
         iter++;
     }
@@ -163,23 +200,24 @@ void CgiExecutor::_reset_path_meta()
 
 // setup will be setup in main process
 void CgiExecutor::_setup_path_meta(const std::string& route,
-                                    const std::string& path,
-                                    const std::string& cgi_path,
-                                    const std::string& cgi_extension)
+                                   const std::string& path,
+                                   const std::string& cgi_path,
+                                   const std::string& cgi_extension)
 {
     size_t pos = path.find(route);
     if (pos == std::string::npos) {
-
-        throw std::runtime_error("A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
+        throw std::runtime_error("A cgi request[" + path
+                                 + "] cannot match cgi path: " + cgi_path);
     }
     pos += route.length();
-    // TODO: If the route end with '/' in config file, the config parser need to cry
+    // TODO: If the route end with '/' in config file, the config parser need to
+    // cry
     if (pos >= path.length() || path[pos] != '/') {
-        throw std::runtime_error("A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
+        throw std::runtime_error("A cgi request[" + path
+                                 + "] cannot match cgi path: " + cgi_path);
     }
     size_t pos_end_of_script_name = path.find('/', pos + 1);
-    if (pos_end_of_script_name != std::string::npos)
-    {
+    if (pos_end_of_script_name != std::string::npos) {
         _path_info = path.substr(pos_end_of_script_name + 1, std::string::npos);
     }
     _script_name = path.substr(pos + 1, pos_end_of_script_name - (pos + 1));
@@ -187,7 +225,8 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
     _script_path = utils::join(cgi_path, _script_name);
 
     if (_script_name.length() < cgi_extension.size()
-        || _script_name.substr(_script_name.length() - cgi_extension.size()) != cgi_extension) {
+        || _script_name.substr(_script_name.length() - cgi_extension.size())
+               != cgi_extension) {
         throw utils::HttpException(
             webshell::FORBIDDEN,
             "Script-Name does not have the correct extension.");
@@ -219,7 +258,7 @@ void CgiExecutor::_free_array(char** arr, size_t size)
 
 char** CgiExecutor::_convert_to_str_array(std::vector<std::string> vec)
 {
-    char **arr;
+    char** arr;
 
     try {
         arr = new char*[vec.size() + 1];
@@ -265,7 +304,8 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     envp.push_back("SERVER_SOFTWARE=webserv/1.0");
     envp.push_back("SERVER_NAME=" + request.config().server_name);
     envp.push_back("SERVER_PORT=" + request.uri().port);
-    envp.push_back("REQUEST_URI=" + request.uri().path + "?" + request.uri().query);
+    envp.push_back("REQUEST_URI=" + request.uri().path + "?"
+                   + request.uri().query);
     envp.push_back("QUERY_STRING=" + request.uri().query);
     envp.push_back("SCRIPT_NAME=" + request.uri().path);
     envp.push_back("PATH_TRANSLATED=" + request.uri().path);

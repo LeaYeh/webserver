@@ -1,11 +1,11 @@
 #include "Reactor.hpp"
-#include "CgiHandler.hpp"
+#include "CgiExecutor.hpp"
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
+#include "Logger.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
-#include "utils/Logger.hpp"
-#include "utils/utils.hpp"
+#include "utils.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <exception>
@@ -30,6 +30,8 @@ Reactor* Reactor::create_instance(const ReactorType& type)
 Reactor::Reactor(const ReactorType& type) : _type(type)
 {
     LOG(weblog::DEBUG, "Reactor::Reactor(" + utils::to_string(type) + ")");
+
+    CgiExecutor::instantiate();
     if (_type == REACTOR) {
         _epoll_fd = epoll_create1(0);
         ConnectionHandler::instantiate();
@@ -47,6 +49,7 @@ Reactor::Reactor(const ReactorType& type) : _type(type)
     if (_epoll_fd == -1) {
         throw std::runtime_error("epoll_create1 failed");
     }
+
     LOG(weblog::DEBUG, "Created epoll fd: " + utils::to_string(_epoll_fd));
 }
 
@@ -60,6 +63,7 @@ Reactor::~Reactor()
         close(it->first);
     }
     ConnectionHandler::destroy();
+    CgiExecutor::destroy();
 }
 
 void Reactor::run(void)

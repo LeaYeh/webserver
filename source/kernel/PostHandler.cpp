@@ -1,5 +1,6 @@
 #include "PostHandler.hpp"
 #include "ARequestHandler.hpp"
+#include "CgiExecutor.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "RequestConfig.hpp"
@@ -36,7 +37,7 @@ webshell::Response PostHandler::handle(int fd,
                 _update_status(state, HANDLE_CHUNKED);
             }
             else {
-                _cgi_executor.cgi_exec(request, fd);
+                CgiExecutor::instance()->cgi_exec(request, fd);
                 _update_status(state, WAITING_CGI, true);
             }
             return (webshell::Response());

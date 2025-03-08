@@ -1,9 +1,9 @@
 #include "ConfigServerBlock.hpp"
+#include "IPAddress.hpp"
 #include "Logger.hpp"
 #include "configUtils.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
-#include "IPAddress.hpp"
 #include <string>
 
 namespace webconfig
@@ -186,8 +186,24 @@ ConfigServerBlock::_parse_keep_alive_timeout(const std::string& line,
                                              const std::string& directive)
 {
     std::string value = extract_directive_value(line, directive);
+    ssize_t num;
 
-    return (utils::stoi(value));
+    if (value.length() > 3) {
+        throw std::invalid_argument(
+            "Keepalive timeout directive has invalid value: " + value);
+    }
+    try {
+        num = utils::stoi(value);
+        if (num < 0) {
+            throw;
+        }
+    }
+    catch (const std::invalid_argument& e) {
+        throw std::invalid_argument(
+            "Keepalive timeout directive has invalid value: " + value);
+    }
+
+    return (num);
 }
 
 } // namespace webconfig

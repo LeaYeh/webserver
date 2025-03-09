@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/09 00:38:26 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/09 01:17:16 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -367,12 +367,21 @@ void HeaderFieldValidator::_validate_host(std::string& val)
 {
     int idx = 0;
     int size = val.size();
-    if (size > 0 && val[0] == '[')
+    if (size > 0 && val[idx] == '[')
+    {
+        val.erase(idx, 1);
+        size--;
         _host_state = URI_HOST_IPV6;
+    }
     else
         _host_state = URI_HOST_IPV4_OR_REGNAME;
     while (idx < size) {
         _feed_hostname(val[idx]);
+        if (val[idx] == ']')
+        {
+            val.erase(idx, 1);
+            size--;
+        }
         idx++;
     }
     _host_state = URI_HOST_TRIAL;

@@ -5,9 +5,9 @@
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
-#include "kernelUtils.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
 #include <cstddef>
@@ -185,6 +185,11 @@ const std::string& Request::temp_file_path() const
     return (_temp_file_path);
 }
 
+bool Request::is_cgi() const
+{
+    return (!_config.cgi_path.empty());
+}
+
 void Request::set_headers(std::map<std::string, std::string> headers)
 {
     _headers = headers;
@@ -289,6 +294,9 @@ bool Request::_proceed_content_len(std::vector<char>& chunked_body)
                                    webshell::TEXT_PLAIN);
     }
 
+    if (payload == _processed)
+        return true;
+
     if (buffer_size < chunksize) {
         if (payload - _processed > buffer_size) {
             chunked_body = std::vector<char>(
@@ -301,7 +309,8 @@ bool Request::_proceed_content_len(std::vector<char>& chunked_body)
             std::vector<char>(_read_buffer->begin(),
                               _read_buffer->begin() + payload - _processed);
         _read_buffer->erase(0, payload - _processed);
-        _processed = 0;
+        _processed += chunked_body.size();
+        // _processed = 0;
         return (true);
     }
     else {
@@ -316,7 +325,8 @@ bool Request::_proceed_content_len(std::vector<char>& chunked_body)
             std::vector<char>(_read_buffer->begin(),
                               _read_buffer->begin() + payload - _processed);
         _read_buffer->erase(0, payload - _processed);
-        _processed = 0;
+        _processed += chunked_body.size();
+        // _processed = 0;
         return (true);
     }
 }

@@ -54,7 +54,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         if (_analyzer_pool[fd].is_complete()) {
             _handle_virtual_host(fd);
             _setup_timer(fd, _analyzer_pool[fd].request().config());
-            _connection_status_pool[fd] = false;
+            _connection_pool[fd] = true;
             buffer.erase(0, i + 1);
             process(fd);
             return (true);
@@ -80,48 +80,109 @@ void RequestProcessor::process(int fd)
 {
     EventProcessingState& state = _state[fd];
     webshell::Request& request = _analyzer_pool[fd].request();
+    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
+    webshell::Response response;
 
+    // If still need to process the garbage body, do nothing and return
+    LOG(weblog::CRITICAL, "STATE IS: " + utils::to_string(_state[fd]));
     if (state == CONSUME_BODY) {
-        if (!_need_consume_body(request)) {
-            set_state(fd, COMPELETED);
+        if (_need_consume_body(request)) {
+            return;
         }
+        state = COMPELETED;
+        set_state(fd, COMPELETED);
         return;
     }
+    if (state != COMPELETED) {
+        response = manager->handle_request(fd, state, request);
+        LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
 
-    RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
-    webshell::Response response = manager->handle_request(fd, state, request);
-    LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
-
-    if (request.method() == webshell::POST) {
-        // if the server still processing the upload data, we need to consume
-        // the read buffer first and stop reading new requests
-        if (state & HANDLE_CHUNKED) {
-            Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
+        if (request.method() == webshell::POST) {
+            // if the server still processing the upload data, we need to
+            // consume the read buffer first and stop reading new requests
+            if (state & HANDLE_CHUNKED) {
+                Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
+            }
+            // if the read buffer is empty but the server still uploading data,
+            // we need to wait for more data
+            if (request.empty_buffer()) {
+                Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
+            }
         }
-        // if the read buffer is empty but the server still uploading data, we
-        // need to wait for more data
-        if (request.empty_buffer()) {
-            Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
-        }
-        if (state & COMPELETED) {
+        else {
+            // TODO: For the GET request we also need to control the EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request before the current request finished
+            // for GET and DELETE requests, we can send the response directly
             _handler->prepare_write(fd, response.serialize());
-            LOG(weblog::DEBUG,
-                "Removing the temp file: request.temp_file_path()");
-            _end_request(fd);
         }
     }
-    // for GET and DELETE requests, we can send the response directly
     else {
-        _handler->prepare_write(fd, response.serialize());
-        if (state & COMPELETED) {
-            if (_need_consume_body(request)) {
-                set_state(fd, CONSUME_BODY);
-                return;
-            }
-            _end_request(fd);
+        // the cgi output is handled by the CgiHandler, so nothing could be
+        // responded here
+        if (!request.is_cgi()) {
+            _handler->prepare_write(fd, response.serialize());
         }
+        if (_need_consume_body(request)) {
+            state = CONSUME_BODY;
+            set_state(fd, CONSUME_BODY);
+            return;
+        }
+        _end_request(fd);
     }
 }
+
+// // This function can be called after the request is complete or the request
+// need
+// // to be processed in chunks
+// void RequestProcessor::process(int fd)
+// {
+//     EventProcessingState& state = _state[fd];
+//     webshell::Request& request = _analyzer_pool[fd].request();
+
+//     if (state == CONSUME_BODY) {
+//         if (!_need_consume_body(request)) {
+//             set_state(fd, COMPELETED);
+//         }
+//         return;
+//     }
+
+//     RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
+//     webshell::Response response = manager->handle_request(fd, state,
+//     request); LOG(weblog::DEBUG, "state: " +
+//     explain_event_processing_state(state));
+
+//     if (request.method() == webshell::POST) {
+//         // if the server still processing the upload data, we need to consume
+//         // the read buffer first and stop reading new requests
+//         if (state & HANDLE_CHUNKED) {
+//             Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
+//         }
+//         // if the read buffer is empty but the server still uploading data,
+//         we
+//         // need to wait for more data
+//         if (request.empty_buffer()) {
+//             Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
+//         }
+//         if (state & COMPELETED) {
+//             _handler->prepare_write(fd, response.serialize());
+//             LOG(weblog::DEBUG,
+//                 "Removing the temp file: request.temp_file_path()");
+//             _end_request(fd);
+//         }
+//     }
+//     // for GET and DELETE requests, we can send the response directly
+//     else {
+//         if (!request.is_cgi()) {
+//             _handler->prepare_write(fd, response.serialize());
+//         }
+//         if (state & COMPELETED) {
+//             if (_need_consume_body(request)) {
+//                 set_state(fd, CONSUME_BODY);
+//                 return;
+//             }
+//             _end_request(fd);
+//         }
+//     }
+// }
 
 void RequestProcessor::remove_analyzer(int fd)
 {
@@ -153,7 +214,7 @@ void RequestProcessor::remove_state(int fd)
 
 bool RequestProcessor::need_to_close(int fd)
 {
-    return (_connection_status_pool[fd]);
+    return (!_connection_pool[fd]);
 }
 
 void RequestProcessor::_handle_keep_alive(int fd)
@@ -163,14 +224,14 @@ void RequestProcessor::_handle_keep_alive(int fd)
     if (!request.has_header("connection")
         || request.get_header("connection") == "close") {
         LOG(weblog::INFO, "Connection: close on fd: " + utils::to_string(fd));
-        _connection_status_pool[fd] = true;
+        _connection_pool[fd] = false;
         _timer_pool.erase(fd);
     }
     else if (_timer_pool[fd].timeout()) {
         LOG(weblog::INFO,
             "Keep-alive timeout: " + utils::to_string(_timer_pool[fd].elapsed())
                 + " seconds, close the connection");
-        _connection_status_pool[fd] = true;
+        _connection_pool[fd] = false;
         _timer_pool.erase(fd);
     }
     else {
@@ -182,8 +243,9 @@ void RequestProcessor::_handle_keep_alive(int fd)
 
 void RequestProcessor::_end_request(int fd)
 {
-    _handle_keep_alive(fd);
     _analyzer_pool.erase(fd);
+    // reset_state(fd);
+    _handle_keep_alive(fd);
 }
 
 bool RequestProcessor::_need_consume_body(webshell::Request& request)

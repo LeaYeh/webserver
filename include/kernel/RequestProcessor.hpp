@@ -37,7 +37,7 @@ private:
     std::map<int /* fd */, webshell::RequestAnalyzer> _analyzer_pool;
     std::map<int /* fd */, EventProcessingState> _state;
     std::map<int /* fd */, utils::Timer> _timer_pool;
-    std::map<int /* fd */, bool /* need to close */> _connection_status_pool;
+    std::map<int /* fd */, bool /* still alive */> _connection_pool;
 
 private:
     void _handle_virtual_host(int fd);

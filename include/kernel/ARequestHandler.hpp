@@ -54,7 +54,6 @@ protected:
     void _update_status(EventProcessingState& state,
                         EventProcessingState flags,
                         bool overwrite = false) const;
-    bool _is_cgi_request(const webshell::Request& request);
     virtual std::string _process(int fd,
                                  EventProcessingState& state,
                                  webshell::Request& request) = 0;

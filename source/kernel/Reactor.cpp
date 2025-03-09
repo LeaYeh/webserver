@@ -201,7 +201,7 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
 
         if (!handler_exists(fd))
         {
-            LOG(weblog::CRITICAL, "Try to process non-exist handler.");
+            LOG(weblog::CRITICAL, "Try to process non-exist handler on fd: " + utils::to_string(fd));
             continue;
         }
         try {

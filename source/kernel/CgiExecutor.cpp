@@ -61,11 +61,9 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         if (pid > 0) {
             _reset_path_meta();
             _handler_map[client_fd] = new CgiHandler(client_fd, pid);
+            _pipe_map[client_fd] = pipefd[0];
             Reactor::instance()->register_handler(
                 pipefd[0], _handler_map[client_fd], EPOLLIN);
-            // _handler.reset(new CgiHandler(client_fd, pid));
-            // Reactor::instance()->register_handler(
-            //     pipefd[0], _handler.get(), EPOLLIN);
             close(pipefd[1]);
 
             // the monitor process
@@ -138,9 +136,11 @@ void CgiExecutor::remove_handler(int fd)
     if (handler_exists(fd)) {
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
-        // Reactor::instance()->remove_handler(fd);
+        LOG(weblog::CRITICAL, "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
         _handler_map.erase(fd);
+        Reactor::instance()->remove_handler(_pipe_map[fd]);
+        _pipe_map.erase(fd);
     }
 }
 
@@ -198,15 +198,17 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
 {
     size_t pos = path.find(route);
     if (pos == std::string::npos) {
-        throw std::runtime_error("A cgi request[" + path
-                                 + "] cannot match cgi path: " + cgi_path);
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     pos += route.length();
     // TODO: If the route end with '/' in config file, the config parser need to
     // cry
     if (pos >= path.length() || path[pos] != '/') {
-        throw std::runtime_error("A cgi request[" + path
-                                 + "] cannot match cgi path: " + cgi_path);
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     size_t pos_end_of_script_name = path.find('/', pos + 1);
     if (pos_end_of_script_name != std::string::npos) {
@@ -224,14 +226,14 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
             "Script-Name does not have the correct extension.");
     }
 
-    if (access(_script_path.c_str(), F_OK) == -1)
-        throw utils::HttpException(
-            webshell::NOT_FOUND,
-            "Requested CGI script not found");
-    if (access(_script_path.c_str(), X_OK) == -1)
-        throw utils::HttpException(
-            webshell::FORBIDDEN,
-            "CGI script can not be executed");
+    if (access(_script_path.c_str(), F_OK) == -1) {
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "Requested CGI script not found");
+    }
+    if (access(_script_path.c_str(), X_OK) == -1) {
+        throw utils::HttpException(webshell::FORBIDDEN,
+                                   "CGI script can not be executed");
+    }
 
     LOG(weblog::DEBUG, "_script_path: " + _script_path);
     LOG(weblog::DEBUG, "_script_name: " + _script_name);

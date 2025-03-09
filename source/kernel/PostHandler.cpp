@@ -29,8 +29,8 @@ webshell::Response PostHandler::handle(int fd,
     try {
         if (state == INITIAL) {
             _pre_process(request);
+            _update_status(state, PROCESSING);
         }
-        _update_status(state, PROCESSING);
         if (request.is_cgi()) {
             std::string temp_file_path = request.read_chunked_body();
             if (temp_file_path.empty()) {

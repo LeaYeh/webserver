@@ -108,9 +108,17 @@ void RequestProcessor::process(int fd)
             if (request.empty_buffer()) {
                 Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
             }
+            if (state & COMPELETED) {
+                _handler->prepare_write(fd, response.serialize());
+                // TODO: Currently I need to end the request without checking the garbage body
+                // I think the root cause is in the _proceed_chunked
+                _end_request(fd);
+            }
         }
         else {
-            // TODO: For the GET request we also need to control the EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request before the current request finished
+            // TODO: For the GET request we also need to control the
+            // EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request
+            // before the current request finished
             Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
             // if (request.empty_buffer()) {
             //     Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
@@ -119,10 +127,12 @@ void RequestProcessor::process(int fd)
             //     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
             // }
             // for GET and DELETE requests, we can send the response directly
+
+            // TODO: Bug: in the GET chunked mode, the analyzer be reset before the request finished
             _handler->prepare_write(fd, response.serialize());
         }
     }
-    else {
+    if (state == COMPELETED) {
         // the cgi output is handled by the CgiHandler, so nothing could be
         // responded here
         if (!request.is_cgi()) {
@@ -136,60 +146,6 @@ void RequestProcessor::process(int fd)
         _end_request(fd);
     }
 }
-
-// // This function can be called after the request is complete or the request
-// need
-// // to be processed in chunks
-// void RequestProcessor::process(int fd)
-// {
-//     EventProcessingState& state = _state[fd];
-//     webshell::Request& request = _analyzer_pool[fd].request();
-
-//     if (state == CONSUME_BODY) {
-//         if (!_need_consume_body(request)) {
-//             set_state(fd, COMPELETED);
-//         }
-//         return;
-//     }
-
-//     RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
-//     webshell::Response response = manager->handle_request(fd, state,
-//     request); LOG(weblog::DEBUG, "state: " +
-//     explain_event_processing_state(state));
-
-//     if (request.method() == webshell::POST) {
-//         // if the server still processing the upload data, we need to consume
-//         // the read buffer first and stop reading new requests
-//         if (state & HANDLE_CHUNKED) {
-//             Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
-//         }
-//         // if the read buffer is empty but the server still uploading data,
-//         we
-//         // need to wait for more data
-//         if (request.empty_buffer()) {
-//             Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
-//         }
-//         if (state & COMPELETED) {
-//             _handler->prepare_write(fd, response.serialize());
-//             LOG(weblog::DEBUG,
-//                 "Removing the temp file: request.temp_file_path()");
-//             _end_request(fd);
-//         }
-//     }
-//     // for GET and DELETE requests, we can send the response directly
-//     else {
-//         if (!request.is_cgi()) {
-//             _handler->prepare_write(fd, response.serialize());
-//         }
-//         if (state & COMPELETED) {
-//             if (_need_consume_body(request)) {
-//                 set_state(fd, CONSUME_BODY);
-//                 return;
-//             }
-//             _end_request(fd);
-//         }
-//     }
-// }
 
 void RequestProcessor::remove_analyzer(int fd)
 {
@@ -228,8 +184,8 @@ void RequestProcessor::_handle_keep_alive(int fd)
 {
     const webshell::Request& request = _analyzer_pool[fd].request();
 
-    if (!request.has_header("connection")
-        || request.get_header("connection") == "close") {
+    if (request.has_header("connection")
+        && request.get_header("connection") == "close") {
         LOG(weblog::INFO, "Connection: close on fd: " + utils::to_string(fd));
         _connection_pool[fd] = false;
         _timer_pool.erase(fd);

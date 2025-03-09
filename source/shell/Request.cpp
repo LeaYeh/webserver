@@ -376,6 +376,7 @@ bool Request::_proceed_chunked(std::vector<char>& chunked_body)
         }
     }
     _read_buffer->clear();
+    // TODO: I think when we re-use this to consume the body it might need different behavior
     return (false);
 }
 

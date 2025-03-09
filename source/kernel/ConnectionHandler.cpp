@@ -70,11 +70,11 @@ void ConnectionHandler::close_connection(int fd,
                                          std::string message)
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
-    if (CgiExecutor::instance()->handler_exists(fd)) {
-        LOG(weblog::CRITICAL,
-            "Remove cgi handler on fd: " + utils::to_string(fd));
-        CgiExecutor::instance()->remove_handler(fd);
-    }
+    // if (CgiExecutor::instance()->handler_exists(fd)) {
+    //     LOG(weblog::CRITICAL,
+    //         "Remove cgi handler on fd: " + utils::to_string(fd));
+    //     CgiExecutor::instance()->remove_handler(fd);
+    // }
     // TODO: maybe this is the reason why we failed the cgi siege test
     // TODO: Need to remove the handler from the reactor in different way
     Reactor::instance()->remove_handler(fd);
@@ -290,7 +290,7 @@ void ConnectionHandler::_handle_write(int fd)
     //     // here the fd be removed
     // }
     if (process_state & WAITING_CGI) {
-        _send_normal(fd);
+        // _send_normal(fd);
         process_state = CONSUME_BODY;
         _processor.set_state(fd, CONSUME_BODY);
     }
@@ -303,7 +303,8 @@ void ConnectionHandler::_handle_write(int fd)
     }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
-        Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
+        LOG(weblog::INFO, "WOWOWOWOWOWOWO");
+        // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
         if (_processor.need_to_close(fd)) {
             close_connection(fd, weblog::INFO, "Connection closed by server");
         }
@@ -338,6 +339,13 @@ void ConnectionHandler::_send_normal(int fd)
     int bytes_sent =
         send(fd, _write_buffer[fd].c_str(), _write_buffer[fd].size(), 0);
 
+    if (CgiExecutor::instance()->handler_exists(fd)) {
+        LOG(weblog::CRITICAL,
+            "Remove cgi handler on fd: " + utils::to_string(fd));
+        CgiExecutor::instance()->remove_handler(fd);
+    }
+    _processor.remove_analyzer(fd);
+    Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     if (bytes_sent < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "send() failed: "

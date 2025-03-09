@@ -111,6 +111,13 @@ void RequestProcessor::process(int fd)
         }
         else {
             // TODO: For the GET request we also need to control the EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request before the current request finished
+            Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
+            // if (request.empty_buffer()) {
+            //     Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
+            // }
+            // else {
+            //     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
+            // }
             // for GET and DELETE requests, we can send the response directly
             _handler->prepare_write(fd, response.serialize());
         }

@@ -228,8 +228,8 @@ void RequestProcessor::_handle_keep_alive(int fd)
 {
     const webshell::Request& request = _analyzer_pool[fd].request();
 
-    if (!request.has_header("connection")
-        || request.get_header("connection") == "close") {
+    if (request.has_header("connection")
+        && request.get_header("connection") == "close") {
         LOG(weblog::INFO, "Connection: close on fd: " + utils::to_string(fd));
         _connection_pool[fd] = false;
         _timer_pool.erase(fd);

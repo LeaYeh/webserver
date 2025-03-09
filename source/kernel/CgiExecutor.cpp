@@ -106,27 +106,20 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                 close(fd);
             }
 
-            char* argv[2];
-            // TODO: Replace the forbidden function strdup
-            argv[0] = strdup(_script_name.c_str());
+            const char* argv[2];
+            argv[0] = _script_name.c_str();
             argv[1] = NULL;
 
             char** env = _convert_to_str_array(_get_env(request));
-
-            // for (int i = 0; env[i] != NULL; i++)
-            //     std::cout << env[i] << std::endl;
-
             if (env == NULL) {
                 throw ReturnWithUnwind(FAILURE);
             }
-            // we catch this in the main so all destructors are called before
-            // close all fds here in a loop
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
             Reactor::instance()->destroy_tree();
-            execve(_script_path.c_str(), argv, env);
+            execve(_script_path.c_str(), (char * const *)argv, env);
+            // we catch this in the main so all destructors are called before
             throw ReturnWithUnwind(FAILURE);
-            // throw ExecuteWithUnwind(strdup(_script_path.c_str()), argv, env);
         }
         else {
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

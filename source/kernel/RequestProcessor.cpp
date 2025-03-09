@@ -54,7 +54,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         if (_analyzer_pool[fd].is_complete()) {
             _handle_virtual_host(fd);
             _setup_timer(fd, _analyzer_pool[fd].request().config());
-            _connection_status_pool[fd] = false;
+            _connection_pool[fd] = true;
             buffer.erase(0, i + 1);
             process(fd);
             return (true);
@@ -153,7 +153,7 @@ void RequestProcessor::remove_state(int fd)
 
 bool RequestProcessor::need_to_close(int fd)
 {
-    return (_connection_status_pool[fd]);
+    return (!_connection_pool[fd]);
 }
 
 void RequestProcessor::_handle_keep_alive(int fd)
@@ -163,14 +163,14 @@ void RequestProcessor::_handle_keep_alive(int fd)
     if (!request.has_header("connection")
         || request.get_header("connection") == "close") {
         LOG(weblog::INFO, "Connection: close on fd: " + utils::to_string(fd));
-        _connection_status_pool[fd] = true;
+        _connection_pool[fd] = false;
         _timer_pool.erase(fd);
     }
     else if (_timer_pool[fd].timeout()) {
         LOG(weblog::INFO,
             "Keep-alive timeout: " + utils::to_string(_timer_pool[fd].elapsed())
                 + " seconds, close the connection");
-        _connection_status_pool[fd] = true;
+        _connection_pool[fd] = false;
         _timer_pool.erase(fd);
     }
     else {

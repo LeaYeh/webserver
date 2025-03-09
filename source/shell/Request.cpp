@@ -276,18 +276,10 @@ void Request::_write_chunked_file(const std::vector<char>& content)
     file_stream.flush();
 }
 
-/*
-TODO
-Any Content-Length field value greater than or equal to zero is
-valid.  Since there is no predefined limit to the length of a
-payload, a recipient MUST anticipate potentially large decimal
-numerals and prevent parsing errors due to integer conversion
-overflows (RFC 7230).
-*/
 bool Request::_proceed_content_len(std::vector<char>& chunked_body)
 {
     static size_t chunksize = webkernel::CHUNKED_SIZE;
-    size_t payload = atoi(_headers["content-length"].c_str());
+    size_t payload = utils::stoi(_headers["content-length"].c_str());
     size_t max_payload = _config.client_max_body_size;
     size_t buffer_size = (*_read_buffer).size();
 

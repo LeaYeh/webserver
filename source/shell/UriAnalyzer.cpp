@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/01 21:39:05 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/09 00:21:54 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "AParser.hpp"
 #include "HttpException.hpp"
 #include "defines.hpp"
+#include "IPAddress.hpp"
 #include <cctype>
 #include <cstddef>
 
@@ -203,7 +204,7 @@ void UriAnalyzer::parse_uri(std::string& uri)
         _feed(_uri[_idx]);
         _idx++;
     }
-    if (_state < URI_HOST_IPV4) {
+    if (_state < URI_HOST_IPV6) {
         throw utils::HttpException(webshell::BAD_REQUEST,
                                    "URIAnalyzer failed: end too early");
     }
@@ -230,10 +231,13 @@ void UriAnalyzer::_feed(unsigned char c)
     case URI_HOST_TRIAL:
         _uri_host_trial(c);
         break;
-    case URI_HOST_IPV4:
-        _uri_host_ipv4(c);
+    case URI_HOST_IPV6:
+        _uri_host_ipv6(c);
         break;
-    case URI_HOST_REGNAME:
+    case URI_AFTER_IPV6:
+        _uri_after_ipv6(c);
+        break;
+    case URI_HOST_IPV4_OR_REGNAME:
         _uri_host_regname(c);
         break;
     case URI_PORT:
@@ -273,10 +277,9 @@ void UriAnalyzer::_uri_start(unsigned char c)
         _type = ASTERISK;
         _state = END_URI_PARSER;
     }
-    else if (std::isdigit(c)) {
+    else if (c == '[') {
         _type = AUTHORITY;
-        _state = URI_HOST_IPV4;
-        _host.push_back(c);
+        _state = URI_HOST_IPV6;
     }
     else if ((_is_pchar(c) || c == '%') && c != ':') {
         _temp_buf.push_back(_lowcase(c));
@@ -329,11 +332,11 @@ void UriAnalyzer::_uri_scheme(unsigned char c)
 void UriAnalyzer::_uri_host_trial(unsigned char c)
 {
     _host.push_back(c);
-    if (isdigit(c)) {
-        _state = URI_HOST_IPV4;
+    if (c == '[') {
+        _state = URI_HOST_IPV6;
     }
     else if (_is_unreserved(c) || _is_sub_delim(c) || c == '%') {
-        _state = URI_HOST_REGNAME;
+        _state = URI_HOST_IPV4_OR_REGNAME;
     }
     else {
         throw utils::HttpException(webshell::BAD_REQUEST,
@@ -341,40 +344,35 @@ void UriAnalyzer::_uri_host_trial(unsigned char c)
     }
 }
 
-void UriAnalyzer::_uri_host_ipv4(unsigned char c)
+void UriAnalyzer::_uri_host_ipv6(unsigned char c)
 {
-    if (isdigit(c)) {
-        _ipv_digit = true;
+    if (c == ']') {
+        if (utils::IPAddress::is_ipv6(_host))
+            _state = URI_AFTER_IPV6;
+        else
+            throw utils::HttpException(webshell::BAD_REQUEST,
+                "Invalid IPv6 format");
+    }
+    else if (_is_unreserved(c) || c == ':' || _is_sub_delim(c)) {
         _host.push_back(c);
     }
-    else if (c == '.') {
-        if (!_ipv_digit) {
-            goto except;
-        }
-        _ipv_digit = false;
-        _ipv_dot++;
-        _host.push_back(c);
-    }
-    else if (c == ':') {
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Invalid character at IPv6 host");
+}
+
+void UriAnalyzer::_uri_after_ipv6(unsigned char c)
+{
+    if (c == ':') {
         _state = URI_PORT;
     }
     else if (c == '/') {
         _path.push_back(c);
         _state = URI_PATH_TRIAL;
     }
-    else {
-        goto except;
-    }
-    if (_ipv_dot > 3) {
-        goto except;
-    }
-
-    return;
-
-except:
-
-    throw utils::HttpException(webshell::BAD_REQUEST,
-                               "URIAnalyzer failed at ipv4 host");
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "URIAnalyzer failed at post-IPv6 limbo");
 }
 
 void UriAnalyzer::_uri_host_regname(unsigned char c)

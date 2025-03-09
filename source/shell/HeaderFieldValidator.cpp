@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/01 21:36:36 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/09 01:17:16 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ namespace webshell
 
 HeaderFieldValidator::HeaderFieldValidator()
 {
-    _host_state = URI_HOST_REGNAME;
+    _host_state = URI_HOST_TRIAL;
     _cookie_state = CO_OWS_START;
 }
 HeaderFieldValidator::~HeaderFieldValidator() {}
@@ -143,6 +143,13 @@ void HeaderFieldValidator::validate(std::map<std::string, std::string>& map)
     }
 }
 
+/*
+Any Content-Length field value greater than or equal to zero is
+valid.  Since there is no predefined limit to the length of a
+payload, a recipient MUST anticipate potentially large decimal
+numerals and prevent parsing errors due to integer conversion
+overflows (RFC 7230).
+*/
 void HeaderFieldValidator::_validate_content_length(std::string& val)
 {
     size_t idx = 0;
@@ -154,6 +161,10 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
         }
         idx++;
     }
+    if (val.length() > 9)
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Can not process content length above 999999999",
+                                   webshell::TEXT_PLAIN);
 }
 
 void HeaderFieldValidator::_validate_cookie(std::string& val)
@@ -356,18 +367,37 @@ void HeaderFieldValidator::_validate_host(std::string& val)
 {
     int idx = 0;
     int size = val.size();
+    if (size > 0 && val[idx] == '[')
+    {
+        val.erase(idx, 1);
+        size--;
+        _host_state = URI_HOST_IPV6;
+    }
+    else
+        _host_state = URI_HOST_IPV4_OR_REGNAME;
     while (idx < size) {
         _feed_hostname(val[idx]);
+        if (val[idx] == ']')
+        {
+            val.erase(idx, 1);
+            size--;
+        }
         idx++;
     }
-    _host_state = URI_HOST_REGNAME;
+    _host_state = URI_HOST_TRIAL;
 }
 
 void HeaderFieldValidator::_feed_hostname(unsigned char c)
 {
     switch (_host_state) {
-    case URI_HOST_REGNAME:
+    case URI_HOST_IPV4_OR_REGNAME:
         _uri_host_regname(c);
+        break;
+    case URI_HOST_IPV6:
+        _uri_host_ipv6(c);
+        break;
+    case URI_AFTER_IPV6:
+        _uri_after_ipv6(c);
         break;
     case URI_PORT:
         _uri_port(c);
@@ -377,6 +407,29 @@ void HeaderFieldValidator::_feed_hostname(unsigned char c)
             webshell::BAD_REQUEST,
             "Host header field value incorrect (switch case)");
     }
+}
+
+void HeaderFieldValidator::_uri_host_ipv6(unsigned char c)
+{
+    if (c == ']') {
+        _host_state = URI_AFTER_IPV6;
+    }
+    else if (_is_unreserved(c) || c == ':' || _is_sub_delim(c)) {
+        return ;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "Invalid character at IPv6 Host header field");
+}
+
+void HeaderFieldValidator::_uri_after_ipv6(unsigned char c)
+{
+    if (c == ':') {
+        _host_state = URI_PORT;
+    }
+    else
+        throw utils::HttpException(webshell::BAD_REQUEST,
+            "HeaderFieldValidator failed at post-IPv6 limbo");
 }
 
 void HeaderFieldValidator::_uri_host_regname(unsigned char c)

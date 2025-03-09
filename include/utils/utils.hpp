@@ -1,6 +1,5 @@
 #pragma once
 
-#include "defines.hpp"
 #include <cctype> // for std::isspace
 #include <cstring>
 #include <fcntl.h>

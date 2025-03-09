@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/02 00:12:00 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/08 22:17:41 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,13 +258,12 @@ void HeaderAnalyzer::_check_obs_fold(unsigned char c)
         _state = HEADER_END_CRLF;
     }
     else if (_is_ows(c)) {
-        // TODO: need to set up a specific response in this case:
-        // Obs-fold not allowed
-        throw utils::HttpException(webshell::BAD_REQUEST, "obs-fold detected");
+        throw utils::HttpException(webshell::BAD_REQUEST,
+        "Obs-fold detected.\nHeader field values spanning multiple lines are unacceptable.\nRefer to RFC 7230 3.2.4. for details.");
     }
     else {
         throw utils::HttpException(webshell::BAD_REQUEST,
-                                   "failed at obsfold check");
+                                   "Failed at obsfold check");
     }
 }
 

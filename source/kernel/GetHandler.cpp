@@ -38,7 +38,6 @@ webshell::Response GetHandler::handle(int fd,
         if (_is_cgi_request(request)) {
             // the cgi output is handled by the CgiHandler, so nothing could be
             // responded here
-            // TODO: refactor the Response
             CgiExecutor::instance()->cgi_exec(request, fd);
             _update_status(state, COMPELETED, true);
             return (webshell::Response());

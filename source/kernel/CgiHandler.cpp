@@ -5,7 +5,6 @@
 #include "Reactor.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
-#include "Reactor.hpp"
 #include "utils.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -33,11 +32,15 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
         char buffer[CHUNKED_SIZE];
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(fd, buffer, CHUNKED_SIZE);
-        // TODO: need to check the read return value for 0 and -1
 
-        std::cout << "bytes_read: " << bytes_read << std::endl;
         if (bytes_read > 0) {
             _buffer.append(buffer, bytes_read);
+        }
+        else if (bytes_read == 0) {
+            // Same as EPOLLHUP
+            LOG(weblog::DEBUG, "EOF on fd: " + utils::to_string(fd));
+            Reactor::instance()->remove_handler(fd);
+            return;
         }
         else {
             // TODO: need to remove the 'errno' before submit
@@ -45,8 +48,10 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
                                        "read() failed: "
                                            + std::string(strerror(errno)));
         }
+        LOG(weblog::DEBUG,
+            "Read " + utils::to_string(bytes_read)
+                + " bytes from fd: " + utils::to_string(fd));
     }
-    // else if (events & EPOLLOUT || events & EPOLLHUP) {
     else if (events & EPOLLHUP) {
         LOG(weblog::DEBUG, "I only want to see this once!!!!!!!");
         LOG(weblog::DEBUG,
@@ -57,19 +62,16 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
 
         if (ret == 0) {
             LOG(weblog::DEBUG, "Child still running");
-            // child is still running
             return;
         }
         Reactor::instance()->remove_handler(fd);
         if (ret == -1) {
             // TODO: need to remove the 'errno' before submit
-            webkernel::ConnectionHandler::instance()->prepare_error(_client_fd,
+            webkernel::ConnectionHandler::instance()->prepare_error(
+                _client_fd,
                 utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "waitpid() failed: "
-                                           + std::string(strerror(errno))));
-            // Reactor::instance()->remove_handler(fd);
-            // return;
-            // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
+                                     "waitpid() failed: "
+                                         + std::string(strerror(errno))));
         }
         else {
             LOG(weblog::DEBUG,
@@ -82,18 +84,14 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             }
             else {
                 LOG(weblog::DEBUG, "Child exited abnormally");
-                webkernel::ConnectionHandler::instance()->prepare_error(_client_fd,
-                utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "Child exited abnormally."));
-                // webkernel::ConnectionHandler::instance()->prepare_error(
-                //     _client_fd, _buffer);
-                // throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                //                            "Child exited abnormally");
+                webkernel::ConnectionHandler::instance()->prepare_error(
+                    _client_fd,
+                    utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                         "Child exited abnormally."));
             }
         }
     }
     else {
-
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Unknown event on fd: "
                                        + utils::to_string(fd));

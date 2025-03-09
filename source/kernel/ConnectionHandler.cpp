@@ -74,7 +74,8 @@ void ConnectionHandler::close_connection(int fd,
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
     if (CgiExecutor::instance()->handler_exists(fd)) {
-        LOG(weblog::CRITICAL, "Remove cgi handler on fd: " + utils::to_string(fd));
+        LOG(weblog::CRITICAL,
+            "Remove cgi handler on fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }
     Reactor::instance()->remove_handler(fd);
@@ -128,19 +129,44 @@ bool ConnectionHandler::get_session_data(const std::string& sid,
     msg.data_length = 0;
     int bytes = send(_session_fd, &msg, sizeof(msg), 0);
 
-    // TODO: need to check the send return value for 0 and -1
     if (bytes != sizeof(msg)) {
         LOG(weblog::ERROR,
             "Send session message failed: " + utils::to_string(bytes));
         return (false);
     }
+    else if (bytes == 0) {
+        LOG(weblog::ERROR, "Session connection closed");
+        Reactor::instance()->remove_handler(_session_fd);
+        close(_session_fd);
+        return (false);
+    }
+    else if (bytes < 0) {
+        LOG(weblog::ERROR,
+            "Send session message failed: " + std::string(strerror(errno)));
+        Reactor::instance()->remove_handler(_session_fd);
+        close(_session_fd);
+        return (false);
+    }
     SessionMessage resp;
 
+    // TODO: We can only have 1 read/write for an epoll event, now is forbidden
     bytes = recv(_session_fd, &resp, sizeof(resp), 0);
-    // TODO: need to check the recv return value for 0 and -1
     if (bytes != sizeof(resp)) {
         LOG(weblog::ERROR,
             "Receive session message failed: " + utils::to_string(bytes));
+        return (false);
+    }
+    else if (bytes == 0) {
+        LOG(weblog::ERROR, "Session connection closed");
+        Reactor::instance()->remove_handler(_session_fd);
+        close(_session_fd);
+        return (false);
+    }
+    else if (bytes < 0) {
+        LOG(weblog::ERROR,
+            "Receive session message failed: " + std::string(strerror(errno)));
+        Reactor::instance()->remove_handler(_session_fd);
+        close(_session_fd);
         return (false);
     }
     if (resp.type == SESSION_RESPONSE) {
@@ -307,7 +333,6 @@ void ConnectionHandler::_send_normal(int fd)
     }
     else if (bytes_sent == 0) {
         LOG(weblog::INFO, "Write 0 bytes, client closing connection");
-        // TODO: keep-alive?
         close_connection(
             fd, weblog::INFO, "Write 0 bytes, client closing connection");
     }
@@ -334,12 +359,16 @@ void ConnectionHandler::_send_error(int fd)
             "Error buffer found for fd: " + utils::to_string(fd));
         int bytes_sent = send(fd, it->second.c_str(), it->second.size(), 0);
 
-        // TODO: need to check the send return value for 0 and -1
         _error_buffer.erase(it);
         if (bytes_sent < 0) {
             close_connection(fd,
                              weblog::ERROR,
                              "send() failed: " + std::string(strerror(errno)));
+        }
+        else if (bytes_sent == 0) {
+            close_connection(fd,
+                             weblog::WARNING,
+                             "Write 0 bytes, client closing connection");
         }
         else {
             close_connection(fd,

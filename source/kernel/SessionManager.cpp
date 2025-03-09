@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 
@@ -210,11 +211,25 @@ void SessionManager::_send_resp(int fd,
     std::strncpy(msg.session_id, "server", sizeof(msg.session_id));
     msg.data_length = data.length();
     std::strncpy(msg.data, data.c_str(), sizeof(msg.data));
-    if (send(fd, &msg, sizeof(msg), 0) < 0) {
+    ssize_t bytes_sent = send(fd, &msg, sizeof(msg), 0);
+
+    if (bytes_sent < 0) {
         throw std::runtime_error("Failed to send session response: "
                                  + utils::to_string(strerror(errno)));
     }
-    // TODO: need to check the send return value for 0 and -1
+    else if (bytes_sent != sizeof(msg)) {
+        throw std::runtime_error("Invalid session response size: "
+                                 + utils::to_string(bytes_sent));
+    }
+    else if (bytes_sent == 0) {
+        LOG(weblog::DEBUG,
+            "Session connection closed: " + utils::to_string(fd));
+        _client_fds.erase(fd);
+        Reactor::instance()->remove_handler(fd);
+        close(fd);
+    }
+    LOG(weblog::DEBUG,
+        "Session response sent: " + utils::to_string(fd) + ", " + data);
 }
 
 void SessionManager::_send_error(int fd, const std::string& msg)

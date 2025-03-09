@@ -57,9 +57,6 @@ void ConnectionHandler::handle_event(int fd, uint32_t events)
     }
     else if (events & EPOLLOUT) {
         _handle_write(fd);
-        if (_processor.need_to_close(fd)) {
-            close_connection(fd, weblog::INFO, "Connection closed by server");
-        }
     }
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -307,6 +304,9 @@ void ConnectionHandler::_handle_write(int fd)
     else if (process_state & COMPELETED) {
         _send_normal(fd);
         Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
+        if (_processor.need_to_close(fd)) {
+            close_connection(fd, weblog::INFO, "Connection closed by server");
+        }
     }
     else if (process_state & HANDLE_CHUNKED) {
         _send_normal(fd);

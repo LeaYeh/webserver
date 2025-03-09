@@ -84,11 +84,14 @@ void RequestProcessor::process(int fd)
     webshell::Response response;
 
     // If still need to process the garbage body, do nothing and return
+    LOG(weblog::CRITICAL, "STATE IS: " + utils::to_string(_state[fd]));
     if (state == CONSUME_BODY) {
         if (_need_consume_body(request)) {
             return;
         }
+        state = COMPELETED;
         set_state(fd, COMPELETED);
+        return;
     }
     if (state != COMPELETED) {
         response = manager->handle_request(fd, state, request);
@@ -107,6 +110,7 @@ void RequestProcessor::process(int fd)
             }
         }
         else {
+            // TODO: For the GET request we also need to control the EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request before the current request finished
             // for GET and DELETE requests, we can send the response directly
             _handler->prepare_write(fd, response.serialize());
         }
@@ -118,6 +122,7 @@ void RequestProcessor::process(int fd)
             _handler->prepare_write(fd, response.serialize());
         }
         if (_need_consume_body(request)) {
+            state = CONSUME_BODY;
             set_state(fd, CONSUME_BODY);
             return;
         }
@@ -239,7 +244,7 @@ void RequestProcessor::_handle_keep_alive(int fd)
 void RequestProcessor::_end_request(int fd)
 {
     _analyzer_pool.erase(fd);
-    reset_state(fd);
+    // reset_state(fd);
     _handle_keep_alive(fd);
 }
 

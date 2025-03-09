@@ -64,9 +64,6 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             _pipe_map[client_fd] = pipefd[0];
             Reactor::instance()->register_handler(
                 pipefd[0], _handler_map[client_fd], EPOLLIN);
-            // _handler.reset(new CgiHandler(client_fd, pid));
-            // Reactor::instance()->register_handler(
-            //     pipefd[0], _handler.get(), EPOLLIN);
             close(pipefd[1]);
 
             // the monitor process
@@ -139,9 +136,10 @@ void CgiExecutor::remove_handler(int fd)
     if (handler_exists(fd)) {
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
-        Reactor::instance()->remove_handler(_pipe_map[fd]);
+        LOG(weblog::CRITICAL, "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
         _handler_map.erase(fd);
+        Reactor::instance()->remove_handler(_pipe_map[fd]);
         _pipe_map.erase(fd);
     }
 }

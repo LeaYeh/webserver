@@ -280,19 +280,24 @@ void ConnectionHandler::_handle_write(int fd)
               << std::endl;
     // sleep(1000);
 
-    // we assume the cgi response will respond in once, so when _handle_write be
-    // triggerd mean cgi finished
-    if (process_state == WAITING_CGI) {
-        process_state = COMPELETED;
+    // // we assume the cgi response will respond in once, so when _handle_write be
+    // // triggerd mean cgi finished
+    // if (process_state == WAITING_CGI) {
+    //     process_state = COMPELETED;
 
-        _processor.set_state(fd, COMPELETED);
-        // set the state to COMPELETED and force the process trap into
-        // COMPELETED how to remove file?!?!?!?!
+    //     _processor.set_state(fd, COMPELETED);
+    //     // set the state to COMPELETED and force the process trap into
+    //     // COMPELETED how to remove file?!?!?!?!
+    //     _send_normal(fd);
+    //     _processor.process(fd);
+    //     // here the fd be removed
+    // }
+    if (process_state & WAITING_CGI) {
         _send_normal(fd);
-        _processor.process(fd);
-        // here the fd be removed
+        process_state = CONSUME_BODY;
+        _processor.set_state(fd, CONSUME_BODY);
     }
-    else if (process_state & ERROR) {
+    if (process_state & ERROR) {
         // if (_error_buffer.find(fd) != _error_buffer.end()) {
         _send_error(fd);
     }

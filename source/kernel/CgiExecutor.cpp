@@ -140,7 +140,6 @@ void CgiExecutor::remove_handler(int fd)
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
         Reactor::instance()->remove_handler(_pipe_map[fd]);
-        close(_pipe_map[fd]);
         delete _handler_map[fd];
         _handler_map.erase(fd);
         _pipe_map.erase(fd);
@@ -201,15 +200,17 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
 {
     size_t pos = path.find(route);
     if (pos == std::string::npos) {
-        throw std::runtime_error("A cgi request[" + path
-                                 + "] cannot match cgi path: " + cgi_path);
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     pos += route.length();
     // TODO: If the route end with '/' in config file, the config parser need to
     // cry
     if (pos >= path.length() || path[pos] != '/') {
-        throw std::runtime_error("A cgi request[" + path
-                                 + "] cannot match cgi path: " + cgi_path);
+        throw utils::HttpException(
+            webshell::INTERNAL_SERVER_ERROR,
+            "A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     size_t pos_end_of_script_name = path.find('/', pos + 1);
     if (pos_end_of_script_name != std::string::npos) {

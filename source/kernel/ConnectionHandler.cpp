@@ -322,7 +322,12 @@ void ConnectionHandler::_send_normal(int fd)
                 + ", do nothing");
         return;
     }
-
+    if (_write_buffer[fd].empty()) {
+        LOG(weblog::DEBUG,
+            "Empty write buffer found for fd: " + utils::to_string(fd)
+                + ", do nothing");
+        return;
+    }
     LOG(weblog::DEBUG,
         "Write content: \n" + utils::replaceCRLF(_write_buffer[fd]));
     int bytes_sent =

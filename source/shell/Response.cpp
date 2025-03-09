@@ -89,12 +89,15 @@ Hello, World!
 std::string Response::serialize() const
 {
     std::string response;
-
-    if (_status_code != UNDEFINED) {
-        response += "HTTP/1.1 " + utils::to_string(_status_code) + " "
-                    + status_reason_phase(_status_code) + "\r\n";
-    }
     std::map<std::string, std::string>::const_iterator it;
+
+    if (_status_code == UNDEFINED) {
+        LOG(weblog::WARNING, "Response status code is not set");
+        return ("");
+    }
+    response += "HTTP/1.1 " + utils::to_string(_status_code) + " "
+                + status_reason_phase(_status_code) + "\r\n";
+
     for (it = _headers.begin(); it != _headers.end(); ++it) {
         response += it->first + ": " + it->second + "\r\n";
     }
@@ -105,9 +108,6 @@ std::string Response::serialize() const
     if (_headers.find("transfer-encoding") == _headers.end()) {
         response += "\r\n";
     }
-    // LOG(weblog::WARNING,
-    //     "serialize response: \n" + utils::replaceCRLF(response));
-
     return (response);
 }
 

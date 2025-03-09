@@ -38,9 +38,9 @@ ConnectionHandler* ConnectionHandler::create_instance()
 void ConnectionHandler::handle_event(int fd, uint32_t events)
 {
     // TODO: Consider to make connection to session manager in the constructor
-    if (_session_fd == -1) {
-        _connect_to_session_manager();
-    }
+    // if (_session_fd == -1) {
+    //     _connect_to_session_manager();
+    // }
     LOG(weblog::DEBUG,
         "ConnectionHandler::handle_event() on fd: " + utils::to_string(fd)
             + " with events: " + explain_epoll_event(events));

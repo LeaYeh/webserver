@@ -231,11 +231,6 @@ void ARequestHandler::_update_status(EventProcessingState& state,
             + explain_event_processing_state(state));
 }
 
-bool ARequestHandler::_is_cgi_request(const webshell::Request& request)
-{
-    return (!request.config().cgi_path.empty());
-}
-
 void ARequestHandler::_pre_process(const webshell::Request& request)
 {
     const webconfig::RequestConfig& config = request.config();

@@ -5,9 +5,9 @@
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
-#include "kernelUtils.hpp"
 #include "Uri.hpp"
 #include "defines.hpp"
+#include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
 #include <cstddef>
@@ -183,6 +183,11 @@ void Request::set_cookies(std::map<std::string, std::string> cookies)
 const std::string& Request::temp_file_path() const
 {
     return (_temp_file_path);
+}
+
+bool Request::is_cgi() const
+{
+    return (_config.cgi_path.empty());
 }
 
 void Request::set_headers(std::map<std::string, std::string> headers)

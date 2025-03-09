@@ -42,6 +42,7 @@ public:
     void setup_config(webconfig::ConfigServerBlock* server_config);
     void set_cookies(std::map<std::string, std::string> cookies);
     const std::string& temp_file_path() const;
+    bool is_cgi() const;
 
 public:
     Request();

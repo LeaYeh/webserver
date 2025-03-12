@@ -48,7 +48,7 @@ bool RequestProcessor::analyze(int fd, std::string& buffer)
         _analyzer_pool[fd] = webshell::RequestAnalyzer(&buffer);
         reset_state(fd);
     }
-    LOG(weblog::WARNING, "buffer: " + buffer);
+    LOG(weblog::WARNING, "read buffer: " + buffer);
     while (i < buffer.size()) {
         _analyzer_pool[fd].feed(buffer[i]);
         if (_analyzer_pool[fd].is_complete()) {
@@ -84,7 +84,7 @@ void RequestProcessor::process(int fd)
     webshell::Response response;
 
     // If still need to process the garbage body, do nothing and return
-    LOG(weblog::CRITICAL, "STATE IS: " + utils::to_string(_state[fd]));
+    LOG(weblog::CRITICAL, "STATE IS: " + explain_event_processing_state(state));
     if (state == CONSUME_BODY) {
         if (_need_consume_body(request)) {
             return;
@@ -93,7 +93,7 @@ void RequestProcessor::process(int fd)
         set_state(fd, COMPELETED);
         return;
     }
-    if (state != COMPELETED) {
+    if (!(state & COMPELETED)) {
         response = manager->handle_request(fd, state, request);
         LOG(weblog::DEBUG, "state: " + explain_event_processing_state(state));
 
@@ -129,10 +129,12 @@ void RequestProcessor::process(int fd)
             // for GET and DELETE requests, we can send the response directly
 
             // TODO: Bug: in the GET chunked mode, the analyzer be reset before the request finished
-            _handler->prepare_write(fd, response.serialize());
+            if (!(state & COMPELETED)) {
+                _handler->prepare_write(fd, response.serialize());
+            }
         }
     }
-    if (state == COMPELETED) {
+    if (state & COMPELETED) {
         // the cgi output is handled by the CgiHandler, so nothing could be
         // responded here
         if (!request.is_cgi()) {
@@ -206,7 +208,8 @@ void RequestProcessor::_handle_keep_alive(int fd)
 
 void RequestProcessor::_end_request(int fd)
 {
-    _analyzer_pool.erase(fd);
+    LOG(weblog::INFO, "End request on fd: " + utils::to_string(fd));
+    remove_analyzer(fd);
     // reset_state(fd);
     _handle_keep_alive(fd);
 }

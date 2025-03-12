@@ -19,7 +19,7 @@ Response ResponseBuilder::ok(StatusCode status_code,
     Response response;
 
     if (body_only) {
-        response.set_status_code(UNDEFINED);
+        response.set_status_code(IGNORE);
         response.clear_headers();
         response.set_body(body);
     }

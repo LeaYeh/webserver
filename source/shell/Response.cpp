@@ -95,9 +95,10 @@ std::string Response::serialize() const
         LOG(weblog::WARNING, "Response status code is not set");
         return ("");
     }
-    response += "HTTP/1.1 " + utils::to_string(_status_code) + " "
-                + status_reason_phase(_status_code) + "\r\n";
-
+    if (_status_code != IGNORE) {
+        response += "HTTP/1.1 " + utils::to_string(_status_code) + " "
+                    + status_reason_phase(_status_code) + "\r\n";
+    }
     for (it = _headers.begin(); it != _headers.end(); ++it) {
         response += it->first + ": " + it->second + "\r\n";
     }
@@ -105,9 +106,9 @@ std::string Response::serialize() const
         response += "\r\n";
     }
     response += _body;
-    if (_headers.find("transfer-encoding") == _headers.end()) {
-        response += "\r\n";
-    }
+    // if (_headers.find("transfer-encoding") == _headers.end()) {
+    //     response += "\r\n";
+    // }
     return (response);
 }
 

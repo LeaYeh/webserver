@@ -174,6 +174,7 @@ enum RequestHeaderState
 
 enum StatusCode
 {
+    IGNORE = -2,
     UNDEFINED = -1,
     CONTINUE = 100,
     OK = 200,

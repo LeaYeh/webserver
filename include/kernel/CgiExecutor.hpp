@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -40,6 +41,9 @@ private:
     void _free_array(char** arr, size_t size);
     void _close_all_fds(std::vector<int> vec);
     void _clean_handlers();
+    const char** _construct_argv(const std::string& script_path, const std::string& ext);
+    std::string _get_interpreter(const std::string& ext, char** env);
+    void _debug_execve(const std::string& exec_path, char* const argv[], char* const env[]);
 
 private:
     CgiExecutor();

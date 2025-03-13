@@ -24,6 +24,7 @@ public:
     std::vector<ConfigServerBlock>& server_block_list(void);
 
     void print_config(void) const;
+    bool validate(void) const;
 
 public:
     ~Config();

@@ -53,6 +53,9 @@ int main(int argc, char** argv)
         // weblog::logger->set_file_mode("webserver.log");
 
         config->print_config();
+        if (!config->validate()) {
+            throw std::invalid_argument("Invalid configuration");
+        }
         webkernel::Kernel kernel;
 
         kernel.run();

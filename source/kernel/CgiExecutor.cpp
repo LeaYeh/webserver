@@ -54,6 +54,22 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Failed to create pipe");
     }
+
+    // 设置管道为非阻塞模式
+    int flags = fcntl(pipefd[0], F_GETFL, 0);
+    if (flags == -1) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Failed to get pipe flags");
+    }
+    if (fcntl(pipefd[0], F_SETFL, flags | O_NONBLOCK) == -1) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
+                                   "Failed to set pipe non-blocking");
+    }
+
     try {
         pid_t pid = fork();
 
@@ -86,6 +102,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         else if (pid == 0) {
             close(pipefd[0]);
             if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
+                perror("dup2");
+                perror(strerror(errno));
                 close(pipefd[1]);
                 throw ReturnWithUnwind(FAILURE);
             }
@@ -112,11 +130,9 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
             Reactor::instance()->destroy_tree();
-            _debug_execve(interpreter, (char * const *)argv, env);
             execve(interpreter.c_str(), (char * const *)argv, env);
             perror("execve");
             perror(strerror(errno));
-            // we catch this in the main so all destructors are called before
             throw ReturnWithUnwind(FAILURE);
         }
         else {
@@ -294,6 +310,7 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     }
 
     // TODO: Check the define of each variable
+    envp.push_back("PYTHONUNBUFFERED=1");
     envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
     envp.push_back("SERVER_PROTOCOL=HTTP/1.1");
     envp.push_back("SERVER_SOFTWARE=webserv/1.0");
@@ -320,30 +337,30 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
 
 std::string CgiExecutor::_get_interpreter(const std::string& ext, char** env)
 {
-    std::string interpreter;
-    std::string path;
+    std::string interpreter;    
+    std::vector<std::string> paths;
+    const std::string name = ext == ".py" ? "python3" : "sh";
 
-    if (ext == ".py") {
-        for (int i = 0; env[i] != NULL; i++) {
-            if (std::strncmp(env[i], "PYTHONPATH=", 11) == 0) {
-                interpreter = std::string(env[i] + 11);
-            }
-            else if (std::strncmp(env[i], "PATH=", 5) == 0) {
-                path = std::string(env[i] + 5);
-            }
+    for (int i = 0; env[i] != NULL; i++) {
+        if (std::strncmp(env[i], "PATH=", 5) == 0) {
+            std::string path = std::string(env[i] + 5);
+            paths = utils::split(path, ':');
         }
-        if (interpreter.empty()) {
-            std::vector<std::string> paths = utils::split(path, ':');
-            for (size_t i = 0; i < paths.size(); i++) {
-                if (access((paths[i] + "/python3").c_str(), X_OK) == 0) {
-                    interpreter = paths[i] + "/python3";
-                    break;
-                }
-            }
+        if (ext == ".py" && std::strncmp(env[i], "PYTHONPATH=", 11) == 0) {
+            interpreter = std::string(env[i] + 11);
+        }
+        else if (ext == ".sh" && std::strncmp(env[i], "SHELL=", 6) == 0) {
+            interpreter = std::string(env[i] + 6);
         }
     }
-    else if (ext == ".sh") {
-        interpreter = "/bin/sh";
+    if (interpreter.empty()) {
+        for (size_t i = 0; i < paths.size(); i++) {
+            std::string path = utils::join(paths[i], name);
+            if (access(path.c_str(), X_OK) == 0) {
+                interpreter = path;
+                break;
+            }
+        }
     }
     return interpreter;
 }

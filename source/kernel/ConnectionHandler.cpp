@@ -343,7 +343,7 @@ void ConnectionHandler::_send_normal(int fd)
 
     if (CgiExecutor::instance()->handler_exists(fd)) {
         LOG(weblog::CRITICAL,
-            "Remove cgi handler on fd: " + utils::to_string(fd));
+            "Remove cgi handler on pipe fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }
     Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);

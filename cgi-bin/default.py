@@ -1,12 +1,22 @@
 import os
+import sys
 
 
-def application(environ) -> str:
+def debug_log(message):
+    sys.stderr.write("DEBUG: " + message + "\n")
+    sys.stderr.flush()
+
+def debug_environment():
+    for key, value in os.environ.items():
+        debug_log("{}: {}".format(key, value))
+
+def application(environ):
+    debug_environment()
+
     response = ''
-
-    response += 'HTTP/1.1 200 OK\n'
-    response += 'Content-Type: text/html\n'
-    response += '\n'
+    response += 'HTTP/1.1 200 OK\r\n'
+    response += 'Content-Type: text/html\r\n'
+    response += '\r\n'
     response += '<html>\n'
     response += '<head>\n'
     response += '<title>CGI Python</title>\n'
@@ -21,4 +31,5 @@ def application(environ) -> str:
     return response
 
 if __name__ == '__main__':
-    print(application({}))
+    debug_log("Starting CGI script")
+    sys.stdout.write(application(os.environ))

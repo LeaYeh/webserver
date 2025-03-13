@@ -18,5 +18,9 @@ private:
     std::string _buffer;
     int _client_fd;
     pid_t _pid;
+
+private:
+    void _read_pipe(int fd);
+
 };
 } // namespace webkernel

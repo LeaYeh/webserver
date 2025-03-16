@@ -174,4 +174,9 @@ std::vector<std::string> split(const std::string& str, char delimiter)
     return (tokens);
 }
 
+bool is_expired(time_t start_time, time_t duration)
+{
+    return (time(0) - start_time > duration);
+}
+
 } // namespace utils

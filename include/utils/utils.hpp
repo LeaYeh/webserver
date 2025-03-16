@@ -27,6 +27,7 @@ std::string basefolder(const std::string& path);
 std::string basename(const std::string& path);
 std::string file_extension(const std::string& path);
 std::string join(const std::string& path1, const std::string& path2);
+bool is_expired(time_t start_time, time_t duration);
 
 template <typename T> std::string to_string(const T& value)
 {

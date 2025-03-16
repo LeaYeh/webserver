@@ -29,6 +29,8 @@ $(NAME): cmake_build .init-tmp-dir
 .init-tmp-dir:
 	echo "Creating tmp directory..."
 	@mkdir -p $(ROOT_DIR)/tmp
+	echo "Creating upload directory..."
+	@mkdir -p $(ROOT_DIR)/www/upload
 
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8
@@ -49,6 +51,7 @@ fclean: clean
 	@rm -f $(BUILD_DIR)/CMakeCache.txt
 	@echo $(STY_BLU)"[INFO] Clean the tmp folder"$(STY_RES)
 	@rm -rf $(ROOT_DIR)/tmp
+	@rm -rf $(ROOT_DIR)/www/upload
 	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean

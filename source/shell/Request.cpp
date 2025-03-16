@@ -34,6 +34,7 @@ Request::Request() :
     _read_buffer()
 {
     _temp_file_path = _generate_temp_file_path();
+    _sth_wrong = _temp_file_path;
 }
 
 Request::Request(std::string* buffer) :
@@ -48,6 +49,7 @@ Request::Request(std::string* buffer) :
     _read_buffer(buffer)
 {
     _temp_file_path = _generate_temp_file_path();
+    _sth_wrong = _temp_file_path;
 }
 
 Request::Request(const Request& other) :
@@ -61,7 +63,8 @@ Request::Request(const Request& other) :
     _cookies(other._cookies),
     _read_buffer(other._read_buffer),
     _config(other._config),
-    _temp_file_path(other._temp_file_path)
+    _temp_file_path(other._temp_file_path),
+    _sth_wrong(other._sth_wrong)
 {
 }
 
@@ -79,6 +82,7 @@ Request& Request::operator=(const Request& other)
         _read_buffer = other._read_buffer;
         _config = other._config;
         _temp_file_path = other._temp_file_path;
+        _sth_wrong = other._sth_wrong;
     }
     return (*this);
 }
@@ -259,12 +263,17 @@ void Request::_write_chunked_file(const std::vector<char>& content)
     size_t remaining = content.size();
     size_t offset = 0;
 
+    // TODO: This is fucking stupid bug, but I don't know how to fix it
+    // For some reason, the _temp_file_path becomes garbage value
+    if (_sth_wrong != _temp_file_path)
+        _temp_file_path = _sth_wrong;
     LOG(weblog::DEBUG, "Write chunked file: " + _temp_file_path);
-    file_stream.open(_temp_file_path.c_str(),
-                     std::ios::out | std::ios::binary | std::ios::trunc);
+
+    // TODO: Here I need to append the file instead of truncating it, need to double check
+    file_stream.open(_temp_file_path.c_str(), std::ios::out | std::ios::binary | std::ios::app);
     if (!file_stream.is_open()) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "haha File stream is not open");
+                                   "haha File stream is not open: " + _temp_file_path);
     }
     while (remaining > 0) {
         size_t write_size =

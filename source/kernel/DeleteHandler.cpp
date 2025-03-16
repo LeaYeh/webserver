@@ -15,10 +15,30 @@ namespace webkernel
 {
 
 webshell::Response DeleteHandler::handle(int fd,
+                                      EventProcessingState& state,
+                                      webshell::Request& request)
+{
+    if (state == WAITING_SESSION) {
+        _handle_session(request);
+    }
+    if (state < READY_TO_PROCESS) {
+        return (webshell::Response());
+    }
+    return (_handle_request(fd, state, request));
+}
+
+void DeleteHandler::_handle_session(webshell::Request& request)
+{
+    (void)request;
+    LOG(weblog::INFO, "DeleteHandler: no session handling, skip");
+    _update_status(_state, READY_TO_PROCESS, true);
+}
+
+webshell::Response DeleteHandler::_handle_request(int fd,
                                          EventProcessingState& state,
                                          webshell::Request& request)
 {
-    if (state == INITIAL) {
+    if (state == READY_TO_PROCESS) {
         _pre_process(request);
         _update_status(state, PROCESSING, true);
     }

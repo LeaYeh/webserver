@@ -83,8 +83,22 @@ void RequestProcessor::process(int fd)
     RequestHandlerManager* manager = &RequestHandlerManager::get_instance();
     webshell::Response response;
 
-    // If still need to process the garbage body, do nothing and return
     LOG(weblog::CRITICAL, "STATE IS: " + explain_event_processing_state(state));
+    // Before processing the request, we need to request the session data if is needed
+    if (state == INITIAL) {
+        if (_need_session_data(request)) {
+            std::string sid = request.get_cookie("session_id");
+            if (_handler->request_session_data(sid, fd)) {
+                state = WAITING_SESSION;
+                return;
+            }
+        }
+        else {
+            // If the request does not need session data, we can process it directly
+            state = READY_TO_PROCESS;
+        }
+    }
+    // If still need to process the garbage body, do nothing and return
     if (state == CONSUME_BODY) {
         if (_need_consume_body(request)) {
             return;
@@ -212,6 +226,15 @@ void RequestProcessor::_end_request(int fd)
     remove_analyzer(fd);
     // reset_state(fd);
     _handle_keep_alive(fd);
+}
+
+bool RequestProcessor::_need_session_data(
+    const webshell::Request& request) const
+{
+    if (request.uri().path.find("/game/") == std::string::npos) {
+        return (false);
+    }
+    return (!request.get_cookie("session_id").empty());
 }
 
 bool RequestProcessor::_need_consume_body(webshell::Request& request)

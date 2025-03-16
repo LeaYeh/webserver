@@ -12,8 +12,10 @@
 #include "kernelUtils.hpp"
 #include "session_types.hpp"
 #include "utils.hpp"
+#include <fcntl.h>
 #include <iostream>
 #include <sys/epoll.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
 
@@ -38,14 +40,19 @@ ConnectionHandler* ConnectionHandler::create_instance()
 void ConnectionHandler::handle_event(int fd, uint32_t events)
 {
     // TODO: Consider to make connection to session manager in the constructor
-    // if (_session_fd == -1) {
-    //     _connect_to_session_manager();
-    // }
+    if (_session_fd == -1) {
+        _connect_to_session_manager();
+    }
     LOG(weblog::DEBUG,
         "ConnectionHandler::handle_event() on fd: " + utils::to_string(fd)
             + " with events: " + explain_epoll_event(events));
     if (events & EPOLLIN) {
-        _handle_read(fd);
+        if (fd == _session_fd) {
+            recv_session_data();
+        }
+        else {
+            _handle_read(fd);
+        }
     }
     else if (events & EPOLLHUP) {
         close_connection(fd, weblog::INFO, "Connection closed by client");
@@ -118,63 +125,34 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
     _processor.set_state(fd, ERROR);
 }
 
-bool ConnectionHandler::get_session_data(const std::string& sid,
-                                         std::string& out_data)
+void ConnectionHandler::recv_session_data()
 {
-    SessionMessage msg;
-
-    msg.type = SESSION_GET;
-    std::strncpy(msg.session_id, sid.c_str(), sizeof(msg.session_id) - 1);
-    msg.data_length = 0;
-    int bytes = send(_session_fd, &msg, sizeof(msg), 0);
-
-    if (bytes != sizeof(msg)) {
-        LOG(weblog::ERROR,
-            "Send session message failed: " + utils::to_string(bytes));
-        return (false);
-    }
-    else if (bytes == 0) {
-        LOG(weblog::ERROR, "Session connection closed");
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
-    else if (bytes < 0) {
-        LOG(weblog::ERROR,
-            "Send session message failed: " + std::string(strerror(errno)));
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
     SessionMessage resp;
+    int bytes = recv(_session_fd, &resp, sizeof(resp), 0);
 
-    // TODO: We can only have 1 read/write for an epoll event, now is forbidden
-    bytes = recv(_session_fd, &resp, sizeof(resp), 0);
     if (bytes != sizeof(resp)) {
-        LOG(weblog::ERROR,
-            "Receive session message failed: " + utils::to_string(bytes));
-        return (false);
+        throw std::runtime_error("Receive session message failed: "
+                                 + utils::to_string(bytes));
     }
     else if (bytes == 0) {
-        LOG(weblog::ERROR, "Session connection closed");
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
+        throw std::runtime_error("Session connection closed");
     }
     else if (bytes < 0) {
-        LOG(weblog::ERROR,
-            "Receive session message failed: " + std::string(strerror(errno)));
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
+        throw std::runtime_error("Receive session message failed: "
+                                 + std::string(strerror(errno)));
     }
     if (resp.type == SESSION_RESPONSE) {
-        out_data = std::string(resp.data, resp.data_length);
-        return (true);
+        if (_pending_session_requests.find(resp.session_id)
+            == _pending_session_requests.end()) {
+            throw std::runtime_error("Receive session response for unknown sid");
+        }
+        _pending_session_requests[resp.session_id]->out_data
+            = std::string(resp.data, resp.data_length);
+        _pending_session_requests[resp.session_id]->completed = true;
     }
-    return (false);
 }
 
+// Send a request to the session manager to set the session data with the sid
 bool ConnectionHandler::set_session_data(const std::string& sid,
                                          const std::string& data)
 {
@@ -192,6 +170,68 @@ bool ConnectionHandler::set_session_data(const std::string& sid,
         return (false);
     }
     Reactor::instance()->modify_handler(_session_fd, EPOLLIN, 0);
+    return (true);
+}
+
+// Send a request to the session manager to get the session data with the sid
+bool ConnectionHandler::request_session_data(const std::string& sid,
+                                             int client_fd)
+{
+    PendingSessionRequestMap::iterator it = _pending_session_requests.find(sid);
+
+    // if the request is already in the pending list
+    if (it != _pending_session_requests.end()) {
+        // if the request is expired
+        if (utils::is_expired(it->second->request_time,
+                              PendingSessionRequest::MAX_WAIT_TIME)) {
+            LOG(weblog::ERROR,
+                "Request session data timeout for session[" + sid
+                    + "] on fd: " + utils::to_string(client_fd));
+            if (it->second->retry_count >= PendingSessionRequest::MAX_RETRY) {
+                LOG(weblog::ERROR,
+                    "Request session data failed for session[" + sid
+                        + "] on fd: " + utils::to_string(client_fd));
+                prepare_error(
+                    client_fd,
+                    utils::HttpException(webshell::SERVICE_UNAVAILABLE,
+                                         "Request session data failed"));
+                delete it->second;
+                _pending_session_requests.erase(it);
+                return (false);
+            }
+            else {
+                it->second->retry_count++;
+                LOG(weblog::CRITICAL,
+                    "Retry to request session data for session[" + sid
+                        + "] on fd: " + utils::to_string(client_fd));
+                return (false);
+            }
+        }
+        // if the request is not expired, do nothing and return
+        else {
+            return (true);
+        }
+    }
+    // if the request is not in the pending list, send the request to the session
+    else {
+        SessionMessage msg;
+        PendingSessionRequest* req = new PendingSessionRequest(sid, client_fd);
+
+        msg.type = SESSION_GET;
+        msg.set_id(sid);
+        msg.data_length = 0;
+        LOG(weblog::CRITICAL,
+            "Request session data for session[" + sid
+                + "] on fd: " + utils::to_string(client_fd));
+        int bytes = send(_session_fd, &msg, sizeof(msg), 0);
+
+        if (bytes != sizeof(msg)) {
+            LOG(weblog::ERROR,
+                "Send session message failed: " + utils::to_string(bytes));
+            return (false);
+        }
+        _pending_session_requests[sid] = req;
+    }
     return (true);
 }
 
@@ -432,13 +472,41 @@ void ConnectionHandler::_connect_to_session_manager()
     }
     addr.sun_family = AF_UNIX;
     std::strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path));
+    LOG(weblog::DEBUG, "Connecting to session manager on socket: " + socket_path + " on fd: " + utils::to_string(_session_fd));
     if (connect(_session_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         close(_session_fd);
         throw std::runtime_error("Failed to connect to session manager: "
                                  + utils::to_string(strerror(errno)));
     }
-    LOG(weblog::DEBUG,
-        "Connected to session manager on fd: " + utils::to_string(_session_fd));
+    LOG(weblog::INFO, "Session client registered into reactor");
+    Reactor::instance()->register_handler(_session_fd, this, EPOLLIN);
+    LOG(weblog::INFO,
+        "Connected to session manager on session fd: " + utils::to_string(_session_fd));
+}
+
+std::string ConnectionHandler::get_session_data(const std::string& sid)
+{
+    if (_pending_session_requests.find(sid) == _pending_session_requests.end()) {
+        throw std::runtime_error("Session data not found for sid: " + sid);
+    }
+    PendingSessionRequest* req = _pending_session_requests[sid];
+
+    if (!req->completed) {
+        throw std::runtime_error("Session data not ready for sid: " + sid);
+    }
+    std::string data = req->out_data;
+
+    delete req;
+    _pending_session_requests.erase(sid);
+    return (data);
+}
+
+bool ConnectionHandler::has_session_data(const std::string& sid) const
+{
+    if (_pending_session_requests.find(sid) == _pending_session_requests.end()) {
+        return (false);
+    }
+    return (_pending_session_requests.at(sid)->completed);
 }
 
 } // namespace webkernel

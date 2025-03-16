@@ -2,11 +2,13 @@
 #include "ARequestHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
+#include "Response.hpp"
 #include "ResponseBuilder.hpp"
 #include "TemplateEngine.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
+#include "ConnectionHandler.hpp"
 #include <dirent.h>
 #include <exception>
 #include <new>
@@ -20,14 +22,48 @@ GetHandler::GetHandler() {}
 
 GetHandler::~GetHandler() {}
 
-// client_fd
 webshell::Response GetHandler::handle(int fd,
                                       EventProcessingState& state,
                                       webshell::Request& request)
 {
+    if (state == WAITING_SESSION) {
+        _handle_session(request);
+    }
+    if (state < READY_TO_PROCESS) {
+        return (webshell::Response());
+    }
+    return (_handle_request(fd, state, request));
+}
+
+void GetHandler::_handle_session(webshell::Request& request)
+{
+    std::string session_id = request.get_cookie("session_id");
+
+    if (session_id.empty()) {
+        session_id = uuid();
+        if (!ConnectionHandler::instance()->set_session_data(session_id, "")) {
+            throw std::runtime_error(
+                "GetHandler: failed to set session data");
+        }
+        _response_headers["Set-Cookie"] = "session_id=" + session_id;
+    }
+    else if (ConnectionHandler::instance()->has_session_data(session_id)) {
+        _response_headers["Set-Cookie"] = _format_session_cookie(
+            session_id,
+            ConnectionHandler::instance()->get_session_data(session_id));
+        _update_status(_state, READY_TO_PROCESS, true);
+    }
+}
+
+// client_fd
+webshell::Response GetHandler::_handle_request(int fd,
+                                               EventProcessingState& state,
+                                               webshell::Request& request)
+{
     std::string content;
+
     try {
-        if (state == INITIAL) {
+        if (state == READY_TO_PROCESS) {
             _pre_process(request);
             _update_status(state, PROCESSING, true);
         }
@@ -43,7 +79,7 @@ webshell::Response GetHandler::handle(int fd,
             return (webshell::Response());
         }
         content = _process(fd, state, request);
-        _post_process(request, _target_path, content);
+        _post_process(request, _target_path, content); 
     }
     catch (utils::HttpException& e) {
         _handle_exception(e, e.status_code(), webshell::TEXT_HTML);
@@ -56,6 +92,7 @@ webshell::Response GetHandler::handle(int fd,
                                           content,
                                           state & HANDLE_OTHERS_CHUNKED));
 }
+
 
 void GetHandler::_pre_process(const webshell::Request& request)
 {

@@ -44,6 +44,7 @@ private:
     void _setup_timer(int fd, const webconfig::RequestConfig& config);
     void _handle_keep_alive(int fd);
     void _end_request(int fd);
+    bool _need_session_data(const webshell::Request& request) const;
     bool _need_consume_body(webshell::Request& request);
 
 private:

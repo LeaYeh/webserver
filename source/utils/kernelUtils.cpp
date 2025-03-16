@@ -155,13 +155,14 @@ std::string get_client_address(int fd)
     int res = -1;
 
     // remove the wrapper for getpeername(fd, (struct sockaddr*)&addr, &addr_size)
-    __asm__ volatile (
-        "mov $52, %%rax;"
-        "syscall;"
-        : "=a" (res)
-        : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
-        : "memory"
-    );
+    res = getpeername(fd, (struct sockaddr*)&addr, &addr_size);
+    // __asm__ volatile (
+    //     "mov $52, %%rax;"
+    //     "syscall;"
+    //     : "=a" (res)
+    //     : "D" (fd), "S" ((struct sockaddr*)&addr), "d" (&addr_size)
+    //     : "memory"
+    // );
 
     if (res < 0) {
         throw std::runtime_error("getpeername() failed: "

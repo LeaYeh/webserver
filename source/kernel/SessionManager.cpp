@@ -25,7 +25,7 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
     struct sockaddr_un addr;
     std::memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
-    const std::string socket_path = "/tmp/session.sock";
+    const std::string socket_path = config.socket_path;
     std::strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path) - 1);
     std::remove(socket_path.c_str());
 
@@ -40,7 +40,9 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
         throw std::runtime_error("Failed to listen on session socket: "
                                  + utils::to_string(strerror(errno)));
     }
-
+    LOG(weblog::DEBUG,
+        std::string("Created session manager with socket: ")
+            + socket_path);
     LOG(weblog::DEBUG,
         std::string("Session manager listening on socket: ")
             + utils::to_string(_server_fd));
@@ -64,6 +66,11 @@ SessionManager& SessionManager::operator=(const SessionManager& other)
 SessionManager::~SessionManager()
 {
     close(_server_fd);
+    for (std::set<int>::iterator it = _client_fds.begin();
+         it != _client_fds.end();
+         ++it) {
+        close(*it);
+    }
 }
 
 void SessionManager::handle_event(int fd, uint32_t events)
@@ -163,6 +170,7 @@ void SessionManager::_handle_session_request(int fd)
 
 void SessionManager::_handle_session_set(int fd, const SessionMessage& msg)
 {
+    (void)fd;
     SessionData& session = _sessions[msg.session_id];
 
     session.data = std::string(msg.data, msg.data_length);
@@ -172,7 +180,8 @@ void SessionManager::_handle_session_set(int fd, const SessionMessage& msg)
     }
     session.expire_time = time(0) + _config.expire_seconds;
     session.last_access = time(0);
-    _send_resp(fd, SESSION_RESPONSE, "Session data updated");
+    LOG(weblog::DEBUG, "Session data updated:");
+    // _send_resp(fd, SESSION_RESPONSE, "Session data updated");
 }
 
 void SessionManager::_handle_session_get(int fd, const SessionMessage& msg)

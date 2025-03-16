@@ -2,6 +2,7 @@
 #include "HttpException.hpp"
 #include "Logger.hpp"
 #include "RequestConfig.hpp"
+#include "ConnectionHandler.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
@@ -251,9 +252,18 @@ void ARequestHandler::_pre_process(const webshell::Request& request)
 
     // if (session_id.empty()) {
     //     session_id = uuid();
-    //     weblog::Logger::log(weblog::DEBUG,
-    //                         "Create new session id: " + session_id);
+    //     if (!ConnectionHandler::instance()->set_session_data(session_id, "")) {
+    //         throw std::runtime_error(
+    //             "ARequestHandler: failed to set session data");
+    //     }
+    //     _response_headers["Set-Cookie"] = "session_id=" + session_id;
     // }
+}
+
+std::string ARequestHandler::_format_session_cookie(const std::string& session_id,
+                                                    const std::string& data)
+{
+    return ("session_id=" + session_id + "; Path=/game/" + data);
 }
 
 } // namespace webkernel

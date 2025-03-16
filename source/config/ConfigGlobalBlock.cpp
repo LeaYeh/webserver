@@ -10,7 +10,7 @@ ConfigGlobalBlock::ConfigGlobalBlock() :
     AConfigParser(GLOBAL),
     _worker_processes(1),
     _worker_connections(1024),
-    _session_socket_path("./tmp/session.sock"),
+    _session_socket_path("/tmp/session.sock"),
     _session_expire_seconds(3600),
     _session_max_connections(1000)
 {

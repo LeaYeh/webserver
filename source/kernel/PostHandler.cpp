@@ -7,6 +7,7 @@
 #include "Response.hpp"
 #include "ResponseBuilder.hpp"
 #include "configUtils.hpp"
+#include "ConnectionHandler.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "shellUtils.hpp"
@@ -23,11 +24,42 @@ PostHandler::PostHandler() {}
 PostHandler::~PostHandler() {}
 
 webshell::Response PostHandler::handle(int fd,
+                                      EventProcessingState& state,
+                                      webshell::Request& request)
+{
+    if (state == WAITING_SESSION) {
+        _handle_session(request);
+    }
+    if (state < READY_TO_PROCESS) {
+        return (webshell::Response());
+    }
+    return (_handle_request(fd, state, request));
+}
+
+void PostHandler::_handle_session(webshell::Request& request)
+{
+    std::string session_id = request.get_cookie("session_id");
+
+    if (session_id.empty()) {
+        LOG(weblog::WARNING, "POST request without session id, cannot update session date");
+    }
+    else {
+        std::string data = _format_session_cookie(session_id, "TODO: add game state");
+        if (!ConnectionHandler::instance()->set_session_data(session_id, data)) {
+            throw std::runtime_error(
+                "PostHandler: failed to set session data");
+        }
+        _response_headers["Set-Cookie"] = "session_id=" + session_id;
+    }
+    _update_status(_state, READY_TO_PROCESS, true);
+}
+
+webshell::Response PostHandler::_handle_request(int fd,
                                        EventProcessingState& state,
                                        webshell::Request& request)
 {
     try {
-        if (state == INITIAL) {
+        if (state == READY_TO_PROCESS) {
             _pre_process(request);
             _update_status(state, PROCESSING);
         }

@@ -26,7 +26,7 @@ Kernel::Kernel() : _acceptor(NULL), _session_manager(NULL)
         LOG(weblog::INFO, "Create single reactor and single worker structure");
         Reactor::instantiate(REACTOR);
         _acceptor = new Acceptor();
-        // _session_manager = new SessionManager(SessionConfig());
+        _session_manager = new SessionManager(SessionConfig());
         _register_listener();
     }
     else {

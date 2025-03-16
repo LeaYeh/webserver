@@ -1,7 +1,10 @@
 #pragma once
 #include "ARequestHandler.hpp"
+#include "RequestConfig.hpp"
 #include "defines.hpp"
+#include <map>
 #include <string>
+#include <sstream>
 
 namespace webkernel
 {
@@ -21,6 +24,10 @@ private:
     std::string _temp_file_path;
 
 private:
+    void _handle_session(webshell::Request& request);
+    webshell::Response _handle_request(int fd,
+                                       EventProcessingState& state,
+                                       webshell::Request& request);
     void _pre_process(const webshell::Request& request);
     std::string
     _process(int fd, EventProcessingState& state, webshell::Request& request);
@@ -35,6 +42,11 @@ private:
     webshell::Response _handle_completed(const webshell::Request& request);
     bool _already_exist(const std::string& file_path);
     void _check_upload_permission(const webshell::Request& request);
+
+    // 添加处理游戏请求的方法
+    std::string _handle_game_request(int fd,
+                                    EventProcessingState& state,
+                                    webshell::Request& request);
 
 private:
     PostHandler(const PostHandler& other);

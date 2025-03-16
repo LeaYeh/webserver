@@ -67,6 +67,7 @@ private:
     std::string* _read_buffer;
     webconfig::RequestConfig _config;
     std::string _temp_file_path;
+    std::string _sth_wrong;
 
 private:
     bool _proceed_content_len(std::vector<char>& chunked_body);

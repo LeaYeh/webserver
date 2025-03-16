@@ -1,0 +1,13 @@
+{
+  "title": "MIME Type Test",
+  "description": "This is a JSON file example",
+  "mimeType": "application/json",
+  "testPurpose": "Testing web server support for JSON files",
+  "server": "42Vienna Web Server",
+  "testItems": [
+    "Content-Type header",
+    "File handling",
+    "MIME type identification"
+  ],
+  "success": true
+} 

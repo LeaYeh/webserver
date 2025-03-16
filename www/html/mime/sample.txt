@@ -1,0 +1,7 @@
+This is a plain text file example.
+
+This file is used to test the web server's support for the text/plain MIME type.
+
+If you can see the contents of this file, it means your web server has correctly processed the .txt file and set the appropriate Content-Type header.
+
+MIME Type: text/plain 

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/09 18:21:05 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/09 00:21:54 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:39:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -395,7 +395,7 @@ void UriAnalyzer::_uri_host_regname(unsigned char c)
 
 void UriAnalyzer::_uri_port(unsigned char c)
 {
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         _port.push_back(c);
     }
     else if (c == '/') {
@@ -505,7 +505,7 @@ unsigned char UriAnalyzer::_decode_num_and_alpha()
 
 bool UriAnalyzer::_valid_hexdigit(unsigned char c)
 {
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         return (true);
     }
     if (c == 'a' || c == 'b' || c == 'c' || c == 'd' || c == 'e' || c == 'f') {
@@ -519,7 +519,7 @@ bool UriAnalyzer::_valid_hexdigit(unsigned char c)
 
 unsigned char UriAnalyzer::_hexval(unsigned char c)
 {
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         return (c - 48);
     }
     if (c > 96) {

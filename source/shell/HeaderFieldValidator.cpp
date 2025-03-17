@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 18:42:39 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/09 01:17:16 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:39:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void HeaderFieldValidator::_validate_content_length(std::string& val)
 {
     size_t idx = 0;
     while (idx < val.size()) {
-        if (!isdigit(val[idx])) {
+        if (!std::isdigit(val[idx])) {
             throw utils::HttpException(
                 webshell::BAD_REQUEST,
                 "Content length must be a decimal number greater than or equal to 0");
@@ -338,7 +338,7 @@ void HeaderFieldValidator::_c_directive(unsigned char c)
 
 void HeaderFieldValidator::_c_argument_start(unsigned char c)
 {
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         _cache_state = C_ARGUMENT;
     }
     else {
@@ -353,7 +353,7 @@ void HeaderFieldValidator::_c_argument(unsigned char c)
     if (c == ',') {
         _cache_state = C_DIRECTIVE_START;
     }
-    else if (isdigit(c)) {
+    else if (std::isdigit(c)) {
         return;
     }
     else {
@@ -448,7 +448,7 @@ void HeaderFieldValidator::_uri_host_regname(unsigned char c)
 
 void HeaderFieldValidator::_uri_port(unsigned char c)
 {
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         return;
     }
     else {

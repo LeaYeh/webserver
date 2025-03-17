@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 16:52:31 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/02 00:23:13 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:48:50 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ float RequestLineAnalyzer::version() const
         return (0.0);
     }
     else {
-        return (atof(_version.substr(_version.length() - 3, 3).c_str()));
+        return (std::atof(_version.substr(_version.length() - 3, 3).c_str()));
     }
 }
 
@@ -186,7 +186,7 @@ bool RequestLineAnalyzer::_analyze_version(unsigned char c)
     else if (c == '/' && _pos == 5) {
         return (false);
     }
-    else if (isdigit(c) && (_pos == 6 || _pos == 8)) {
+    else if (std::isdigit(c) && (_pos == 6 || _pos == 8)) {
         return (false);
     }
     else if (c == '.' && _pos == 7) {

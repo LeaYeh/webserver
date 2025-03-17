@@ -54,6 +54,7 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Failed to create pipe");
     }
+
     try {
         pid_t pid = fork();
 
@@ -86,6 +87,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         else if (pid == 0) {
             close(pipefd[0]);
             if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
+                perror("dup2");
+                perror(strerror(errno));
                 close(pipefd[1]);
                 throw ReturnWithUnwind(FAILURE);
             }
@@ -103,19 +106,22 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                 close(fd);
             }
 
-            const char* argv[2];
-            argv[0] = _script_name.c_str();
-            argv[1] = NULL;
-
+            const char** argv =
+                _construct_argv(_script_path, request.config().cgi_extension);
             char** env = _convert_to_str_array(_get_env(request));
-            if (env == NULL) {
+            if (env == NULL || argv == NULL) {
                 throw ReturnWithUnwind(FAILURE);
             }
+            std::string interpreter =
+                _get_interpreter(request.config().cgi_extension, env);
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
             Reactor::instance()->destroy_tree();
-            execve(_script_path.c_str(), (char * const *)argv, env);
-            // we catch this in the main so all destructors are called before
+            execve(interpreter.c_str(), (char* const*)argv, env);
+            delete[] argv;
+            delete[] env;
+            perror("execve");
+            perror(strerror(errno));
             throw ReturnWithUnwind(FAILURE);
         }
         else {
@@ -136,7 +142,8 @@ void CgiExecutor::remove_handler(int fd)
     if (handler_exists(fd)) {
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
-        LOG(weblog::CRITICAL, "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
+        LOG(weblog::CRITICAL,
+            "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
         _handler_map.erase(fd);
         Reactor::instance()->remove_handler(_pipe_map[fd]);
@@ -223,7 +230,8 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
                != cgi_extension) {
         throw utils::HttpException(
             webshell::FORBIDDEN,
-            "Script-Name does not have the correct extension.");
+            "Script-Name does not have the correct extension: " + _script_name
+                + " " + cgi_extension);
     }
 
     if (access(_script_path.c_str(), F_OK) == -1) {
@@ -293,6 +301,7 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     }
 
     // TODO: Check the define of each variable
+    envp.push_back("PYTHONUNBUFFERED=1");
     envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
     envp.push_back("SERVER_PROTOCOL=HTTP/1.1");
     envp.push_back("SERVER_SOFTWARE=webserv/1.0");
@@ -315,6 +324,73 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
     }
 
     return envp;
+}
+
+std::string CgiExecutor::_get_interpreter(const std::string& ext, char** env)
+{
+    std::string interpreter;
+    std::vector<std::string> paths;
+    const std::string name = ext == ".py" ? "python3" : "sh";
+
+    for (int i = 0; env[i] != NULL; i++) {
+        if (std::strncmp(env[i], "PATH=", 5) == 0) {
+            std::string path = std::string(env[i] + 5);
+            paths = utils::split(path, ':');
+        }
+        if (ext == ".py" && std::strncmp(env[i], "PYTHONPATH=", 11) == 0) {
+            interpreter = std::string(env[i] + 11);
+        }
+        else if (ext == ".sh" && std::strncmp(env[i], "SHELL=", 6) == 0) {
+            interpreter = std::string(env[i] + 6);
+        }
+    }
+    if (interpreter.empty()) {
+        for (size_t i = 0; i < paths.size(); i++) {
+            std::string path = utils::join(paths[i], name);
+            if (access(path.c_str(), X_OK) == 0) {
+                interpreter = path;
+                break;
+            }
+        }
+    }
+    return interpreter;
+}
+
+const char** CgiExecutor::_construct_argv(const std::string& script_path,
+                                          const std::string& ext)
+{
+    const char** argv = new const char*[3];
+
+    if (ext == ".py") {
+        argv[0] = "python3";
+    }
+    else if (ext == ".sh") {
+        argv[0] = "sh";
+    }
+    else {
+        delete[] argv;
+        return (NULL);
+    }
+    argv[1] = script_path.c_str();
+    argv[2] = NULL;
+    return (argv);
+}
+
+void CgiExecutor::_debug_execve(const std::string& exec_path,
+                                char* const argv[],
+                                char* const env[])
+{
+    LOG(weblog::WARNING, "==== Debug Execve Parameters ====");
+    LOG(weblog::WARNING, "Executable Path: " + exec_path);
+    LOG(weblog::WARNING, "Arguments:");
+    for (int i = 0; argv[i] != NULL; i++) {
+        LOG(weblog::WARNING, "  argv[" + utils::to_string(i) + "]: " + argv[i]);
+    }
+
+    LOG(weblog::WARNING, "Environment Variables:");
+    for (int i = 0; env[i] != NULL; ++i) {
+        LOG(weblog::WARNING, "  env[" + utils::to_string(i) + "]: " + env[i]);
+    }
 }
 
 } // namespace webkernel

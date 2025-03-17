@@ -243,8 +243,7 @@ void RequestProcessor::_handle_virtual_host(int fd)
         if (!host.empty()) {
             server_config = vhost_manager.find_server(ipaddr, host);
             if (server_config == NULL) {
-                throw utils::HttpException(webshell::NOT_FOUND,
-                                           "No virtual host found: " + host);
+                server_config = default_server;
             }
         }
     }

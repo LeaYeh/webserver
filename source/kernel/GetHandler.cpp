@@ -196,11 +196,11 @@ void GetHandler::_handle_autoindex(EventProcessingState& state,
             list_items +=
                 "<tr><td><a href=\"" + object_path + "\">"
                 + std::string(ent->d_name) + "</a></td><td>"
-                + get_object_type(_target_path + std::string(ent->d_name))
+                + get_object_type(utils::join(_target_path, std::string(ent->d_name)))
                 + "</td><td>"
-                + get_object_size(_target_path + std::string(ent->d_name))
+                + get_object_size(utils::join(_target_path, std::string(ent->d_name)))
                 + "</td><td>"
-                + get_object_mtime(_target_path + std::string(ent->d_name))
+                + get_object_mtime(utils::join(_target_path, std::string(ent->d_name)))
                 + "</td></tr>";
         }
         closedir(dir);

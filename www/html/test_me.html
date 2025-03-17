@@ -11,7 +11,7 @@
 
     <section class="hero">
         <h1>42Vienna Web Server Feature Testing</h1>
-        <p>Welcome to the test page. Use this to test the capabilities of the web server you’ve implemented.</p>
+        <p>Welcome to the test page. Use this to test the capabilities of the web server you've implemented.</p>
     </section>
 
     <!-- GET Features -->
@@ -34,17 +34,10 @@
             </div>
 
             <div class="grid-item grid-description">
-                Download a large file (e.g., >1GB)
-            </div>
-            <div class="grid-item grid-button">
-                <a href="/features/get_largefile" class="cta-button">Download Large File</a>
-            </div>
-
-            <div class="grid-item grid-description">
                 Autoindex generation for directories
             </div>
             <div class="grid-item grid-button">
-                <a href="/features/autoindex/" class="cta-button">Test Autoindex</a>
+                <a href="/features/mime/" class="cta-button">Test Autoindex</a>
             </div>
         </div>
     </section>
@@ -55,38 +48,71 @@
         <p>Test the POST-related functionalities:</p></br>
         <div class="grid">
             <div class="grid-item grid-description">
-                Basic POST request handling
-            </div>
-            <div class="grid-item grid-button">
-                <a href="/features/post_basic.html" class="cta-button">Test Basic POST</a>
-            </div>
-
-            <div class="grid-item grid-description">
                 File upload handling
             </div>
             <div class="grid-item grid-button">
-                <a href="/features/post_upload.html" class="cta-button">Upload File</a>
+                <a href="/features/upload.html" class="cta-button">Upload File</a>
             </div>
 
             <div class="grid-item grid-description">
-                Upload and handle a large file
+                Check upload results
             </div>
             <div class="grid-item grid-button">
-                <a href="/features/post_largefile.html" class="cta-button">Upload Large File</a>
+                <a href="/upload" class="cta-button">Check</a>
             </div>
+
         </div>
     </section>
 
     <!-- DELETE Features -->
     <section id="delete-tests" class="features-section">
         <h2>DELETE Features</h2>
-        <p>Test the DELETE functionality (TBD):</p></br>
+        <p>Test the DELETE functionality</p></br>
         <div class="grid">
             <div class="grid-item grid-description">
-                Delete functionality is still under development.
+                Delete files in the upload directory
             </div>
             <div class="grid-item grid-button">
-                <a href="#" class="cta-button disabled" onclick="return false;">Coming Soon</a>
+                <a href="/features/delete.html" class="cta-button">Delete file</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CGI Features -->
+    <section id="cgi-tests" class="features-section">
+        <h2>CGI Features</h2>
+        <p>Test the CGI functionality</p></br>
+        <div class="grid">
+            <div class="grid-item grid-description">
+                CGI GET request demo - hello_world.sh
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/cgi/hello_world.sh" class="cta-button">Run</a>
+            </div>
+            <div class="grid-item grid-description">
+                CGI GET request demo - default.py
+            </div>
+            <div class="grid-item grid-button">
+                <a href="/cgi/default.py" class="cta-button">Run</a>
+            </div>
+            <div class="grid-item grid-description">
+                CGI POST request demo - see_post_content.sh
+            </div>
+            <div class="grid-item grid-button">
+                <a href="#" onclick="document.getElementById('post-form-container').style.display='block'; return false;" class="cta-button">Test POST</a>
+            </div>
+
+            <!-- POST features -->
+            <div id="post-form-container" style="display:none; margin-top: 20px; grid-column: span 2; background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+                <h3>Test POST Request to see_post_content.sh</h3>
+                <form action="/cgi/see_post_content.sh" method="POST">
+                    <div style="margin-bottom: 15px;">
+                        <label for="post-content" style="display: block; margin-bottom: 5px; font-weight: bold;">Enter content to send:</label>
+                        <textarea id="post-content" name="post-content" rows="5" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
+                    </div>
+                    <button type="submit" class="cta-button">Submit POST Request</button>
+                    <button type="button" class="cta-button" style="background-color: #999;" onclick="document.getElementById('post-form-container').style.display='none';">Cancel</button>
+                </form>
             </div>
         </div>
     </section>
@@ -103,7 +129,7 @@
                 Run compliance tests with h1spec
             </div>
             <div class="grid-item grid-button">
-                <a href="/features/h1spec_tests.html" class="cta-button">Run h1spec Tests</a>
+                <a href="https://github.com/LeaYeh/h1spec/" class="cta-button" disabled="true">TBD</a>
             </div>
         </div>
     </section>

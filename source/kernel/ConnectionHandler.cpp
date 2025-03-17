@@ -304,6 +304,8 @@ void ConnectionHandler::_handle_write(int fd)
     else if (process_state & COMPELETED) {
         _send_normal(fd);
         LOG(weblog::INFO, "WOWOWOWOWOWOWO");
+        // Reset adn ready to analyze the next request
+        _processor.remove_analyzer(fd);
         // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
         if (_processor.need_to_close(fd)) {
             close_connection(fd, weblog::INFO, "Connection closed by server");
@@ -344,7 +346,6 @@ void ConnectionHandler::_send_normal(int fd)
             "Remove cgi handler on fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }
-    _processor.remove_analyzer(fd);
     Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     if (bytes_sent < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,

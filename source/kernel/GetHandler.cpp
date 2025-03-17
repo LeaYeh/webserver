@@ -165,7 +165,7 @@ void GetHandler::_handle_chunked(int fd,
     if (file.eof()) {
         _chunked_file_records.erase(fd);
         content += CHUNKED_END_MARKER;
-        _update_status(state, COMPELETED, true);
+        _update_status(state, COMPELETED, false);
     }
     else if (file.tellg() == -1) {
         _chunked_file_records.erase(fd);

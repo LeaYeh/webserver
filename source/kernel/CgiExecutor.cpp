@@ -78,7 +78,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
             }
             if (pid_unwanted_child == 0) {
                 close(pipefd[0]);
-                sleep(3);
+                // sleep(3);
+                _busy_wait();
                 kill(pid, SIGKILL);
                 throw ReturnWithUnwind(SUCCESS);
             }
@@ -131,6 +132,14 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         close(pipefd[1]);
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR, e.what());
     }
+}
+
+void CgiExecutor::_busy_wait()
+{
+    volatile size_t sleeper = 0;
+    // while (sleeper < 10737418235)
+    while (sleeper < 514748364)
+        sleeper++;
 }
 
 void CgiExecutor::remove_handler(int fd)

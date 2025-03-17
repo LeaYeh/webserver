@@ -85,7 +85,21 @@ std::string ResponseBuilder::_render_error_page(StatusCode status_code,
         return (template_engine.render());
     }
     catch (const std::exception& e) {
-        return (error(INTERNAL_SERVER_ERROR, e.what(), TEXT_PLAIN).body());
+        // return (error(INTERNAL_SERVER_ERROR, e.what(), TEXT_PLAIN).body());
+        return ("<!DOCTYPE html>\n"
+                "<html>\n"
+                "<head>\n"
+                "<title>Error</title>\n"
+                "</head>\n"
+                "<body>\n"
+                "<h1>Error "
+                + utils::to_string(status_code)
+                + "</h1>\n"
+                  "<p>"
+                + message
+                + "</p>\n"
+                  "</body>\n"
+                  "</html>\n");
     }
 }
 

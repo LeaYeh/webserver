@@ -55,21 +55,6 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                                    "Failed to create pipe");
     }
 
-    // 设置管道为非阻塞模式
-    int flags = fcntl(pipefd[0], F_GETFL, 0);
-    if (flags == -1) {
-        close(pipefd[0]);
-        close(pipefd[1]);
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "Failed to get pipe flags");
-    }
-    if (fcntl(pipefd[0], F_SETFL, flags | O_NONBLOCK) == -1) {
-        close(pipefd[0]);
-        close(pipefd[1]);
-        throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "Failed to set pipe non-blocking");
-    }
-
     try {
         pid_t pid = fork();
 
@@ -121,16 +106,20 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
                 close(fd);
             }
 
-            const char** argv = _construct_argv(_script_path, request.config().cgi_extension);
+            const char** argv =
+                _construct_argv(_script_path, request.config().cgi_extension);
             char** env = _convert_to_str_array(_get_env(request));
             if (env == NULL || argv == NULL) {
                 throw ReturnWithUnwind(FAILURE);
             }
-            std::string interpreter = _get_interpreter(request.config().cgi_extension, env);
+            std::string interpreter =
+                _get_interpreter(request.config().cgi_extension, env);
             std::vector<int> fd_vec = Reactor::instance()->get_active_fds();
             _close_all_fds(fd_vec);
             Reactor::instance()->destroy_tree();
-            execve(interpreter.c_str(), (char * const *)argv, env);
+            execve(interpreter.c_str(), (char* const*)argv, env);
+            delete[] argv;
+            delete[] env;
             perror("execve");
             perror(strerror(errno));
             throw ReturnWithUnwind(FAILURE);
@@ -153,7 +142,8 @@ void CgiExecutor::remove_handler(int fd)
     if (handler_exists(fd)) {
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
-        LOG(weblog::CRITICAL, "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
+        LOG(weblog::CRITICAL,
+            "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
         _handler_map.erase(fd);
         Reactor::instance()->remove_handler(_pipe_map[fd]);
@@ -240,7 +230,8 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
                != cgi_extension) {
         throw utils::HttpException(
             webshell::FORBIDDEN,
-            "Script-Name does not have the correct extension: " + _script_name + " " + cgi_extension);
+            "Script-Name does not have the correct extension: " + _script_name
+                + " " + cgi_extension);
     }
 
     if (access(_script_path.c_str(), F_OK) == -1) {
@@ -337,7 +328,7 @@ std::vector<std::string> CgiExecutor::_get_env(webshell::Request& request)
 
 std::string CgiExecutor::_get_interpreter(const std::string& ext, char** env)
 {
-    std::string interpreter;    
+    std::string interpreter;
     std::vector<std::string> paths;
     const std::string name = ext == ".py" ? "python3" : "sh";
 
@@ -365,17 +356,19 @@ std::string CgiExecutor::_get_interpreter(const std::string& ext, char** env)
     return interpreter;
 }
 
-const char** CgiExecutor::_construct_argv(const std::string &script_path, const std::string &ext)
+const char** CgiExecutor::_construct_argv(const std::string& script_path,
+                                          const std::string& ext)
 {
     const char** argv = new const char*[3];
 
-    if(ext == ".py")
+    if (ext == ".py") {
         argv[0] = "python3";
-    else if(ext == ".sh")
+    }
+    else if (ext == ".sh") {
         argv[0] = "sh";
-    else
-    {
-        delete [] argv;
+    }
+    else {
+        delete[] argv;
         return (NULL);
     }
     argv[1] = script_path.c_str();
@@ -383,7 +376,10 @@ const char** CgiExecutor::_construct_argv(const std::string &script_path, const 
     return (argv);
 }
 
-void CgiExecutor::_debug_execve(const std::string &exec_path, char* const argv[], char* const env[]) {
+void CgiExecutor::_debug_execve(const std::string& exec_path,
+                                char* const argv[],
+                                char* const env[])
+{
     LOG(weblog::WARNING, "==== Debug Execve Parameters ====");
     LOG(weblog::WARNING, "Executable Path: " + exec_path);
     LOG(weblog::WARNING, "Arguments:");

@@ -23,6 +23,7 @@ def main():
     # Output HTTP headers and HTML content (each print is immediately flushed)
     print("HTTP/1.1 200 OK")
     print("Content-Type: text/html")
+    print("Content-Length: 490")
     print("")  # Empty line indicates the end of headers
     print("<html>")
     print("<head>")

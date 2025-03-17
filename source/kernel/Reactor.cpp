@@ -33,16 +33,17 @@ Reactor::Reactor(const ReactorType& type) : _type(type)
 
     CgiExecutor::instantiate();
     if (_type == REACTOR) {
-        _epoll_fd = epoll_create1(0);
+        _epoll_fd = epoll_create(MAX_EPOLL_FD);
         ConnectionHandler::instantiate();
     }
-    else if (_type == WORKER) {
-        _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-        ConnectionHandler::instantiate();
-    }
-    else if (_type == DISPATCHER) {
-        _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
-    }
+    // TODO: Implement multi-worker process
+    // else if (_type == WORKER) {
+    //     _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+    //     ConnectionHandler::instantiate();
+    // }
+    // else if (_type == DISPATCHER) {
+    //     _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+    // }
     else {
         throw std::runtime_error("Invalid reactor type");
     }

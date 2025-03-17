@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -30,25 +31,31 @@ Kernel::Kernel() : _acceptor(NULL), _session_manager(NULL)
         _register_listener();
     }
     else {
-        LOG(weblog::INFO, "Create multi reactor and multi worker structure");
-        Reactor::instantiate(DISPATCHER);
-        _acceptor = new Acceptor();
-        // _session_manager = new SessionManager(SessionConfig());
-        _register_listener();
-        for (unsigned int i = 1; i < config->global_block().worker_processes();
-             i++) {
-            pid_t pid = fork();
-
-            if (pid < 0) {
-                throw std::runtime_error("fork() failed");
-            }
-            else if (pid == 0) {
-                // child process will
-                Reactor::instantiate(WORKER);
-                break;
-            }
-        }
+        std::runtime_error("Multi-worker process not implemented yet");
     }
+    // TODO: Implement multi-worker process
+    // else {
+    //     LOG(weblog::INFO, "Create multi reactor and multi worker structure");
+    //     Reactor::instantiate(DISPATCHER);
+    //     _acceptor = new Acceptor();
+    //     // _session_manager = new SessionManager(SessionConfig());
+    //     _register_listener();
+
+    //     for (unsigned int i = 1; i <
+    //     config->global_block().worker_processes();
+    //          i++) {
+    //         pid_t pid = fork();
+
+    //         if (pid < 0) {
+    //             throw std::runtime_error("fork() failed");
+    //         }
+    //         else if (pid == 0) {
+    //             // child process will
+    //             Reactor::instantiate(WORKER);
+    //             break;
+    //         }
+    //     }
+    // }
     LOG(weblog::DEBUG, "Kernel created");
 }
 
@@ -74,8 +81,7 @@ Kernel::~Kernel()
     if (_acceptor) {
         delete _acceptor;
     }
-    if (_session_manager)
-    {
+    if (_session_manager) {
         delete _session_manager;
     }
 }

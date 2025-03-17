@@ -4,7 +4,7 @@
 #include "defines.hpp"
 #include "utils.hpp"
 #include <algorithm>
-#include <vector>
+#include <map>
 
 namespace webconfig
 {
@@ -31,6 +31,7 @@ Config::Config(const std::string& filename) : _current_block_level(GLOBAL)
         throw std::runtime_error("Failed to open file: " + _filename);
     }
     _parse(); //TODO: this constructor throws sometimes
+    // TODO: Need to validate the parsed config
     _file_stream.close();
 }
 
@@ -57,6 +58,27 @@ std::vector<ConfigServerBlock>& Config::server_block_list(void)
 const std::vector<ConfigServerBlock>& Config::server_block_list(void) const
 {
     return (_server_block_list);
+}
+
+bool Config::validate(void) const
+{
+    std::map<std::string /* port */ , std::string /* ip */> port_ip_map;
+
+    for (size_t i = 0; i < _server_block_list.size(); ++i) {
+        std::string ip = _server_block_list[i].listen().first;
+        std::string port = _server_block_list[i].listen().second;
+
+        if (port_ip_map.find(port) == port_ip_map.end()) {
+            port_ip_map[port] = ip;
+        }
+        else if (port_ip_map[port] != ip) {
+            LOG(weblog::ERROR, "Port " + port + " already in use by " +
+                                   port_ip_map[port] + " for server block [" +
+                                   utils::to_string(i) + "]");
+            return (false);
+        }
+    }
+    return (true);
 }
 
 void Config::print_config(void) const

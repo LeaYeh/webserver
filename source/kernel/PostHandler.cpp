@@ -108,6 +108,13 @@ std::string PostHandler::_process(int fd,
                                    "No write permission on file: "
                                        + _target_path);
     }
+    if (request.has_header("expect")) {
+        size_t content_length = utils::stoi(request.get_header("content-length"));
+        if (content_length > request.config().client_max_body_size) {
+            throw utils::HttpException(webshell::PAYLOAD_TOO_LARGE, "Do Not Continue");
+        }
+        throw utils::HttpException(webshell::CONTINUE, "Continue");
+    }
 
     std::string temp_file_path = request.read_chunked_body();
     if (temp_file_path.empty()) {

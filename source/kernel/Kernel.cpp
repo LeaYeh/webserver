@@ -97,23 +97,27 @@ void Kernel::_register_listener(void)
     webconfig::Config* config = webconfig::Config::instance();
 
     for (size_t i = 0; i < config->server_block_list().size(); i++) {
-        webconfig::ConfigServerBlock& servConfig =
+        webconfig::ConfigServerBlock& server_config =
             config->server_block_list()[i];
         const std::string ipaddr =
-            servConfig.listen().first + ":" + servConfig.listen().second;
+            server_config.listen().first + ":" + server_config.listen().second;
         VirtualHostManager& vhost_manager =
             ConnectionHandler::instance()->vhost_manager;
 
-        if (vhost_manager.has_server(ipaddr)) {
+        LOG(weblog::DEBUG,
+            "Add virtual host: " + ipaddr
+                + " with server name: " + server_config.server_name());
+        vhost_manager.add_server(ipaddr, &server_config);
+        if (vhost_manager.is_ipaddr_listen(ipaddr)) {
             continue;
         }
-        vhost_manager.add_server(ipaddr, &servConfig);
-        int fd = _create_listen_socket(servConfig.listen().first.c_str(),
-                                       servConfig.listen().second.c_str());
+        int fd = _create_listen_socket(server_config.listen().first.c_str(),
+                                       server_config.listen().second.c_str());
         if (listen(fd, SOMAXCONN) < 0) {
             throw std::runtime_error("listen() failed: "
                                      + std::string(strerror(errno)));
         }
+        vhost_manager.add_listen(ipaddr, &server_config);
         LOG(weblog::INFO, "Listening on " + ipaddr);
         Reactor::instance()->register_handler(fd, _acceptor, EPOLLIN);
     }

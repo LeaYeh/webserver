@@ -14,6 +14,8 @@ public:
 public:
     VirtualHost(const std::string& ipaddr,
                 webconfig::ConfigServerBlock* config);
+    VirtualHost(const std::string& ipaddr);
+
     VirtualHost(const VirtualHost& other);
     VirtualHost& operator=(const VirtualHost& other);
     ~VirtualHost();

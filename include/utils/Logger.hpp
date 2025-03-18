@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/18 15:52:41 by lyeh             ###   ########.fr       */
+/*   Updated: 2025/03/17 22:54:30 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ public:
     std::ofstream& file_stream(void);
     std::string get_level_str(LogLevel level) const;
     std::string get_color_level_str(LogLevel level) const;
-    std::string get_current_time() const;
+    // std::string get_current_time() const;
 
 public:
     ~Logger();
@@ -59,11 +59,19 @@ private:
 
 } // namespace weblog
 
-#define LOG(level, message)                                                    \
-    do {                                                                       \
-        weblog::Logger::instance()->log(                                       \
-            level,                                                             \
-            std::string("\t[" + utils::to_string(getpid()) + "][") + __FILE__ + ":" \
-                + utils::to_string(__LINE__) + "] "                            \
-                + utils::to_string(message));                                  \
+// #define LOG(level, message)                                                   \
+//     do {                                                                      \
+//         weblog::Logger::instance()->log(                                      \
+//             level,                                                            \
+//             std::string("\t[" + utils::to_string(getpid()) + "][") + __FILE__ \
+//                 + ":" + utils::to_string(__LINE__) + "] "                     \
+//                 + utils::to_string(message));                                 \
+//     } while (0)
+
+#define LOG(level, message)                                                  \
+    do {                                                                     \
+        weblog::Logger::instance()->log(                                     \
+            level,                                                           \
+            std::string("\t[") + __FILE__ + ":" + utils::to_string(__LINE__) \
+                + "] " + utils::to_string(message));                         \
     } while (0)

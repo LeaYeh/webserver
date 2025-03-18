@@ -6,7 +6,7 @@
 /*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2024/08/18 16:00:23 by lyeh             ###   ########.fr       */
+/*   Updated: 2025/03/17 22:53:05 by lyeh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,14 +63,12 @@ void Logger::log(LogLevel level, const std::string& message)
     const int message_width = 100;
     if (logger->is_file_mode()) {
         logger->file_stream()
-            << logger->get_current_time()
             << " [" + logger->get_level_str(level) + "] "
             << std::setw(level_width) << std::left << std::setw(message_width)
             << std::left << message << std::endl;
     }
     else {
-        std::cout << logger->get_current_time()
-                  << " [" + logger->get_color_level_str(level) + "] "
+        std::cout << " [" + logger->get_color_level_str(level) + "] "
                   << std::setw(level_width) << std::left
                   << std::setw(message_width) << std::left << message
                   << std::endl;
@@ -151,17 +149,17 @@ std::string Logger::get_color_level_str(LogLevel level) const
     }
 }
 
-std::string Logger::get_current_time() const
-{
-    time_t rawtime;
-    struct tm* timeinfo;
-    char buffer[80];
+// std::string Logger::get_current_time() const
+// {
+//     time_t rawtime;
+//     struct tm* timeinfo;
+//     char buffer[80];
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
+//     time(&rawtime);
+//     timeinfo = localtime(&rawtime);
 
-    strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
-    return std::string(buffer);
-}
+//     strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
+//     return std::string(buffer);
+// }
 
 } // namespace weblog

@@ -9,7 +9,11 @@ class VirtualHostManager
 public:
     void add_server(const std::string& ipaddr,
                     webconfig::ConfigServerBlock* server_config);
-    bool has_server(const std::string& ipaddr) const;
+    void add_listen(const std::string& ipaddr,
+                    webconfig::ConfigServerBlock* server_config);
+    bool has_server(const std::string& ipaddr,
+                    webconfig::ConfigServerBlock* server_config) const;
+    bool is_ipaddr_listen(const std::string& ipaddr) const;
     webconfig::ConfigServerBlock* find_server(const std::string& ipaddr,
                                               const std::string& host) const;
     webconfig::ConfigServerBlock* find_default(int fd) const;
@@ -22,7 +26,7 @@ public:
 
 private:
     typedef std::map<std::string, VirtualHost*> ListenMap;
-    ListenMap _listen_hash; // listen ip address -> VirtualHost
+    ListenMap _vhost_hash; // listen ip address -> VirtualHost
 };
 
 } // namespace webkernel

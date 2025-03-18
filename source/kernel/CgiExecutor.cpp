@@ -61,6 +61,8 @@ void CgiExecutor::cgi_exec(webshell::Request& request, int client_fd)
         // parent
         if (pid > 0) {
             _reset_path_meta();
+            if (_handler_map.find(client_fd) != _handler_map.end())
+                delete _handler_map[client_fd];
             _handler_map[client_fd] = new CgiHandler(client_fd, pid);
             _pipe_map[client_fd] = pipefd[0];
             Reactor::instance()->register_handler(

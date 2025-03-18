@@ -110,8 +110,9 @@ void RequestProcessor::process(int fd)
             }
             if (state & COMPELETED) {
                 _handler->prepare_write(fd, response.serialize());
-                // TODO: Currently I need to end the request without checking the garbage body
-                // I think the root cause is in the _proceed_chunked
+                // TODO: Currently I need to end the request without checking
+                // the garbage body I think the root cause is in the
+                // _proceed_chunked
                 _end_request(fd);
             }
         }
@@ -128,7 +129,8 @@ void RequestProcessor::process(int fd)
             // }
             // for GET and DELETE requests, we can send the response directly
 
-            // TODO: Bug: in the GET chunked mode, the analyzer be reset before the request finished
+            // TODO: Bug: in the GET chunked mode, the analyzer be reset before
+            // the request finished
             if (!(state & COMPELETED)) {
                 _handler->prepare_write(fd, response.serialize());
             }
@@ -239,12 +241,11 @@ void RequestProcessor::_handle_virtual_host(int fd)
     webconfig::ConfigServerBlock* server_config = NULL;
 
     if (request.uri().type == webshell::ORIGIN) {
-        server_config = default_server;
         if (!host.empty()) {
             server_config = vhost_manager.find_server(ipaddr, host);
-            if (server_config == NULL) {
-                server_config = default_server;
-            }
+        }
+        else {
+            server_config = default_server;
         }
     }
     else if (request.uri().type == webshell::ABSOLUTE) {
@@ -257,6 +258,10 @@ void RequestProcessor::_handle_virtual_host(int fd)
     else {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
                                    "Invalid request URI");
+    }
+    if (server_config == NULL) {
+        throw utils::HttpException(webshell::NOT_FOUND,
+                                   "No matching server block found");
     }
     request.setup_config(server_config);
 }

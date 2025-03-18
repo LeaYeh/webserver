@@ -1,4 +1,6 @@
 #include "IPAddress.hpp"
+#include "Logger.hpp"
+#include "defines.hpp"
 #include "utils.hpp"
 #include <arpa/inet.h>
 #include <cstddef>
@@ -12,6 +14,7 @@ namespace utils
 bool IPAddress::is_ipv4(const std::string& ip)
 {
     size_t count = 0;
+    size_t segment_size = 0;
     size_t pos = 0;
     size_t num = 0;
     bool segment_start = true;
@@ -26,17 +29,19 @@ bool IPAddress::is_ipv4(const std::string& ip)
             num = num * 10 + (ip[pos] - '0');
         }
         else if (ip[pos] == '.') {
-            if (num > 255 || pos > (count * 3 + 3)) {
+            if (num > 255 || segment_size > 3 || segment_size == 0) {
                 return (false);
             }
             num = 0;
             count++;
             segment_start = true;
+            segment_size = -1;
         }
         else {
             return (false);
         }
         pos++;
+        segment_size++;
     }
     if (count != 3 || num > 255) {
         return (false);

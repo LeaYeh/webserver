@@ -167,11 +167,11 @@ void SessionManager::_handle_session_set(int fd, const SessionMessage& msg)
 
     session.data = std::string(msg.data, msg.data_length);
     if (!session.is_valid) {
-        session.create_time = time(0);
+        session.create_time = std::time(0);
         session.is_valid = true;
     }
-    session.expire_time = time(0) + _config.expire_seconds;
-    session.last_access = time(0);
+    session.expire_time = std::time(0) + _config.expire_seconds;
+    session.last_access = std::time(0);
     _send_resp(fd, SESSION_RESPONSE, "Session data updated");
 }
 
@@ -186,12 +186,12 @@ void SessionManager::_handle_session_get(int fd, const SessionMessage& msg)
     }
     SessionData& session = it->second;
 
-    if (session.expire_time < time(0)) {
+    if (session.expire_time < std::time(0)) {
         _send_error(fd, "Session expired");
         session.is_valid = false;
         return;
     }
-    session.last_access = time(0);
+    session.last_access = std::time(0);
     _send_resp(fd, SESSION_RESPONSE, session.data);
 }
 
@@ -239,7 +239,7 @@ void SessionManager::_send_error(int fd, const std::string& msg)
 
 void SessionManager::cleanup_expired_sessions()
 {
-    time_t now = time(0);
+    time_t now = std::time(0);
 
     for (std::map<std::string, SessionData>::iterator it = _sessions.begin();
          it != _sessions.end();

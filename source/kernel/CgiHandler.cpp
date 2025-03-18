@@ -30,7 +30,7 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
 
     if (events & EPOLLIN) {
         char buffer[CHUNKED_SIZE];
-        memset(buffer, 0, sizeof(buffer));
+        std::memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(fd, buffer, CHUNKED_SIZE);
 
         if (bytes_read > 0) {

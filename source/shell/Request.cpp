@@ -435,7 +435,7 @@ void Request::setup_config(webconfig::ConfigServerBlock* server_config)
 
 void Request::_check_hexdigit(unsigned char c)
 {
-    if (isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+    if (std::isdigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
         _chunksize.push_back(c);
         return;
     }

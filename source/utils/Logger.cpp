@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Logger.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lyeh <lyeh@student.42vienna.com>           +#+  +:+       +#+        */
+/*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:53 by lyeh              #+#    #+#             */
-/*   Updated: 2025/03/17 22:53:05 by lyeh             ###   ########.fr       */
+/*   Updated: 2025/03/18 20:38:08 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,7 @@ std::string Logger::get_color_level_str(LogLevel level) const
 //     struct tm* timeinfo;
 //     char buffer[80];
 
-//     time(&rawtime);
+//     std::time(&rawtime);
 //     timeinfo = localtime(&rawtime);
 
 //     strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);

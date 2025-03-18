@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2025/03/01 14:32:10 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:36:15 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void uncatchable_exception_handler(void)
 {
     std::cerr << "An uncatchable exception has occurred. Exiting..."
               << std::endl;
-    exit(FAILURE);
+    std::exit(FAILURE);
 }
 
 int main(int argc, char** argv)

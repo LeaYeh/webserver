@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/27 17:30:25 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/01/27 17:44:26 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:39:13 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,10 @@ unsigned char AParser::_lowcase(unsigned char c)
 
 bool AParser::_is_unreserved(unsigned char c)
 {
-    if (isalpha(c)) {
+    if (std::isalpha(c)) {
         return (true);
     }
-    if (isdigit(c)) {
+    if (std::isdigit(c)) {
         return (true);
     }
     if (c == '-' || c == '.' || c == '_' || c == '~') {
@@ -108,7 +108,7 @@ bool AParser::_is_query_or_fragment_part(unsigned char c)
 
 bool AParser::_is_tchar(unsigned char c)
 {
-    if (isdigit(c) || isalpha(c)) {
+    if (std::isdigit(c) || std::isalpha(c)) {
         return (true);
     }
     if (c == '!' || c == '#' || c == '$' || c == '%') {

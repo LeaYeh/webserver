@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/08 22:17:41 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:53:15 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,8 +222,6 @@ status code and then close the connection (RFC 7230 3.3.3).
 
 void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 {
-    // std::cerr << "Entred field_end crlf" << std::endl;
-    // sleep(5);
     if (c == '\n') {
         if (_key == "host" && _map.find(_key) != _map.end()) {
             throw utils::HttpException(

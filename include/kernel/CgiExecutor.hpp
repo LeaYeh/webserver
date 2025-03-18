@@ -44,6 +44,7 @@ private:
     const char** _construct_argv(const std::string& script_path, const std::string& ext);
     std::string _get_interpreter(const std::string& ext, char** env);
     void _debug_execve(const std::string& exec_path, char* const argv[], char* const env[]);
+    void _busy_wait();
 
 private:
     CgiExecutor();

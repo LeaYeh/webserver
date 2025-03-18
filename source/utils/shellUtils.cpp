@@ -47,6 +47,10 @@ std::string status_reason_phase(const StatusCode& status_code)
         return ("Bad Gateway");
     case SERVICE_UNAVAILABLE:
         return ("Service Unavailable");
+    case PAYLOAD_TOO_LARGE:
+        return ("Payload Too Large");
+    case CONTINUE:
+        return ("Continue");
     default:
         return ("Unknown Status Code");
     }

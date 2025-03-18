@@ -6,7 +6,6 @@
 #include "Reactor.hpp"
 #include "VirtualHostManager.hpp"
 #include "defines.hpp"
-#include "session_types.hpp"
 #include "utils.hpp"
 #include <algorithm>
 #include <cstddef>
@@ -24,11 +23,20 @@ Kernel::Kernel() : _acceptor(NULL), _session_manager(NULL)
     webconfig::Config* config = webconfig::Config::instance();
 
     if (config->global_block().worker_processes() == 1) {
-        LOG(weblog::INFO, "Create single reactor and single worker structure");
-        Reactor::instantiate(REACTOR);
-        _acceptor = new Acceptor();
-        // _session_manager = new SessionManager(SessionConfig());
-        _register_listener();
+        try {
+            LOG(weblog::INFO, "Create single reactor and single worker structure");
+            Reactor::instantiate(REACTOR);
+            _acceptor = new Acceptor();
+            // _session_manager = new SessionManager(SessionConfig());
+            _register_listener();
+        }
+        catch (std::runtime_error& e) {
+            if (_acceptor)
+                delete _acceptor;
+            _acceptor = NULL;
+            Reactor::destroy();
+            throw ;
+        }
     }
     else {
         std::runtime_error("Multi-worker process not implemented yet");
@@ -163,7 +171,7 @@ int Kernel::_create_listen_socket(const char* ip, const char* port)
             utils::safe_close(fd);
         }
         std::cerr << e.what() << std::endl;
-        throw e;
+        throw ;
     }
     freeaddrinfo(res);
     return (fd);

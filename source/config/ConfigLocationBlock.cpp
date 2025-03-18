@@ -261,9 +261,11 @@ void ConfigLocationBlock::_valid(void) const
         throw std::runtime_error(
             "route directive is missing in location block");
     }
-    if (_cgi_path.empty() && (_root.empty() && _alias.empty())) {
-        throw std::runtime_error(
-            "root or alias directive is missing in location block");
+    if (_root.empty() && _alias.empty()) {
+        if (_cgi_path.empty() && _redirect.empty()) {
+            throw std::runtime_error(
+                "root or alias directive is missing in location block");
+        }
     }
     if (!_root.empty() && !_alias.empty()) {
         throw std::runtime_error(

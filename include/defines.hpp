@@ -246,6 +246,7 @@ namespace webkernel
 // TODO: the MAX_EVENTS is critical for the performance of the server, need to
 // be optimized
 const int MAX_EVENTS = 10;
+const int MAX_EPOLL_FD = 1000000;
 
 // TODO: the CHUNKED_SIZE is critical for the performance of the server, need to
 // be optimized (it is the size of the buffer for the body)

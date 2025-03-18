@@ -118,63 +118,6 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
     _processor.set_state(fd, ERROR);
 }
 
-bool ConnectionHandler::get_session_data(const std::string& sid,
-                                         std::string& out_data)
-{
-    SessionMessage msg;
-
-    msg.type = SESSION_GET;
-    std::strncpy(msg.session_id, sid.c_str(), sizeof(msg.session_id) - 1);
-    msg.data_length = 0;
-    int bytes = send(_session_fd, &msg, sizeof(msg), 0);
-
-    if (bytes != sizeof(msg)) {
-        LOG(weblog::ERROR,
-            "Send session message failed: " + utils::to_string(bytes));
-        return (false);
-    }
-    else if (bytes == 0) {
-        LOG(weblog::ERROR, "Session connection closed");
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
-    else if (bytes < 0) {
-        LOG(weblog::ERROR,
-            "Send session message failed: " + std::string(strerror(errno)));
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
-    SessionMessage resp;
-
-    // TODO: We can only have 1 read/write for an epoll event, now is forbidden
-    bytes = recv(_session_fd, &resp, sizeof(resp), 0);
-    if (bytes != sizeof(resp)) {
-        LOG(weblog::ERROR,
-            "Receive session message failed: " + utils::to_string(bytes));
-        return (false);
-    }
-    else if (bytes == 0) {
-        LOG(weblog::ERROR, "Session connection closed");
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
-    else if (bytes < 0) {
-        LOG(weblog::ERROR,
-            "Receive session message failed: " + std::string(strerror(errno)));
-        Reactor::instance()->remove_handler(_session_fd);
-        close(_session_fd);
-        return (false);
-    }
-    if (resp.type == SESSION_RESPONSE) {
-        out_data = std::string(resp.data, resp.data_length);
-        return (true);
-    }
-    return (false);
-}
-
 bool ConnectionHandler::set_session_data(const std::string& sid,
                                          const std::string& data)
 {

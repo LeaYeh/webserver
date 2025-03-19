@@ -92,6 +92,7 @@ void PostHandler::_pre_process(const webshell::Request& request)
     ARequestHandler::_pre_process(request);
 
     _upload_file_path = _generate_safe_file_path(request);
+    _temp_file_path = request.temp_file_path();
 }
 
 std::string PostHandler::_process(int fd,
@@ -120,7 +121,6 @@ std::string PostHandler::_process(int fd,
         _update_status(state, HANDLE_CHUNKED);
         return ("");
     }
-    _temp_file_path = temp_file_path;
     _update_status(state, COMPELETED, true);
     return ("");
 }

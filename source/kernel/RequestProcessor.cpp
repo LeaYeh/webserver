@@ -110,7 +110,8 @@ void RequestProcessor::process(int fd)
             }
             if (state & COMPELETED) {
                 _handler->prepare_write(fd, response.serialize());
-                // _end_request(fd);
+                _end_request(fd);
+                return;
             }
         }
         else {

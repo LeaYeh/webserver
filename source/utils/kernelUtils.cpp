@@ -122,17 +122,29 @@ std::string explain_event_processing_state(EventProcessingState state)
     if (state & PROCESSING) {
         explanation += "PROCESSING ";
     }
-    if (state & COMPELETED) {
-        explanation += "COMPELETED ";
+    if (state & WAITING_CGI) {
+        explanation += "WAITING_CGI ";
     }
-    if (state & ERROR) {
-        explanation += "ERROR ";
+    if (state & HANDLE_OTHERS_CHUNKED) {
+        explanation += "HANDLE_OTHERS_CHUNKED ";
+    }
+    if (state & HANDLE_FIRST_CHUNKED) {
+        explanation += "HANDLE_FIRST_CHUNKED ";
     }
     if (state & HANDLE_CHUNKED) {
         explanation += "HANDLE_CHUNKED ";
     }
-    if (state & HANDLE_OTHERS_CHUNKED) {
-        explanation += "HANDLE_OTHERS_CHUNKED ";
+    if (state & COMPELETED) {
+        explanation += "COMPELETED ";
+    }
+    if (state & CONSUME_BODY) {
+        explanation += "CONSUME_BODY ";
+    }
+    if (state & ERROR) {
+        explanation += "ERROR ";
+    }
+    if (state & UNKNOWN) {
+        explanation += "UNKNOWN ";
     }
 
     return (explanation);

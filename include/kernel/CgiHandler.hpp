@@ -21,6 +21,8 @@ private:
 
 private:
     void _read_pipe(int fd);
+    CgiHandler(const CgiHandler& other);
+    CgiHandler& operator=(const CgiHandler& other);
 
 };
 } // namespace webkernel

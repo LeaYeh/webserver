@@ -55,6 +55,8 @@ private:
                           const std::string& directive);
     bool _parse_enable_upload(const std::string& line,
                               const std::string& directive);
+    std::string _parse_path(const std::string& line,
+                            const std::string& directive);
     void _valid(void) const;
 };
 

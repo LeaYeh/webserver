@@ -4,6 +4,7 @@
 #include "defines.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
+#include <cstdio>
 #include <unistd.h>
 
 namespace webconfig
@@ -180,11 +181,10 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
         _limit_except = _parse_limit_except(line, directive);
     }
     else if (directive == "root") {
-        _root = extract_directive_value(line, directive);
+        _root = _parse_path(line, directive);
     }
     else if (directive == "alias") {
-        _alias = extract_directive_value(line, directive);
-        LOG(weblog::CRITICAL, "Alias: " + _alias);
+        _alias = _parse_path(line, directive);
     }
     else if (directive == "index") {
         _index = extract_directive_value(line, directive);
@@ -215,7 +215,8 @@ std::string ConfigLocationBlock::_parse_route(const std::string& line)
     std::string route = extract_directive_value(line, "route");
 
     if (route.empty()) {
-        throw std::runtime_error("route directive is missing in location block");
+        throw std::runtime_error(
+            "route directive is missing in location block");
     }
     else if (route[0] != '/') {
         throw std::runtime_error("Invalid route: " + route);
@@ -224,6 +225,15 @@ std::string ConfigLocationBlock::_parse_route(const std::string& line)
         throw std::runtime_error("Invalid route: " + route);
     }
     return (route);
+}
+
+std::string ConfigLocationBlock::_parse_path(const std::string& line,
+                                             const std::string& directive)
+{
+    std::string path = extract_directive_value(line, directive);
+
+    path = utils::resolve_path(path);
+    return (path);
 }
 
 std::vector<webshell::RequestMethod>

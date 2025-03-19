@@ -86,6 +86,74 @@ std::string join(const std::string& path1, const std::string& path2)
     return (path1 + path2);
 }
 
+std::string resolve_path(const std::string& path)
+{
+    std::vector<std::string> segments = split_path(path);
+    return normalize_path_segments(segments, path[0] == '/');
+}
+
+std::vector<std::string> split_path(const std::string& path)
+{
+    std::vector<std::string> segments;
+    size_t start = 0;
+
+    while (true) {
+        size_t pos = path.find('/', start);
+        if (pos == std::string::npos) {
+            std::string segment = path.substr(start);
+            if (!segment.empty()) {
+                segments.push_back(segment);
+            }
+            break;
+        }
+        else {
+            if (pos > start) {
+                segments.push_back(path.substr(start, pos - start));
+            }
+            start = pos + 1;
+        }
+    }
+    return segments;
+}
+
+std::string normalize_path_segments(const std::vector<std::string>& segments,
+                                    bool is_absolute)
+{
+    std::vector<std::string> stack;
+
+    for (size_t i = 0; i < segments.size(); ++i) {
+        const std::string& token = segments[i];
+
+        if (token.empty() || token == ".") {
+            continue;
+        }
+        if (token == "..") {
+            if (!stack.empty()) {
+                stack.pop_back();
+            }
+            else {
+                if (!is_absolute) {
+                    stack.push_back("..");
+                }
+            }
+        }
+        else {
+            stack.push_back(token);
+        }
+    }
+    std::string result;
+    for (size_t i = 0; i < stack.size(); ++i) {
+        if (i > 0 || is_absolute) {
+            result += "/";
+        }
+        result += stack[i];
+    }
+    if (result.empty() && is_absolute) {
+        result = "/";
+    }
+    return result;
+}
+
 // bool setup_nonblocking(int fd)
 // {
 //     int flags = fcntl(fd, F_GETFL, 0);

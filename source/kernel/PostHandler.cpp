@@ -8,7 +8,6 @@
 #include "ResponseBuilder.hpp"
 #include "configUtils.hpp"
 #include "defines.hpp"
-#include "kernelUtils.hpp"
 #include "shellUtils.hpp"
 #include "utils.hpp"
 #include <new>

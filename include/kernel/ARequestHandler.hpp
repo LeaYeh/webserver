@@ -1,5 +1,4 @@
 #pragma once
-#include "CgiExecutor.hpp"
 #include "ChunkedCodec.hpp"
 #include "Request.hpp"
 #include "RequestConfig.hpp"

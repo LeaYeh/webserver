@@ -12,6 +12,7 @@
 #include <new>
 #include <string>
 #include <sys/types.h>
+#include "CgiExecutor.hpp"
 
 namespace webkernel
 {

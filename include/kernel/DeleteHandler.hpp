@@ -1,6 +1,5 @@
 #pragma once
 #include "ARequestHandler.hpp"
-#include "RequestConfig.hpp"
 #include "defines.hpp"
 
 namespace webkernel

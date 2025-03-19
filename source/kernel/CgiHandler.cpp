@@ -7,7 +7,6 @@
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <cstdlib>
-#include <iostream>
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/wait.h>

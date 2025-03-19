@@ -6,11 +6,12 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 12:32:49 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/29 22:19:27 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 15:18:19 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ParseException.hpp"
+#include <iostream>
 
 ParseException::ParseException(const ParseException& other)
 {

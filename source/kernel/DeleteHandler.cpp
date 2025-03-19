@@ -14,6 +14,14 @@
 namespace webkernel
 {
 
+DeleteHandler::DeleteHandler()
+{
+}
+
+DeleteHandler::~DeleteHandler()
+{
+}
+
 webshell::Response DeleteHandler::handle(int fd,
                                          EventProcessingState& state,
                                          webshell::Request& request)

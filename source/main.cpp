@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2025/03/17 22:36:15 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 14:59:22 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         config = webconfig::Config::instance();
         signal(SIGINT, handle_terminate_signal);
         weblog::Logger* logger = weblog::Logger::instance();
-        logger->set_level(weblog::DEBUG);
+        logger->set_level(weblog::CRITICAL);
         // weblog::logger->set_file_mode("webserver.log");
 
         config->print_config();

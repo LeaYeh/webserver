@@ -2,7 +2,6 @@
 #include "CgiHandler.hpp"
 #include "Request.hpp"
 #include "Singleton.hpp"
-#include <cerrno>
 #include <cstddef>
 #include <cstring>
 #include <map>

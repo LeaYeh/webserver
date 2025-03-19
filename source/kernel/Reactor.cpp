@@ -91,8 +91,7 @@ void Reactor::register_handler(int fd, IHandler* handler, uint32_t events)
         "Registering handler with fd: " + utils::to_string(fd)
             + ", events: " + explain_epoll_event(events));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        throw std::runtime_error("epoll_ctl failed, "
-                                 + std::string(strerror(errno)));
+        throw std::runtime_error("epoll_ctl failed.");
     }
     _handlers[fd] = handler;
 }
@@ -103,7 +102,7 @@ void Reactor::modify_handler(int fd,
 {
     if (!handler_exists(fd))
     {
-        LOG(weblog::CRITICAL, "Try to modify non-exist handler on fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG, "Try to modify non-exist handler on fd: " + utils::to_string(fd));
         // close(fd);
         return;
     }
@@ -111,9 +110,7 @@ void Reactor::modify_handler(int fd,
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
         if (errno != ENOENT) {
-            throw std::runtime_error("epoll_ctl failed to get current events, "
-                                     + std::string(strerror(errno))
-                                     + " for fd: " + utils::to_string(fd));
+            throw std::runtime_error("epoll_ctl failed to get current events, for fd: " + utils::to_string(fd));
         }
         ev.events = 0;
     }
@@ -126,8 +123,7 @@ void Reactor::modify_handler(int fd,
             + ", new events: " + explain_epoll_event(ev.events));
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1) {
-        throw std::runtime_error("epoll_ctl failed to modify events, "
-                                 + std::string(strerror(errno)));
+        throw std::runtime_error("epoll_ctl failed to modify events.");
     }
 }
 
@@ -145,14 +141,13 @@ void Reactor::remove_handler(int fd)
 {
     if (!handler_exists(fd))
     {
-        LOG(weblog::CRITICAL, "Try to remove non-exist handle on fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG, "Try to remove non-exist handle on fd: " + utils::to_string(fd));
         return;
     }
     LOG(weblog::DEBUG, "Removed handler with fd: " + utils::to_string(fd));
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1) {
         throw std::runtime_error("epoll_ctl(EPOLL_CTL_DEL) failed on "
-                                    + utils::to_string(fd) + ": "
-                                    + std::string(strerror(errno)));
+                                    + utils::to_string(fd));
     }
     close(fd);
     // delete it->second;
@@ -187,7 +182,7 @@ void Reactor::_wait_for_events(struct epoll_event* events)
 
     if (nfds == -1 && !stop_flag) {
         LOG(weblog::ERROR,
-            "epoll_wait failed: " + std::string(strerror(errno)));
+            "epoll_wait failed.");
         throw std::runtime_error("epoll_wait failed");
     }
     LOG(weblog::DEBUG,
@@ -202,7 +197,7 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
 
         if (!handler_exists(fd))
         {
-            LOG(weblog::CRITICAL, "Try to process non-exist handler on fd: " + utils::to_string(fd));
+            LOG(weblog::DEBUG, "Try to process non-exist handler on fd: " + utils::to_string(fd));
             continue;
         }
         try {

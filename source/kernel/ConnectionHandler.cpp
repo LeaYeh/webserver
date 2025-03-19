@@ -12,7 +12,6 @@
 #include "kernelUtils.hpp"
 #include "session_types.hpp"
 #include "utils.hpp"
-#include <iostream>
 #include <sys/epoll.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -25,9 +24,8 @@ ConnectionHandler::ConnectionHandler() : _processor(this), _session_fd(-1) {}
 ConnectionHandler::~ConnectionHandler()
 {
     LOG(weblog::DEBUG, "ConnectionHandler destroyed");
-    close(_session_fd);
-    // TODO: Check the conn_fd is closed by the reactor
-    // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
+    if (_session_fd != -1)
+        close(_session_fd);
 }
 
 ConnectionHandler* ConnectionHandler::create_instance()
@@ -70,13 +68,6 @@ void ConnectionHandler::close_connection(int fd,
                                          std::string message)
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
-    // if (CgiExecutor::instance()->handler_exists(fd)) {
-    //     LOG(weblog::CRITICAL,
-    //         "Remove cgi handler on fd: " + utils::to_string(fd));
-    //     CgiExecutor::instance()->remove_handler(fd);
-    // }
-    // TODO: maybe this is the reason why we failed the cgi siege test
-    // TODO: Need to remove the handler from the reactor in different way
     Reactor::instance()->remove_handler(fd);
     _processor.remove_state(fd);
     _processor.remove_analyzer(fd);
@@ -94,8 +85,6 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
         close_connection(fd, weblog::ERROR, "Write buffer allocation failed");
     }
 
-    // TODO: Check why who call the prepare_write even though the fd is not
-    // exist any more.
     _write_buffer[fd].append(buffer);
     Reactor::instance()->modify_handler(fd, EPOLLOUT, 0);
 }
@@ -163,8 +152,7 @@ void ConnectionHandler::_handle_read(int fd)
 
     if (bytes_read < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "recv() failed: "
-                                       + std::string(strerror(errno)));
+                                   "recv() failed.");
     }
     else if (bytes_read == 0) {
         _handle_read_eof(fd);
@@ -216,22 +204,6 @@ void ConnectionHandler::_handle_write(int fd)
             + explain_event_processing_state(_processor.state(fd)));
 
     EventProcessingState process_state = _processor.state(fd);
-    std::cerr << "state: " << explain_event_processing_state(process_state)
-              << std::endl;
-    // sleep(1000);
-
-    // // we assume the cgi response will respond in once, so when _handle_write be
-    // // triggerd mean cgi finished
-    // if (process_state == WAITING_CGI) {
-    //     process_state = COMPELETED;
-
-    //     _processor.set_state(fd, COMPELETED);
-    //     // set the state to COMPELETED and force the process trap into
-    //     // COMPELETED how to remove file?!?!?!?!
-    //     _send_normal(fd);
-    //     _processor.process(fd);
-    //     // here the fd be removed
-    // }
     if (process_state & WAITING_CGI) {
         // _send_normal(fd);
         process_state = CONSUME_BODY;
@@ -246,7 +218,6 @@ void ConnectionHandler::_handle_write(int fd)
     }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
-        LOG(weblog::INFO, "WOWOWOWOWOWOWO");
         // Reset adn ready to analyze the next request
         _processor.remove_analyzer(fd);
         // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
@@ -285,15 +256,14 @@ void ConnectionHandler::_send_normal(int fd)
         send(fd, _write_buffer[fd].c_str(), _write_buffer[fd].size(), 0);
 
     if (CgiExecutor::instance()->handler_exists(fd)) {
-        LOG(weblog::CRITICAL,
+        LOG(weblog::DEBUG,
             "Remove cgi handler on pipe fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }
     Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     if (bytes_sent < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "send() failed: "
-                                       + std::string(strerror(errno)));
+                                   "send() failed.");
     }
     else if (bytes_sent == 0) {
         LOG(weblog::INFO, "Write 0 bytes, client closing connection");
@@ -327,7 +297,7 @@ void ConnectionHandler::_send_error(int fd)
         if (bytes_sent < 0) {
             close_connection(fd,
                              weblog::ERROR,
-                             "send() failed: " + std::string(strerror(errno)));
+                             "send() failed.");
         }
         else if (bytes_sent == 0) {
             close_connection(fd,
@@ -370,15 +340,13 @@ void ConnectionHandler::_connect_to_session_manager()
     struct sockaddr_un addr;
 
     if ((_session_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        throw std::runtime_error("Failed to create session socket: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to create session socket.");
     }
     addr.sun_family = AF_UNIX;
     std::strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path));
     if (connect(_session_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         close(_session_fd);
-        throw std::runtime_error("Failed to connect to session manager: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to connect to session manager.");
     }
     LOG(weblog::DEBUG,
         "Connected to session manager on fd: " + utils::to_string(_session_fd));

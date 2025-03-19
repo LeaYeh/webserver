@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 12:32:03 by mhuszar           #+#    #+#             */
-/*   Updated: 2024/10/29 22:21:00 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 15:12:04 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #define PARSE_EXCEPTION_HPP
 
 #include "defines.hpp"
-#include <iostream>
 
 class ParseException : public std::exception
 {

@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 17:34:34 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/09 16:52:43 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 15:27:46 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #include "Logger.hpp"
 #include "defines.hpp"
 #include "utils.hpp"
-#include <iostream>
 
 namespace webshell
 {
@@ -92,8 +91,6 @@ void RequestAnalyzer::feed(const char ch)
         }
         break;
     default: {
-        std::cerr << "State received: " << _state << std::endl;
-        std::cerr << "Character received: |" << ch << "|" << std::endl;
         throw std::runtime_error("Request parse error");
     }
     }

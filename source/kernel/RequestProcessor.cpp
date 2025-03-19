@@ -84,7 +84,7 @@ void RequestProcessor::process(int fd)
     webshell::Response response;
 
     // If still need to process the garbage body, do nothing and return
-    LOG(weblog::CRITICAL, "STATE IS: " + explain_event_processing_state(state));
+    LOG(weblog::DEBUG, "STATE IS: " + explain_event_processing_state(state));
     if (state == CONSUME_BODY) {
         if (_need_consume_body(request)) {
             return;
@@ -110,27 +110,13 @@ void RequestProcessor::process(int fd)
             }
             if (state & COMPELETED) {
                 _handler->prepare_write(fd, response.serialize());
-                // TODO: Currently I need to end the request without checking
-                // the garbage body I think the root cause is in the
-                // _proceed_chunked
                 _end_request(fd);
             }
         }
         else {
-            // TODO: For the GET request we also need to control the
-            // EPOLLIN/EPOLLOUT correctly to avoid to analyize a new request
-            // before the current request finished
             Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
-            // if (request.empty_buffer()) {
-            //     Reactor::instance()->modify_handler(fd, EPOLLIN, 0);
-            // }
-            // else {
-            //     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
-            // }
             // for GET and DELETE requests, we can send the response directly
 
-            // TODO: Bug: in the GET chunked mode, the analyzer be reset before
-            // the request finished
             if (!(state & COMPELETED)) {
                 _handler->prepare_write(fd, response.serialize());
             }

@@ -1,3 +1,4 @@
+#pragma once
 #include "defines.hpp"
 #include <cstddef>
 #include <stdint.h>

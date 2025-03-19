@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 #include "defines.hpp"
 #include "shellUtils.hpp"
+#include "utils.hpp"
 
 namespace utils
 {

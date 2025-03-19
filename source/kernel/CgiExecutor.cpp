@@ -149,7 +149,7 @@ void CgiExecutor::remove_handler(int fd)
     if (handler_exists(fd)) {
         // TODO: check if the handler need to be removed from the reactor, the
         // fd is the pipefd[0]
-        LOG(weblog::CRITICAL,
+        LOG(weblog::DEBUG,
             "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
         _handler_map.erase(fd);

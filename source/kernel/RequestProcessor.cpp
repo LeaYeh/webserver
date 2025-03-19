@@ -84,7 +84,7 @@ void RequestProcessor::process(int fd)
     webshell::Response response;
 
     // If still need to process the garbage body, do nothing and return
-    LOG(weblog::CRITICAL, "STATE IS: " + explain_event_processing_state(state));
+    LOG(weblog::DEBUG, "STATE IS: " + explain_event_processing_state(state));
     if (state == CONSUME_BODY) {
         if (_need_consume_body(request)) {
             return;

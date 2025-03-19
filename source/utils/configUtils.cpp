@@ -84,7 +84,7 @@ weblog::LogLevel string_to_level(const std::string& value)
         log_level_map["info"] = weblog::INFO;
         log_level_map["warning"] = weblog::WARNING;
         log_level_map["error"] = weblog::ERROR;
-        log_level_map["critical"] = weblog::CRITICAL;
+        log_level_map["critical"] = weblog::DEBUG;
     }
 
     std::map<std::string, weblog::LogLevel>::const_iterator it =
@@ -123,7 +123,7 @@ std::string level_to_string(weblog::LogLevel level)
         log_level_map[weblog::INFO] = "info";
         log_level_map[weblog::WARNING] = "warning";
         log_level_map[weblog::ERROR] = "error";
-        log_level_map[weblog::CRITICAL] = "critical";
+        log_level_map[weblog::DEBUG] = "critical";
     }
 
     std::map<weblog::LogLevel, std::string>::const_iterator it =

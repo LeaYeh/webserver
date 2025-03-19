@@ -103,7 +103,7 @@ void Reactor::modify_handler(int fd,
 {
     if (!handler_exists(fd))
     {
-        LOG(weblog::CRITICAL, "Try to modify non-exist handler on fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG, "Try to modify non-exist handler on fd: " + utils::to_string(fd));
         // close(fd);
         return;
     }
@@ -145,7 +145,7 @@ void Reactor::remove_handler(int fd)
 {
     if (!handler_exists(fd))
     {
-        LOG(weblog::CRITICAL, "Try to remove non-exist handle on fd: " + utils::to_string(fd));
+        LOG(weblog::DEBUG, "Try to remove non-exist handle on fd: " + utils::to_string(fd));
         return;
     }
     LOG(weblog::DEBUG, "Removed handler with fd: " + utils::to_string(fd));
@@ -202,7 +202,7 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
 
         if (!handler_exists(fd))
         {
-            LOG(weblog::CRITICAL, "Try to process non-exist handler on fd: " + utils::to_string(fd));
+            LOG(weblog::DEBUG, "Try to process non-exist handler on fd: " + utils::to_string(fd));
             continue;
         }
         try {

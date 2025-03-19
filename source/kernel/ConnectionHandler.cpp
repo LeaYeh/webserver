@@ -71,7 +71,7 @@ void ConnectionHandler::close_connection(int fd,
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
     // if (CgiExecutor::instance()->handler_exists(fd)) {
-    //     LOG(weblog::CRITICAL,
+    //     LOG(weblog::DEBUG,
     //         "Remove cgi handler on fd: " + utils::to_string(fd));
     //     CgiExecutor::instance()->remove_handler(fd);
     // }
@@ -285,7 +285,7 @@ void ConnectionHandler::_send_normal(int fd)
         send(fd, _write_buffer[fd].c_str(), _write_buffer[fd].size(), 0);
 
     if (CgiExecutor::instance()->handler_exists(fd)) {
-        LOG(weblog::CRITICAL,
+        LOG(weblog::DEBUG,
             "Remove cgi handler on pipe fd: " + utils::to_string(fd));
         CgiExecutor::instance()->remove_handler(fd);
     }

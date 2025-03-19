@@ -205,7 +205,7 @@ ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
     if (config.route == "/") {
         resource_path = request_path;
     }
-    else if (!config.alias.empty()) {
+    else if (!config.alias.empty() || !config.cgi_path.empty()) {
         resource_path = request_path.substr(config.route.size());
     }
     else {

@@ -12,7 +12,6 @@
 #include "kernelUtils.hpp"
 #include "session_types.hpp"
 #include "utils.hpp"
-#include <iostream>
 #include <sys/epoll.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -215,22 +214,6 @@ void ConnectionHandler::_handle_write(int fd)
             + explain_event_processing_state(_processor.state(fd)));
 
     EventProcessingState process_state = _processor.state(fd);
-    std::cerr << "state: " << explain_event_processing_state(process_state)
-              << std::endl;
-    // sleep(1000);
-
-    // // we assume the cgi response will respond in once, so when _handle_write be
-    // // triggerd mean cgi finished
-    // if (process_state == WAITING_CGI) {
-    //     process_state = COMPELETED;
-
-    //     _processor.set_state(fd, COMPELETED);
-    //     // set the state to COMPELETED and force the process trap into
-    //     // COMPELETED how to remove file?!?!?!?!
-    //     _send_normal(fd);
-    //     _processor.process(fd);
-    //     // here the fd be removed
-    // }
     if (process_state & WAITING_CGI) {
         // _send_normal(fd);
         process_state = CONSUME_BODY;
@@ -245,7 +228,6 @@ void ConnectionHandler::_handle_write(int fd)
     }
     else if (process_state & COMPELETED) {
         _send_normal(fd);
-        LOG(weblog::INFO, "WOWOWOWOWOWOWO");
         // Reset adn ready to analyze the next request
         _processor.remove_analyzer(fd);
         // Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);

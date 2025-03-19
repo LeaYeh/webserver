@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/17 22:53:15 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 15:25:09 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,6 @@ void HeaderAnalyzer::_field_val(unsigned char c)
         _state = FIELD_END_CRLF;
     }
     else {
-        // std::cerr << "CHAR IS: |" << c << "| " << std::endl;
         throw utils::HttpException(webshell::BAD_REQUEST,
                                    "header fieldval state error");
     }

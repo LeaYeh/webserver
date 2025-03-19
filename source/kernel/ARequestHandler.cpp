@@ -148,6 +148,12 @@ ARequestHandler::_get_mime_type(const std::string& file_path) const
     if (extension == "ogg") {
         return ("video/ogg");
     }
+    if (extension == "txt") {
+        return ("text/plain");
+    }
+    if (extension == "xml") {
+        return ("text/xml");
+    }
     return ("application/octet-stream");
 }
 

@@ -213,10 +213,10 @@ void Reactor::_handle_events(struct epoll_event* events, int nfds)
             for (std::map<int, IHandler*>::iterator it = _handlers.begin();
                  it != _handlers.end();
                  it++) {
-                LOG(weblog::WARNING,
+                LOG(weblog::DEBUG,
                     "activated fd: " + utils::to_string(it->first));
             }
-            LOG(weblog::WARNING,
+            LOG(weblog::DEBUG,
                 "using fd: " + utils::to_string(fd)
                     + " on handler: " + utils::to_string(_handlers[fd]));
             _handlers[fd]->handle_event(fd, events[i].events);

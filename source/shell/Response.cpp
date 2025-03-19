@@ -51,7 +51,7 @@ void Response::set_status_code(StatusCode status_code)
 void Response::set_headers(std::map<std::string, std::string> headers)
 {
     if (_headers.size() > 0) {
-        LOG(weblog::WARNING, "Overwrite headers");
+        LOG(weblog::DEBUG, "Overwrite headers");
     }
     _headers = headers;
 }
@@ -91,7 +91,7 @@ std::string Response::serialize() const
     std::map<std::string, std::string>::const_iterator it;
 
     if (_status_code == UNDEFINED) {
-        LOG(weblog::WARNING, "Response status code is not set");
+        LOG(weblog::DEBUG, "Response status code is not set");
         return ("");
     }
     if (_status_code != IGNORE) {

@@ -100,7 +100,7 @@ void ConnectionHandler::prepare_error(int fd, const utils::HttpException& e)
     webshell::Response err_response = webshell::ResponseBuilder::error(
         e.status_code(), e.reasonDetail(), e.contentType());
 
-    LOG(weblog::WARNING, "Error response: \n" + err_response.serialize());
+    LOG(weblog::DEBUG, "Error response: \n" + err_response.serialize());
 
     _error_buffer[fd].append(err_response.serialize());
     Reactor::instance()->modify_handler(fd, EPOLLOUT, EPOLLIN);
@@ -167,11 +167,11 @@ void ConnectionHandler::_handle_read_eof(int fd)
     if (_write_buffer.find(fd) == _write_buffer.end()
         || _write_buffer[fd].empty()) {
         close_connection(
-            fd, weblog::INFO, "Read 0 bytes, client closing connection");
+            fd, weblog::DEBUG, "Read 0 bytes, client closing connection");
     }
     else {
         close_connection(fd,
-                         weblog::WARNING,
+                         weblog::DEBUG,
                          "Read 0 bytes, client closing connection, "
                          "but there is data to write");
     }
@@ -266,9 +266,9 @@ void ConnectionHandler::_send_normal(int fd)
                                    "send() failed.");
     }
     else if (bytes_sent == 0) {
-        LOG(weblog::INFO, "Write 0 bytes, client closing connection");
+        LOG(weblog::DEBUG, "Write 0 bytes, client closing connection");
         close_connection(
-            fd, weblog::INFO, "Write 0 bytes, client closing connection");
+            fd, weblog::DEBUG, "Write 0 bytes, client closing connection");
     }
     else {
         LOG(weblog::DEBUG,
@@ -283,7 +283,7 @@ void ConnectionHandler::_send_error(int fd)
     std::map<int, std::string>::iterator it = _error_buffer.find(fd);
 
     if (it == _error_buffer.end()) {
-        LOG(weblog::WARNING,
+        LOG(weblog::DEBUG,
             "No error buffer found for fd: " + utils::to_string(fd)
                 + ", do nothing");
         return;
@@ -301,12 +301,12 @@ void ConnectionHandler::_send_error(int fd)
         }
         else if (bytes_sent == 0) {
             close_connection(fd,
-                             weblog::WARNING,
+                             weblog::DEBUG,
                              "Write 0 bytes, client closing connection");
         }
         else {
             close_connection(fd,
-                             weblog::WARNING,
+                             weblog::DEBUG,
                              "Close the connection after handled error on fd: "
                                  + utils::to_string(fd));
         }

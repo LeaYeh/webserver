@@ -382,16 +382,16 @@ void CgiExecutor::_debug_execve(const std::string& exec_path,
                                 char* const argv[],
                                 char* const env[])
 {
-    LOG(weblog::WARNING, "==== Debug Execve Parameters ====");
-    LOG(weblog::WARNING, "Executable Path: " + exec_path);
-    LOG(weblog::WARNING, "Arguments:");
+    LOG(weblog::DEBUG, "==== Debug Execve Parameters ====");
+    LOG(weblog::DEBUG, "Executable Path: " + exec_path);
+    LOG(weblog::DEBUG, "Arguments:");
     for (int i = 0; argv[i] != NULL; i++) {
-        LOG(weblog::WARNING, "  argv[" + utils::to_string(i) + "]: " + argv[i]);
+        LOG(weblog::DEBUG, "  argv[" + utils::to_string(i) + "]: " + argv[i]);
     }
 
-    LOG(weblog::WARNING, "Environment Variables:");
+    LOG(weblog::DEBUG, "Environment Variables:");
     for (int i = 0; env[i] != NULL; ++i) {
-        LOG(weblog::WARNING, "  env[" + utils::to_string(i) + "]: " + env[i]);
+        LOG(weblog::DEBUG, "  env[" + utils::to_string(i) + "]: " + env[i]);
     }
 }
 

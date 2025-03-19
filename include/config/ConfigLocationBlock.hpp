@@ -47,6 +47,7 @@ private:
     bool _enable_upload;
 
 private:
+    std::string _parse_route(const std::string& line);
     void _parse_config_directive(const std::string& line);
     std::vector<webshell::RequestMethod>
     _parse_limit_except(const std::string& line, const std::string& directive);

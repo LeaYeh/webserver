@@ -174,7 +174,7 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
     std::string directive = _get_directive_name(line);
 
     if (directive == "route") {
-        _route = extract_directive_value(line, directive);
+        _route = _parse_route(line);
     }
     else if (directive == "limit_except") {
         _limit_except = _parse_limit_except(line, directive);
@@ -208,6 +208,22 @@ void ConfigLocationBlock::_parse_config_directive(const std::string& line)
         throw std::runtime_error("Invalid directive in location block: "
                                  + directive);
     }
+}
+
+std::string ConfigLocationBlock::_parse_route(const std::string& line)
+{
+    std::string route = extract_directive_value(line, "route");
+
+    if (route.empty()) {
+        throw std::runtime_error("route directive is missing in location block");
+    }
+    else if (route[0] != '/') {
+        throw std::runtime_error("Invalid route: " + route);
+    }
+    else if (route.size() > 1 && route[route.length() - 1] == '/') {
+        throw std::runtime_error("Invalid route: " + route);
+    }
+    return (route);
 }
 
 std::vector<webshell::RequestMethod>

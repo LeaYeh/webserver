@@ -263,8 +263,8 @@ void Request::_write_chunked_file(const std::vector<char>& content)
     size_t remaining = content.size();
     size_t offset = 0;
 
-    if (_sth_wrong != _temp_file_path)
-        _temp_file_path = _sth_wrong;
+    // if (_sth_wrong != _temp_file_path)
+    //     _temp_file_path = _sth_wrong;
     LOG(weblog::DEBUG, "Write chunked file: " + _temp_file_path);
 
     file_stream.open(_temp_file_path.c_str(), std::ios::out | std::ios::binary | std::ios::app);

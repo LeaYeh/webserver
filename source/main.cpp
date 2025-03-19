@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:41 by lyeh              #+#    #+#             */
-/*   Updated: 2025/03/19 14:59:22 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 16:33:03 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "ExecuteWithUnwind.hpp"
 #include "Kernel.hpp"
 #include "Logger.hpp"
+#include "OperationInterrupt.hpp"
 #include "ReturnWithUnwind.hpp"
 #include "defines.hpp"
 #include <csignal>
@@ -49,7 +50,7 @@ int main(int argc, char** argv)
         config = webconfig::Config::instance();
         signal(SIGINT, handle_terminate_signal);
         weblog::Logger* logger = weblog::Logger::instance();
-        logger->set_level(weblog::CRITICAL);
+        logger->set_level(weblog::INFO);
         // weblog::logger->set_file_mode("webserver.log");
 
         config->print_config();
@@ -72,6 +73,11 @@ int main(int argc, char** argv)
         config->destroy();
         weblog::Logger::destroy();
         return (e.status());
+    }
+    catch (const OperationInterrupt& e) {
+        config->destroy();
+        weblog::Logger::destroy();
+        return (SUCCESS);
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

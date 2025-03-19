@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/17 18:50:44 by mhuszar           #+#    #+#             */
-/*   Updated: 2025/03/19 15:25:09 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/03/19 20:23:28 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,9 +215,6 @@ recipient MUST treat it as an unrecoverable error.  If this is a
 request message, the server MUST respond with a 400 (Bad Request)
 status code and then close the connection (RFC 7230 3.3.3).
 */
-
-// TODO: this check fails if they provide multiple Content-Length fields
-// first and *then* a transfer-encoding
 
 void HeaderAnalyzer::_field_end_crlf(unsigned char c)
 {

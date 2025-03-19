@@ -146,8 +146,6 @@ void CgiExecutor::_busy_wait()
 void CgiExecutor::remove_handler(int fd)
 {
     if (handler_exists(fd)) {
-        // TODO: check if the handler need to be removed from the reactor, the
-        // fd is the pipefd[0]
         LOG(weblog::DEBUG,
             "hehe remove here on fd: " + utils::to_string(_pipe_map[fd]));
         delete _handler_map[fd];
@@ -216,8 +214,6 @@ void CgiExecutor::_setup_path_meta(const std::string& route,
             "A cgi request[" + path + "] cannot match cgi path: " + cgi_path);
     }
     pos += route.length();
-    // TODO: If the route end with '/' in config file, the config parser need to
-    // cry
     if (pos >= path.length() || path[pos] != '/') {
         throw utils::HttpException(
             webshell::INTERNAL_SERVER_ERROR,

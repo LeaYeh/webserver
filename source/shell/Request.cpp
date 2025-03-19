@@ -263,13 +263,10 @@ void Request::_write_chunked_file(const std::vector<char>& content)
     size_t remaining = content.size();
     size_t offset = 0;
 
-    // TODO: This is fucking stupid bug, but I don't know how to fix it
-    // For some reason, the _temp_file_path becomes garbage value
     if (_sth_wrong != _temp_file_path)
         _temp_file_path = _sth_wrong;
     LOG(weblog::DEBUG, "Write chunked file: " + _temp_file_path);
 
-    // TODO: Here I need to append the file instead of truncating it, need to double check
     file_stream.open(_temp_file_path.c_str(), std::ios::out | std::ios::binary | std::ios::app);
     if (!file_stream.is_open()) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
@@ -385,7 +382,6 @@ bool Request::_proceed_chunked(std::vector<char>& chunked_body)
         }
     }
     _read_buffer->clear();
-    // TODO: I think when we re-use this to consume the body it might need different behavior
     return (false);
 }
 

@@ -43,12 +43,6 @@ Network\n\r
 */
 std::string ChunkedCodec::decode(const std::string& content) const
 {
-    // TODO: Check the payload size outside of this function
-    // webconfig::Config* config = webconfig::Config::instance();
-    // if (content.size() > config->http_block().client_max_body_size())
-    //     throw utils::HttpException(
-    //         webshell::PAYLOAD_TOO_LARGE,
-    //         "Chunked data size exceeds client_max_body_size");
     std::string decoded_content;
     size_t pos = 0;
     size_t newline_pos = 0;

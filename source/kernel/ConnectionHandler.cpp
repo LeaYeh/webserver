@@ -24,9 +24,8 @@ ConnectionHandler::ConnectionHandler() : _processor(this), _session_fd(-1) {}
 ConnectionHandler::~ConnectionHandler()
 {
     LOG(weblog::DEBUG, "ConnectionHandler destroyed");
-    close(_session_fd);
-    // TODO: Check the conn_fd is closed by the reactor
-    // _handleClose(_conn_fd, weblog::INFO, "Connection closed by server");
+    if (_session_fd != -1)
+        close(_session_fd);
 }
 
 ConnectionHandler* ConnectionHandler::create_instance()
@@ -69,13 +68,6 @@ void ConnectionHandler::close_connection(int fd,
                                          std::string message)
 {
     LOG(level, message + " on conn_fd: " + utils::to_string(fd));
-    // if (CgiExecutor::instance()->handler_exists(fd)) {
-    //     LOG(weblog::DEBUG,
-    //         "Remove cgi handler on fd: " + utils::to_string(fd));
-    //     CgiExecutor::instance()->remove_handler(fd);
-    // }
-    // TODO: maybe this is the reason why we failed the cgi siege test
-    // TODO: Need to remove the handler from the reactor in different way
     Reactor::instance()->remove_handler(fd);
     _processor.remove_state(fd);
     _processor.remove_analyzer(fd);
@@ -93,8 +85,6 @@ void ConnectionHandler::prepare_write(int fd, const std::string& buffer)
         close_connection(fd, weblog::ERROR, "Write buffer allocation failed");
     }
 
-    // TODO: Check why who call the prepare_write even though the fd is not
-    // exist any more.
     _write_buffer[fd].append(buffer);
     Reactor::instance()->modify_handler(fd, EPOLLOUT, 0);
 }

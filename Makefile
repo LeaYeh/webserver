@@ -15,7 +15,7 @@ cmake_build:
 	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && $(CMAKE) ..
 
-$(NAME): .gen-compile_flags .gen-cmakelist cmake_build .init-tmp-dir
+$(NAME): .gen-compile_flags .gen-cmakelist cmake_build .init-tmp-dir .init.assets
 	@if [ ! -f $(PROJECT) ] || [ -n "$$(find CMakeLists.txt source include -newer $(PROJECT) -print -quit 2>/dev/null)" ]; then \
 		$(MAKE) -C $(BUILD_DIR) $(MAKEFLAGS); \
 		echo ""; \
@@ -140,6 +140,13 @@ $(NAME): .gen-compile_flags .gen-cmakelist cmake_build .init-tmp-dir
 	echo "Creating upload directory..."
 	@mkdir -p $(ROOT_DIR)/www/upload
 
+
+.init.assets:
+	@echo "Creating assets directory..."
+	@rm -rf $(ROOT_DIR)/www $(ROOT_DIR)/cgi-bin
+	cp -r ${HOME}/resources/www $(ROOT_DIR)/www
+	cp -r ${HOME}/resources/cgi-bin $(ROOT_DIR)/cgi-bin
+
 # bonus: cmake_build
 # 	@$(MAKE) -C $(BUILD_DIR) -j8
 # 	@echo ""
@@ -163,13 +170,15 @@ fclean: clean
 	@rm -f CMakeLists.txt
 	@rm -f compile_flags.txt
 	@echo $(STY_BLU)"[INFO] Removed CMakeLists.txt."$(STY_RES)
+	@rm -rf $(ROOT_DIR)/www $(ROOT_DIR)/cgi-bin
+	@echo $(STY_BLU)"[INFO] Removed www and cgi-bin directories."$(STY_RES)
 	@echo $(STY_BLU)"[INFO] Perform full clean"$(STY_RES)
 
 re: fclean
 	@sleep 1
 	@$(MAKE) all
 
-.PHONY: all clean fclean re cmake_build bonus .init-tmp-dir .gen-cmakelist .gen-compile_flags
+.PHONY: all clean fclean re cmake_build bonus .init-tmp-dir .gen-cmakelist .gen-compile_flags .init.assets
 
 # **************************** COLORS ******************************* #
 

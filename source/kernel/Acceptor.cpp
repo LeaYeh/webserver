@@ -5,7 +5,6 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <errno.h>
 #include <sys/epoll.h>
 
 namespace webkernel
@@ -36,8 +35,7 @@ void Acceptor::handle_event(int fd, uint32_t events)
             "Accepted connection on fd[" + utils::to_string(conn_fd)
                 + "] from: " + get_client_address(conn_fd));
         if (conn_fd < 0) {
-            throw std::runtime_error("accept() failed: "
-                                     + std::string(strerror(errno)));
+            throw std::runtime_error("accept() failed");
         }
         Reactor::instance()->register_handler(conn_fd,
                                               ConnectionHandler::instance(),

@@ -6,7 +6,6 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
-#include <cerrno>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>

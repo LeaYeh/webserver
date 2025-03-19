@@ -5,7 +5,6 @@
 #include <arpa/inet.h>
 #include <cstdlib>
 #include <ctime>
-#include <errno.h>
 #include <string>
 #include <sys/socket.h>
 
@@ -164,8 +163,7 @@ std::string get_client_address(int fd)
     );
 
     if (res < 0) {
-        throw std::runtime_error("getpeername() failed: "
-                                 + std::string(strerror(errno)));
+        throw std::runtime_error("getpeername() failed.");
     }
     return (format_address(addr));
 }
@@ -181,8 +179,7 @@ std::string get_socket_address(int fd)
     socklen_t addr_size = sizeof(addr);
 
     if (getsockname(fd, (struct sockaddr*)&addr, &addr_size) < 0) {
-        throw std::runtime_error("getsockname() failed: "
-                                 + std::string(strerror(errno)));
+        throw std::runtime_error("getsockname() failed.");
     }
     return (format_address(addr));
 }

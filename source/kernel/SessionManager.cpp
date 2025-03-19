@@ -4,7 +4,6 @@
 #include "defines.hpp"
 #include "session_types.hpp"
 #include "utils.hpp"
-#include <cerrno>
 #include <cstdio>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -19,8 +18,7 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
 {
     _server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (_server_fd < 0) {
-        throw std::runtime_error("Failed to create socket for session manager: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to create socket for session manager.");
     }
     struct sockaddr_un addr;
     std::memset(&addr, 0, sizeof(addr));
@@ -31,14 +29,12 @@ SessionManager::SessionManager(const SessionConfig& config) : _config(config)
 
     if (bind(_server_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         close(_server_fd);
-        throw std::runtime_error("Failed to bind session socket: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to bind session socket.");
     }
 
     if (listen(_server_fd, SOMAXCONN) < 0) {
         close(_server_fd);
-        throw std::runtime_error("Failed to listen on session socket: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to listen on session socket.");
     }
 
     LOG(weblog::DEBUG,
@@ -106,8 +102,7 @@ void SessionManager::_handle_new_connection()
     int client_fd = accept(_server_fd, (struct sockaddr*)&addr, &addr_len);
 
     if (client_fd < 0) {
-        throw std::runtime_error("Failed to accept new session connection: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to accept new session connection.");
     }
     if (static_cast<unsigned int>(_client_fds.size())
         >= _config.max_connections) {
@@ -130,8 +125,7 @@ void SessionManager::_handle_session_request(int fd)
     int bytes = recv(fd, &msg, sizeof(msg), 0);
 
     if (bytes < 0) {
-        throw std::runtime_error("Failed to receive session message: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to receive session message.");
     }
     if (bytes == 0) {
         LOG(weblog::DEBUG,
@@ -214,8 +208,7 @@ void SessionManager::_send_resp(int fd,
     ssize_t bytes_sent = send(fd, &msg, sizeof(msg), 0);
 
     if (bytes_sent < 0) {
-        throw std::runtime_error("Failed to send session response: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to send session response.");
     }
     else if (bytes_sent != sizeof(msg)) {
         throw std::runtime_error("Invalid session response size: "

@@ -163,8 +163,7 @@ void ConnectionHandler::_handle_read(int fd)
 
     if (bytes_read < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "recv() failed: "
-                                       + std::string(strerror(errno)));
+                                   "recv() failed.");
     }
     else if (bytes_read == 0) {
         _handle_read_eof(fd);
@@ -292,8 +291,7 @@ void ConnectionHandler::_send_normal(int fd)
     Reactor::instance()->modify_handler(fd, EPOLLIN, EPOLLOUT);
     if (bytes_sent < 0) {
         throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                   "send() failed: "
-                                       + std::string(strerror(errno)));
+                                   "send() failed.");
     }
     else if (bytes_sent == 0) {
         LOG(weblog::INFO, "Write 0 bytes, client closing connection");
@@ -327,7 +325,7 @@ void ConnectionHandler::_send_error(int fd)
         if (bytes_sent < 0) {
             close_connection(fd,
                              weblog::ERROR,
-                             "send() failed: " + std::string(strerror(errno)));
+                             "send() failed.");
         }
         else if (bytes_sent == 0) {
             close_connection(fd,
@@ -370,15 +368,13 @@ void ConnectionHandler::_connect_to_session_manager()
     struct sockaddr_un addr;
 
     if ((_session_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-        throw std::runtime_error("Failed to create session socket: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to create session socket.");
     }
     addr.sun_family = AF_UNIX;
     std::strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path));
     if (connect(_session_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         close(_session_fd);
-        throw std::runtime_error("Failed to connect to session manager: "
-                                 + utils::to_string(strerror(errno)));
+        throw std::runtime_error("Failed to connect to session manager.");
     }
     LOG(weblog::DEBUG,
         "Connected to session manager on fd: " + utils::to_string(_session_fd));

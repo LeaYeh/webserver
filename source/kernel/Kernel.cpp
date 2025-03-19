@@ -122,8 +122,7 @@ void Kernel::_register_listener(void)
         int fd = _create_listen_socket(server_config.listen().first.c_str(),
                                        server_config.listen().second.c_str());
         if (listen(fd, SOMAXCONN) < 0) {
-            throw std::runtime_error("listen() failed: "
-                                     + std::string(strerror(errno)));
+            throw std::runtime_error("listen() failed.");
         }
         vhost_manager.add_listen(ipaddr, &server_config);
         LOG(weblog::INFO, "Listening on " + ipaddr);
@@ -150,19 +149,16 @@ int Kernel::_create_listen_socket(const char* ip, const char* port)
         }
         fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (fd < 0) {
-            throw std::runtime_error("socket() failed: "
-                                     + std::string(strerror(errno)));
+            throw std::runtime_error("socket() failed.");
         }
         int optval = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval))
             < 0) {
-            throw std::runtime_error("setsockopt() failed: "
-                                     + std::string(strerror(errno)));
+            throw std::runtime_error("setsockopt() failed.");
         }
 
         if (bind(fd, res->ai_addr, res->ai_addrlen) < 0) {
-            throw std::runtime_error("bind() failed: "
-                                     + std::string(strerror(errno)));
+            throw std::runtime_error("bind() failed.");
         }
     }
     catch (const std::exception& e) {

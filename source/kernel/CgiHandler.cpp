@@ -43,10 +43,8 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
             return;
         }
         else {
-            // TODO: need to remove the 'errno' before submit
             throw utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                       "read() failed: "
-                                           + std::string(strerror(errno)));
+                                       "read() failed.");
         }
         LOG(weblog::DEBUG,
             "Read " + utils::to_string(bytes_read)
@@ -66,12 +64,10 @@ void CgiHandler::handle_event(int fd /*read_end*/, uint32_t events)
         }
         Reactor::instance()->remove_handler(fd);
         if (ret == -1) {
-            // TODO: need to remove the 'errno' before submit
             webkernel::ConnectionHandler::instance()->prepare_error(
                 _client_fd,
                 utils::HttpException(webshell::INTERNAL_SERVER_ERROR,
-                                     "waitpid() failed: "
-                                         + std::string(strerror(errno))));
+                                     "waitpid() failed."));
         }
         else {
             LOG(weblog::DEBUG,

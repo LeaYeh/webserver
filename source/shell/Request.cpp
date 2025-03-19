@@ -282,7 +282,7 @@ void Request::_write_chunked_file(const std::vector<char>& content)
         if (!file_stream.good()) {
             throw utils::HttpException(
                 webshell::INTERNAL_SERVER_ERROR,
-                "Write file failed: " + utils::to_string(std::strerror(errno)));
+                "Write file failed.");
         }
         offset += write_size;
         remaining -= write_size;

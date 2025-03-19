@@ -5,6 +5,7 @@
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
+#include <cstddef>
 #include <string>
 
 namespace webkernel
@@ -190,20 +191,43 @@ std::string
 ARequestHandler::_get_resource_path(const webconfig::RequestConfig& config,
                                     const std::string& request_path) const
 {
+    LOG(weblog::DEBUG, "request_path: " + request_path);
     std::string base_dir = config.root;
-    std::string resource_path = request_path.substr(config.route.size());
+    std::string resource_path;
     std::string full_path;
 
+    if (config.route == "/") {
+        resource_path = request_path;
+    }
+    else if (!config.alias.empty()) {
+        request_path.substr(config.route.size());
+    }
+    else {
+        resource_path = request_path;
+    }
+
+    LOG(weblog::DEBUG, "Resource path: " + resource_path);
+    LOG(weblog::DEBUG, "base_dir: " + base_dir);
     if (!config.cgi_path.empty()) {
         base_dir = config.cgi_path;
     }
     else if (!config.alias.empty()) {
         base_dir = config.alias;
     }
+    size_t pos = resource_path.find(base_dir);
+
+    if (pos != std::string::npos) {
+        resource_path = resource_path.substr(pos + base_dir.size());
+    }
+    LOG(weblog::DEBUG, "base_dir: " + base_dir);
     full_path = utils::join(base_dir, resource_path);
     if (utils::is_directory(full_path) && !config.autoindex) {
         full_path = utils::join(full_path, config.index);
     }
+    if (full_path[0] != '/') {
+        full_path = utils::join(".", full_path);
+    }
+    LOG(weblog::DEBUG, "Full path: " + full_path);
     return full_path;
 }
 

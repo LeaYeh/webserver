@@ -27,6 +27,10 @@ std::string basefolder(const std::string& path);
 std::string basename(const std::string& path);
 std::string file_extension(const std::string& path);
 std::string join(const std::string& path1, const std::string& path2);
+std::vector<std::string> split_path(const std::string& path);
+std::string normalize_path_segments(const std::vector<std::string>& segments,
+                                    bool is_absolute);
+std::string resolve_path(const std::string& path);
 
 template <typename T> std::string to_string(const T& value)
 {

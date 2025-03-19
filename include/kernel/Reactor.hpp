@@ -3,7 +3,6 @@
 #include "Singleton.hpp"
 #include "defines.hpp"
 #include <csignal>
-#include <exception>
 #include <map>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -31,15 +30,6 @@ public:
     std::vector<int /* fd */> get_active_fds(void) const;
     void destroy_tree();
     bool handler_exists(int fd) const;
-
-    class InterruptException : public std::exception
-    {
-    public:
-        const char* what() const throw()
-        {
-            return STY_GRE "Shutdown webserver" STY_RES;
-        }
-    };
 
 public:
     ~Reactor();

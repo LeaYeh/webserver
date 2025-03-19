@@ -3,14 +3,18 @@
 #include "ConnectionHandler.hpp"
 #include "HttpException.hpp"
 #include "Logger.hpp"
+#include "OperationInterrupt.hpp"
 #include "defines.hpp"
 #include "kernelUtils.hpp"
 #include "utils.hpp"
 #include <cerrno>
 #include <cstdio>
 #include <exception>
+#include <stdexcept>
 #include <unistd.h>
 #include <vector>
+#include <iostream>
+#include "OperationInterrupt.hpp"
 
 namespace webkernel
 {
@@ -169,7 +173,9 @@ void Reactor::_check_interrupt(void) const
 {
     if (stop_flag) {
         LOG(weblog::INFO, "Reactor received interrupt signal");
-        throw InterruptException();
+        // throw InterruptException();
+        std::cout << STY_GRE "\nShutdown webserver" STY_RES << std::endl;
+        throw OperationInterrupt(UNPRIMED);
     }
 }
 

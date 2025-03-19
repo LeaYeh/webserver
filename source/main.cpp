@@ -14,6 +14,7 @@
 #include "ExecuteWithUnwind.hpp"
 #include "Kernel.hpp"
 #include "Logger.hpp"
+#include "OperationInterrupt.hpp"
 #include "ReturnWithUnwind.hpp"
 #include "defines.hpp"
 #include <csignal>
@@ -72,6 +73,11 @@ int main(int argc, char** argv)
         config->destroy();
         weblog::Logger::destroy();
         return (e.status());
+    }
+    catch (const OperationInterrupt& e) {
+        config->destroy();
+        weblog::Logger::destroy();
+        return (SUCCESS);
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

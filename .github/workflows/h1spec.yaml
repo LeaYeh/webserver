@@ -27,7 +27,7 @@ jobs:
 
       - name: Run the built executable
         run: |
-          ./webserv configs/default.conf
+          ./webserv configs/default.conf &
 
       - name: Set up Go
         uses: actions/setup-go@v5

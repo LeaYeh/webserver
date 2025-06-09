@@ -6,7 +6,7 @@
 /*   By: mhuszar <mhuszar@student.42vienna.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/29 22:49:34 by lyeh              #+#    #+#             */
-/*   Updated: 2025/03/19 15:11:56 by mhuszar          ###   ########.fr       */
+/*   Updated: 2025/06/09 20:58:29 by mhuszar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,15 +57,6 @@ private:
 };
 
 } // namespace weblog
-
-// #define LOG(level, message)                                                   \
-//     do {                                                                      \
-//         weblog::Logger::instance()->log(                                      \
-//             level,                                                            \
-//             std::string("\t[" + utils::to_string(getpid()) + "][") + __FILE__ \
-//                 + ":" + utils::to_string(__LINE__) + "] "                     \
-//                 + utils::to_string(message));                                 \
-//     } while (0)
 
 #define LOG(level, message)                                                  \
     do {                                                                     \

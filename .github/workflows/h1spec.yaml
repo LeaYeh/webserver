@@ -1,0 +1,48 @@
+name: h1spec
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      TESTINY_API_KEY: ${{ secrets.TESTINY_API_KEY }}
+
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Install CMake and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
+      - name: Build project
+        run: |
+          make
+
+      - name: Run the built executable
+        run: |
+          ./webserv configs/default.conf
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20'
+
+      - name: Clone the other repo
+        run: |
+          git clone https://github.com/LeaYeh/h1spec.git
+          cd h1spec
+          go build -o h1spec ./cmd
+
+      - name: Run the Go executable with secret
+        run: |
+          cd h1spec
+          ./h1spec -p 8080
+        env:
+          TESTINY_API_KEY: ${{ secrets.TESTINY_API_KEY }}

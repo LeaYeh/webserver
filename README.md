@@ -109,11 +109,12 @@ curl -X DELETE http://127.0.0.1:8080/upload/myfile.txt
 The configuration file follows an nginx-style hierarchical structure: directives cascade from outer blocks into inner ones, with inner blocks taking precedence.
 
 ```
-global {
-    http {
-        server {
-            location { ... }
-        }
+worker_processes 1;
+worker_connections 1024;
+
+http {
+    server {
+        location { ... }
     }
 }
 ```
@@ -138,12 +139,12 @@ global {
 
 ### Server Block
 
-| Directive            | Example                         | Description                                   |
-|----------------------|---------------------------------|-----------------------------------------------|
-| `listen`             | `listen 127.0.0.1:8080;`        | IP address and port to bind                   |
-| `server_name`        | `server_name localhost;`        | Hostname for virtual host matching            |
-| `keep_alive_timeout` | `keep_alive_timeout 65;`        | Idle connection timeout in seconds            |
-| `error_log`          | `error_log log/error.log error;`| Log file path and log level (error/info)      |
+| Directive            | Example                         | Description                                                  |
+|----------------------|---------------------------------|--------------------------------------------------------------|
+| `listen`             | `listen 127.0.0.1:8080;`        | IP address and port to bind                                  |
+| `server_name`        | `server_name localhost;`        | Hostname for virtual host matching                           |
+| `keep_alive_timeout` | `keep_alive_timeout 65;`        | Idle connection timeout in seconds                           |
+| `error_log`          | `error_log log/error.log error;`| Log file path and log level (`debug`/`info`/`warning`/`error`) |
 
 ### Location Block
 
@@ -281,11 +282,11 @@ All three handler types implement the same `IHandler` interface, so the Reactor 
 
 | Class | File | Responsibility |
 |-------|------|----------------|
-| `Reactor` | `kernel/Reactor.hpp` | `epoll` event loop, fd → `IHandler*` map, SIGINT shutdown |
-| `Acceptor` | `kernel/Acceptor.hpp` | Accepts TCP connections, registers new `ConnectionHandler` with epoll |
-| `ConnectionHandler` | `kernel/ConnectionHandler.hpp` | 4096-byte read buffer, write buffer flushing, keep-alive timer |
-| `RequestProcessor` | `kernel/RequestProcessor.hpp` | Per-connection parse state, routes completed requests to HTTP handlers |
-| `CgiHandler` | `kernel/CgiHandler.hpp` | Reads CGI process stdout from pipe, relays data to client write buffer |
+| `Reactor` | [`include/kernel/Reactor.hpp`](include/kernel/Reactor.hpp) | `epoll` event loop, fd → `IHandler*` map, SIGINT shutdown |
+| `Acceptor` | [`include/kernel/Acceptor.hpp`](include/kernel/Acceptor.hpp) | Accepts TCP connections, registers new `ConnectionHandler` with epoll |
+| `ConnectionHandler` | [`include/kernel/ConnectionHandler.hpp`](include/kernel/ConnectionHandler.hpp) | 4096-byte read buffer, write buffer flushing, keep-alive timer |
+| `RequestProcessor` | [`include/kernel/RequestProcessor.hpp`](include/kernel/RequestProcessor.hpp) | Per-connection parse state, routes completed requests to HTTP handlers |
+| `CgiHandler` | [`include/kernel/CgiHandler.hpp`](include/kernel/CgiHandler.hpp) | Reads CGI process stdout from pipe, relays data to client write buffer |
 
 ## Connection Lifecycle
 
@@ -338,7 +339,8 @@ Request parsing is handled by a chain of state machines that process the byte st
 
 **States:** `METHOD` → `SPACE_BEFORE_URI` → `URI` → `SPACE_BEFORE_VERSION` → `VERSION` → `CRLF`
 
-Supported methods: `GET`, `POST`, `DELETE`, `OPTIONS`, `CONNECT`.
+Recognized request-line methods: `GET`, `POST`, `DELETE`, `OPTIONS`, `CONNECT`.
+Currently accepted/implemented methods are `GET`, `POST`, and `DELETE`; `OPTIONS` and `CONNECT` are parsed but not implemented and may be rejected later with `501`.
 
 ## URI Analyzer
 
@@ -375,7 +377,7 @@ State machine:
 
 - Decodes request bodies for uploads
 - Encodes large response files to avoid loading them fully into memory
-- `ConnectionHandler` tracks per-fd file offsets in `_chunked_file_records` for streaming
+- `GetHandler` tracks per-fd file offsets in `_chunked_file_records` for streaming large files
 
 ---
 
@@ -436,7 +438,7 @@ CGI scripts are triggered when the request URI matches a location with `cgi_path
 
 ```
 Request matched as CGI
-  → CgiExecutor::execute()
+  → CgiExecutor::cgi_exec(...)
       1. Extract script name from URI
       2. Build CGI environment variables
       3. pipe(stdout_pipe)

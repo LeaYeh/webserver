@@ -321,11 +321,15 @@ Client connects
 | `WAITING_SESSION` | 1 | Waiting for virtual host resolution |
 | `PROCESSING` | 2 | Handler is building the response |
 | `WAITING_CGI` | 4 | Blocked on CGI child process output |
-| `HANDLE_REQ_CHUNKED` | 8 | Decoding incoming chunked request body |
-| `HANDLE_RES_CHUNKED` | 16 | Streaming large response file in chunks |
-| `CONSUME_BODY` | 128 | Draining leftover request body before responding |
+| `HANDLE_OTHERS_CHUNKED` | 8 | Subsequent chunk of a chunked response body; send body only (no status/headers) |
+| `HANDLE_FIRST_CHUNKED` | 16 | First chunk of a chunked response body; include status line and headers |
+| `HANDLE_CHUNKED` | 32 | Chunked response is in progress (stream file in CHUNKED_SIZE pieces) |
 | `COMPLETED` | 64 | Response fully written; evaluate keep-alive |
+| `CONSUME_BODY` | 128 | Draining leftover request body before responding |
 | `ERROR` | 256 | Unrecoverable error; tear down connection |
+| `UNKNOWN` | 512 | Unknown state |
+
+Implementation references: [GetHandler chunked flow](source/kernel/GetHandler.cpp#L140-L180) and [ResponseBuilder body-only mode](source/shell/ResponseBuilder.cpp#L14-L32).
 
 ---
 
